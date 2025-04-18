@@ -1,10 +1,10 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
-import authRoutes from "./routes/auth.routes";
-import userRoutes from "./routes/user.routes";
-import gradeRoutes from "./routes/grade.routes";
-import schoolRoutes from "./routes/school.routes";
+import authRoutes from "./routes/auth.route";
+import userRoutes from "./routes/user.route";
+import gradeRoutes from "./routes/grade.route";
+import schoolRoutes from "./routes/school.route";
 import { errorMiddleware } from "./middlewares/error.middleware";
 
 const app = express();
