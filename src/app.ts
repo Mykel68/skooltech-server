@@ -30,4 +30,25 @@ app.use("/grades", gradeRoutes);
 app.use("/schools", schoolRoutes);
 app.use(errorMiddleware);
 
+// welcome api route
+app.get('/', (req, res) => {
+  res.send('Welcome to Hello API!');
+});
+
+
+// Catch-All Middleware for 404 Route
+app.use((req, res, next) => {
+  res.status(404).json({
+      message: `The API endpoint ${req.originalUrl} does not exist on this server.`,
+  });
+});
+
+
+// Error Handling Middleware
+app.use((error: any, req: any, res: any, next: any) => {
+  console.error(error);
+  res.status(500).json({ message: 'Internal Server Error' });
+});
+
+
 export default app;
