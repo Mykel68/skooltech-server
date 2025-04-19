@@ -1,6 +1,6 @@
-import express from 'express';
-import * as userController from '../controllers/user.controller';
-import { authMiddleware } from '../middlewares/auth.middleware';
+import express from "express";
+import * as userController from "../controllers/user.controller";
+import { verify_X_API_KEY } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ const router = express.Router();
  * @swagger
  * /users:
  *   post:
- *     summary: Create a new user
+ *     summary: Create a new user - Admin Only
  *     security: [{ bearerAuth: [] }]
  *     requestBody:
  *       required: true
@@ -26,6 +26,6 @@ const router = express.Router();
  *     responses:
  *       201: { description: User created }
  */
-router.post('/', authMiddleware, userController.createUserController);
+router.post("/register", verify_X_API_KEY, userController.createUserController);
 
 export default router;

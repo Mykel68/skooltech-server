@@ -1,6 +1,6 @@
 import express from "express";
 import * as schoolController from "../controllers/school.controller";
-import { authMiddleware } from "../middlewares/auth.middleware";
+import { verify_X_API_KEY } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 
@@ -32,6 +32,10 @@ const router = express.Router();
  *       400: { description: Invalid input }
  *       403: { description: Unauthorized }
  */
-router.post("/", authMiddleware, schoolController.createSchoolController);
+router.post(
+  "/register",
+  verify_X_API_KEY,
+  schoolController.createSchoolController
+);
 
 export default router;
