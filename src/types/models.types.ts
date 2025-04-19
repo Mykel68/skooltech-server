@@ -1,5 +1,16 @@
 import { Model } from "sequelize";
 
+// School registration data
+export interface SchoolRegistrationData {
+  name: string;
+  address?: string;
+  admin_username: string;
+  admin_password: string;
+  admin_email: string;
+  admin_first_name?: string;
+  admin_last_name?: string;
+}
+
 // User-related interfaces
 export interface UserRegistrationData {
   username: string;
