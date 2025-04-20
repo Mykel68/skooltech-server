@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# If you compile TypeScript to a dist folder
+dist/
+
+# Log files
+*.log 
