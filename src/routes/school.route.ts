@@ -72,6 +72,10 @@ const router = express.Router();
  *       400:
  *         description: Invalid input
  */
-router.post("/", verify_X_API_KEY, schoolController.createSchoolController);
+router.post(
+  "/register",
+  verify_X_API_KEY,
+  schoolController.createSchoolController
+);
 
 export default router;
