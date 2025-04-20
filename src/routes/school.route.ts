@@ -1,6 +1,5 @@
 import express from "express";
 import * as schoolController from "../controllers/school.controller";
-import { verify_X_API_KEY } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 
@@ -22,6 +21,12 @@ const router = express.Router();
  *               address:
  *                 type: string
  *                 description: Address of the school (optional)
+ *               school_image:
+ *                 type: string
+ *                 description: URL of the school image (optional)
+ *               phone_number:
+ *                 type: string
+ *                 description: Phone number of the school, e.g., +2348012345678 or 08012345678 (optional)
  *               admin_username:
  *                 type: string
  *                 description: Username for the school admin
@@ -60,6 +65,12 @@ const router = express.Router();
  *                         address:
  *                           type: string
  *                           nullable: true
+ *                         school_image:
+ *                           type: string
+ *                           nullable: true
+ *                         phone_number:
+ *                           type: string
+ *                           nullable: true
  *                     admin:
  *                       type: object
  *                       properties:
@@ -72,10 +83,6 @@ const router = express.Router();
  *       400:
  *         description: Invalid input
  */
-router.post(
-  "/register",
-  verify_X_API_KEY,
-  schoolController.createSchoolController
-);
+router.post("/register", schoolController.createSchoolController);
 
 export default router;

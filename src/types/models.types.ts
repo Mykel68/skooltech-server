@@ -4,6 +4,8 @@ import { Model } from "sequelize";
 export interface SchoolRegistrationData {
   name: string;
   address?: string;
+  school_image?: string;
+  phone_number?: string;
   admin_username: string;
   admin_password: string;
   admin_email: string;
@@ -50,6 +52,8 @@ export interface SchoolAttributes {
   school_id?: string;
   name: string;
   address?: string;
+  school_image?: string;
+  phone_number?: string;
 }
 
 export interface SchoolInstance

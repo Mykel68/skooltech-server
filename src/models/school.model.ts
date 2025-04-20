@@ -11,7 +11,9 @@ const School = sequelize.define<SchoolInstance>(
       primaryKey: true,
     },
     name: { type: DataTypes.STRING, allowNull: false },
-    address: { type: DataTypes.STRING },
+    address: { type: DataTypes.STRING, allowNull: true },
+    school_image: { type: DataTypes.STRING, allowNull: true },
+    phone_number: { type: DataTypes.STRING, allowNull: true },
   },
   { tableName: "schools" }
 );
