@@ -8,8 +8,8 @@ import Joi from "joi";
 const schoolRegistrationSchema = Joi.object({
   name: Joi.string().min(3).max(100).required(),
   address: Joi.string().max(255).optional(),
-  school_image: Joi.string().uri().optional(),
-  phone_number: Joi.string().min(7).max(15).optional(),
+  school_image: Joi.string().uri().allow(null).optional(),
+  phone_number: Joi.string().min(7).max(15).allow(null).optional(),
   admin_username: Joi.string().min(3).max(30).required(),
   admin_password: Joi.string().min(8).required(),
   admin_email: Joi.string().email().required(),
