@@ -5,14 +5,14 @@ export interface SchoolRegistrationData {
   name: string;
   address?: string;
   school_image?: string | null;
-  phone_number?: string;
+  phone_number?: string | null;
+  school_code: string;
   admin_username: string;
   admin_password: string;
   admin_email: string;
   admin_first_name?: string;
   admin_last_name?: string;
 }
-
 // User-related interfaces
 export interface UserRegistrationData {
   username: string;
@@ -53,7 +53,8 @@ export interface SchoolAttributes {
   name: string;
   address?: string;
   school_image?: string | null;
-  phone_number?: string;
+  phone_number?: string | null;
+  school_code: string;
 }
 
 export interface SchoolInstance

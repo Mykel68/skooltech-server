@@ -17,31 +17,30 @@ const router = express.Router();
  *             properties:
  *               name:
  *                 type: string
- *                 description: Name of the school
  *               address:
  *                 type: string
- *                 description: Address of the school (optional)
+ *                 nullable: true
  *               school_image:
  *                 type: string
- *                 description: URL of the school image (optional)
+ *                 nullable: true
  *               phone_number:
  *                 type: string
- *                 description: Phone number of the school, e.g., +2348012345678 or 08012345678 (optional)
+ *                 nullable: true
+ *               school_code:
+ *                 type: string
+ *                 description: Unique code for the school
  *               admin_username:
  *                 type: string
- *                 description: Username for the school admin
  *               admin_password:
  *                 type: string
- *                 description: Password for the school admin
  *               admin_email:
  *                 type: string
- *                 description: Email for the school admin
  *               admin_first_name:
  *                 type: string
- *                 description: First name of the admin (optional)
+ *                 nullable: true
  *               admin_last_name:
  *                 type: string
- *                 description: Last name of the admin (optional)
+ *                 nullable: true
  *     responses:
  *       201:
  *         description: School and admin created successfully
@@ -71,6 +70,8 @@ const router = express.Router();
  *                         phone_number:
  *                           type: string
  *                           nullable: true
+ *                         school_code:
+ *                           type: string
  *                     admin:
  *                       type: object
  *                       properties:
@@ -84,5 +85,45 @@ const router = express.Router();
  *         description: Invalid input
  */
 router.post("/register", schoolController.createSchoolController);
+
+/**
+ * @swagger
+ * /schools/code/{school_code}:
+ *   get:
+ *     summary: Get school details by school code
+ *     parameters:
+ *       - in: path
+ *         name: school_code
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Unique code of the school
+ *     responses:
+ *       200:
+ *         description: School details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 school_id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 address:
+ *                   type: string
+ *                   nullable: true
+ *                 school_image:
+ *                   type: string
+ *                   nullable: true
+ *                 phone_number:
+ *                   type: string
+ *                   nullable: true
+ *                 school_code:
+ *                   type: string
+ *       404:
+ *         description: School not found
+ */
+router.get("/code/:school_code", schoolController.getSchoolByCodeController);
 
 export default router;
