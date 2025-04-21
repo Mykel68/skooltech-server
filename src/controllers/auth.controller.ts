@@ -47,8 +47,7 @@ export const registerController = async (
     if (error) throw new AppError(error.details[0].message, 400);
 
     const userData: UserRegistrationData = value;
-    const school_id = req.params.school_id;
-    const user = await userService.registerUser(userData, school_id);
+    const user = await userService.registerUser(userData);
     sendResponse(res, 201, {
       user_id: user.user_id,
       username: user.username,

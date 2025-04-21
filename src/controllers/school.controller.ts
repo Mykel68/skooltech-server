@@ -14,12 +14,26 @@ const schoolRegistrationSchema = Joi.object({
     .min(3)
     .max(20)
     .regex(/^[a-zA-Z0-9-]+$/)
-    .required(),
+    .allow(null, "")
+    .optional(),
   admin_username: Joi.string().min(3).max(30).required(),
   admin_password: Joi.string().min(8).required(),
   admin_email: Joi.string().email().required(),
   admin_first_name: Joi.string().max(50).optional(),
   admin_last_name: Joi.string().max(50).optional(),
+});
+
+const schoolUpdateSchema = Joi.object({
+  name: Joi.string().min(3).max(100).optional(),
+  address: Joi.string().max(255).optional(),
+  school_image: Joi.string().uri().allow(null).optional(),
+  phone_number: Joi.string().min(7).max(15).allow(null).optional(),
+  school_code: Joi.string()
+    .min(3)
+    .max(20)
+    .regex(/^[a-zA-Z0-9-]+$/)
+    .allow(null, "")
+    .optional(),
 });
 
 export const createSchoolController = async (
@@ -71,5 +85,50 @@ export const getSchoolByCodeController = async (
     });
   } catch (error: any) {
     next(new AppError(error.message, error.statusCode || 404));
+  }
+};
+
+export const getSchoolByIdController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { school_id } = req.params;
+    const school = await schoolService.getSchoolById(school_id);
+    sendResponse(res, 200, {
+      school_id: school.school_id,
+      name: school.name,
+      address: school.address,
+      school_image: school.school_image,
+      phone_number: school.phone_number,
+      school_code: school.school_code,
+    });
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 404));
+  }
+};
+
+export const updateSchoolController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { school_id } = req.params;
+    const { error, value } = schoolUpdateSchema.validate(req.body);
+    if (error) throw new AppError(error.details[0].message, 400);
+
+    const updatedSchool = await schoolService.updateSchool(school_id, value);
+    sendResponse(res, 200, {
+      school_id: updatedSchool.school_id,
+      name: updatedSchool.name,
+      address: updatedSchool.address,
+      school_image: updatedSchool.school_image,
+      phone_number: updatedSchool.phone_number,
+      school_code: updatedSchool.school_code,
+    });
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 400));
   }
 };

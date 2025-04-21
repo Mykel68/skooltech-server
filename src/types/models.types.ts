@@ -1,19 +1,18 @@
 import { Model } from "sequelize";
 
-// School registration data
 export interface SchoolRegistrationData {
   name: string;
   address?: string;
   school_image?: string | null;
   phone_number?: string | null;
-  school_code: string;
+  school_code?: string | null;
   admin_username: string;
   admin_password: string;
   admin_email: string;
   admin_first_name?: string;
   admin_last_name?: string;
 }
-// User-related interfaces
+
 export interface UserRegistrationData {
   username: string;
   password: string;
@@ -21,6 +20,7 @@ export interface UserRegistrationData {
   role: "Student" | "Teacher";
   first_name?: string;
   last_name?: string;
+  school_id: string;
 }
 
 export interface UserCreationData {
@@ -47,21 +47,19 @@ export interface UserAttributes {
 
 export interface UserInstance extends Model<UserAttributes>, UserAttributes {}
 
-// School model
 export interface SchoolAttributes {
   school_id?: string;
   name: string;
   address?: string;
   school_image?: string | null;
   phone_number?: string | null;
-  school_code: string;
+  school_code?: string | null;
 }
 
 export interface SchoolInstance
   extends Model<SchoolAttributes>,
     SchoolAttributes {}
 
-// Subject model
 export interface SubjectAttributes {
   subject_id?: string;
   school_id: string;
@@ -72,7 +70,6 @@ export interface SubjectInstance
   extends Model<SubjectAttributes>,
     SubjectAttributes {}
 
-// Assessment model
 export interface AssessmentAttributes {
   assessment_id?: string;
   class_id: string;
@@ -86,7 +83,6 @@ export interface AssessmentInstance
   extends Model<AssessmentAttributes>,
     AssessmentAttributes {}
 
-// Score model
 export interface ScoreAttributes {
   score_id?: string;
   student_id: string;
@@ -98,7 +94,6 @@ export interface ScoreInstance
   extends Model<ScoreAttributes>,
     ScoreAttributes {}
 
-// GradingConfig model
 export interface GradingConfigAttributes {
   config_id?: string;
   school_id: string;
@@ -110,7 +105,6 @@ export interface GradingConfigInstance
   extends Model<GradingConfigAttributes>,
     GradingConfigAttributes {}
 
-// GradeScale model
 export interface GradeScaleAttributes {
   scale_id?: string;
   school_id: string;
@@ -123,7 +117,6 @@ export interface GradeScaleInstance
   extends Model<GradeScaleAttributes>,
     GradeScaleAttributes {}
 
-// Class model
 export interface ClassAttributes {
   class_id?: string;
   school_id: string;

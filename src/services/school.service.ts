@@ -7,6 +7,7 @@ import {
   SchoolRegistrationData,
   SchoolInstance,
   UserInstance,
+  SchoolAttributes,
 } from "../types/models.types";
 import { AppError } from "../utils/error.util";
 
@@ -53,8 +54,10 @@ export const createSchool = async (
   if (existingSchool)
     throw new AppError("School with this name already exists", 400);
 
-  const existingCode = await School.findOne({ where: { school_code } });
-  if (existingCode) throw new AppError("School code already exists", 400);
+  if (school_code) {
+    const existingCode = await School.findOne({ where: { school_code } });
+    if (existingCode) throw new AppError("School code already exists", 400);
+  }
 
   const existingUser = await User.findOne({
     where: { username: admin_username },
@@ -98,7 +101,44 @@ export const createSchool = async (
 export const getSchoolByCode = async (
   school_code: string
 ): Promise<SchoolInstance> => {
+  if (!school_code) throw new AppError("School code is required", 400);
   const school = await School.findOne({ where: { school_code } });
   if (!school) throw new AppError("School not found", 404);
+  return school as SchoolInstance;
+};
+
+export const getSchoolById = async (
+  school_id: string
+): Promise<SchoolInstance> => {
+  const school = await School.findByPk(school_id);
+  if (!school) throw new AppError("School not found", 404);
+  return school as SchoolInstance;
+};
+
+export const updateSchool = async (
+  school_id: string,
+  updates: Partial<SchoolAttributes>
+): Promise<SchoolInstance> => {
+  const school = await School.findByPk(school_id);
+  if (!school) throw new AppError("School not found", 404);
+
+  if (updates.name && updates.name !== school.name) {
+    const existingSchool = await School.findOne({
+      where: { name: updates.name },
+    });
+    if (existingSchool)
+      throw new AppError("School with this name already exists", 400);
+  }
+
+  if (updates.school_code) {
+    const existingCode = await School.findOne({
+      where: { school_code: updates.school_code },
+    });
+    if (existingCode && existingCode.school_id !== school_id) {
+      throw new AppError("School code already exists", 400);
+    }
+  }
+
+  await school.update(updates);
   return school as SchoolInstance;
 };

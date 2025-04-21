@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db";
-import School from "./school.model";
 import { UserInstance } from "../types/models.types";
 
 const User = sequelize.define<UserInstance>(
@@ -16,27 +15,14 @@ const User = sequelize.define<UserInstance>(
       type: DataTypes.ENUM("Admin", "Teacher", "Student", "Parent"),
       allowNull: false,
     },
-    username: { type: DataTypes.STRING, unique: true, allowNull: false },
+    username: { type: DataTypes.STRING, allowNull: false, unique: true },
     password_hash: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, unique: true, allowNull: false },
-    first_name: { type: DataTypes.STRING },
-    last_name: { type: DataTypes.STRING },
-    is_approved: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    first_name: { type: DataTypes.STRING, allowNull: true },
+    last_name: { type: DataTypes.STRING, allowNull: true },
+    is_approved: { type: DataTypes.BOOLEAN, defaultValue: false },
   },
-  {
-    tableName: "users",
-    hooks: {
-      beforeCreate: (user: UserInstance) => {
-        user.is_approved = user.role === "Teacher" ? false : true;
-      },
-    },
-  }
+  { tableName: "users" }
 );
-
-User.belongsTo(School, { foreignKey: "school_id" });
-School.hasMany(User, { foreignKey: "school_id" });
 
 export default User;

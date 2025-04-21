@@ -28,7 +28,8 @@ const router = express.Router();
  *                 nullable: true
  *               school_code:
  *                 type: string
- *                 description: Unique code for the school
+ *                 nullable: true
+ *                 description: Optional unique code for the school
  *               admin_username:
  *                 type: string
  *               admin_password:
@@ -72,6 +73,7 @@ const router = express.Router();
  *                           nullable: true
  *                         school_code:
  *                           type: string
+ *                           nullable: true
  *                     admin:
  *                       type: object
  *                       properties:
@@ -84,7 +86,7 @@ const router = express.Router();
  *       400:
  *         description: Invalid input
  */
-router.post("/register", schoolController.createSchoolController);
+router.post("/", schoolController.createSchoolController);
 
 /**
  * @swagger
@@ -121,9 +123,116 @@ router.post("/register", schoolController.createSchoolController);
  *                   nullable: true
  *                 school_code:
  *                   type: string
+ *                   nullable: true
  *       404:
  *         description: School not found
  */
 router.get("/code/:school_code", schoolController.getSchoolByCodeController);
+
+/**
+ * @swagger
+ * /schools/{school_id}:
+ *   get:
+ *     summary: Get school details by school ID
+ *     parameters:
+ *       - in: path
+ *         name: school_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the school
+ *     responses:
+ *       200:
+ *         description: School details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 school_id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 address:
+ *                   type: string
+ *                   nullable: true
+ *                 school_image:
+ *                   type: string
+ *                   nullable: true
+ *                 phone_number:
+ *                   type: string
+ *                   nullable: true
+ *                 school_code:
+ *                   type: string
+ *                   nullable: true
+ *       404:
+ *         description: School not found
+ */
+router.get("/:school_id", schoolController.getSchoolByIdController);
+
+/**
+ * @swagger
+ * /schools/{school_id}:
+ *   patch:
+ *     summary: Update school details
+ *     parameters:
+ *       - in: path
+ *         name: school_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the school
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 nullable: true
+ *               address:
+ *                 type: string
+ *                 nullable: true
+ *               school_image:
+ *                 type: string
+ *                 nullable: true
+ *               phone_number:
+ *                 type: string
+ *                 nullable: true
+ *               school_code:
+ *                 type: string
+ *                 nullable: true
+ *     responses:
+ *       200:
+ *         description: School updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 school_id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 address:
+ *                   type: string
+ *                   nullable: true
+ *                 school_image:
+ *                   type: string
+ *                   nullable: true
+ *                 phone_number:
+ *                   type: string
+ *                   nullable: true
+ *                 school_code:
+ *                   type: string
+ *                   nullable: true
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: School not found
+ */
+router.patch("/:school_id", schoolController.updateSchoolController);
 
 export default router;
