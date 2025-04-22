@@ -168,7 +168,7 @@ router.get("/code/:school_code", schoolController.getSchoolByCodeController);
  *       404:
  *         description: School not found
  */
-router.get("/:school_id", schoolController.getSchoolByIdController);
+router.get("/profile/:school_id", schoolController.getSchoolByIdController);
 
 /**
  * @swagger
@@ -233,6 +233,6 @@ router.get("/:school_id", schoolController.getSchoolByIdController);
  *       404:
  *         description: School not found
  */
-router.patch("/:school_id", schoolController.updateSchoolController);
+router.patch("/profile/:school_id", schoolController.updateSchoolController);
 
 export default router;

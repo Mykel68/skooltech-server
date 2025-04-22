@@ -122,6 +122,6 @@ router.post("/", userController.registerUserController);
  *       404:
  *         description: User not found
  */
-router.patch("/:user_id", userController.updateUserController);
+router.patch("/profile/:user_id", userController.updateUserController);
 
 export default router;
