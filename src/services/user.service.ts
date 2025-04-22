@@ -38,6 +38,12 @@ export const registerUser = async (
   return user as UserInstance;
 };
 
+export const getUserById = async (user_id: string): Promise<UserInstance> => {
+  const user = await User.findByPk(user_id);
+  if (!user) throw new AppError("User not found", 404);
+  return user as UserInstance;
+};
+
 export const updateUser = async (
   user_id: string,
   updates: Partial<UserAttributes>

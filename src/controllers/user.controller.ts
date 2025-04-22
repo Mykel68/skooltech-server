@@ -46,6 +46,29 @@ export const registerUserController = async (
   }
 };
 
+export const getUserController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { user_id } = req.params;
+    const user = await userService.getUserById(user_id);
+    sendResponse(res, 200, {
+      user_id: user.user_id,
+      username: user.username,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+      school_id: user.school_id,
+      is_approved: user.is_approved,
+    });
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 404));
+  }
+};
+
 export const updateUserController = async (
   req: Request,
   res: Response,

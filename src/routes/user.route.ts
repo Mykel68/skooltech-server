@@ -60,6 +60,8 @@ const router = express.Router();
  */
 router.post("/", userController.registerUserController);
 
+router.get("/profile/:user_id", userController.getUserController);
+
 /**
  * @swagger
  * /users/{user_id}:
