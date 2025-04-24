@@ -7,7 +7,6 @@ import Joi from "joi";
 
 const schoolRegistrationSchema = Joi.object({
   name: Joi.string().min(3).max(100).required(),
-  address: Joi.string().max(255).optional(),
   school_image: Joi.string().uri().allow(null).optional(),
   phone_number: Joi.string().min(7).max(15).allow(null).optional(),
   school_code: Joi.string()
@@ -51,7 +50,6 @@ export const createSchoolController = async (
       school: {
         school_id: school.school_id,
         name: school.name,
-        address: school.address,
         school_image: school.school_image,
         phone_number: school.phone_number,
         school_code: school.school_code,

@@ -18,7 +18,6 @@ export const createSchool = async (
 ): Promise<{ school: SchoolInstance; admin: UserInstance }> => {
   const {
     name,
-    address,
     school_image,
     phone_number,
     school_code,
@@ -71,7 +70,6 @@ export const createSchool = async (
     const school = (await School.create(
       {
         name,
-        address,
         school_image,
         phone_number: formatted_phone_number,
         school_code,
