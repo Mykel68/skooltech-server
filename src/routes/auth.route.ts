@@ -1,5 +1,5 @@
-import express from 'express';
-import * as authController from '../controllers/auth.controller';
+import express from "express";
+import * as authController from "../controllers/auth.controller";
 const router = express.Router();
 
 /**
@@ -63,7 +63,11 @@ const router = express.Router();
  *                 success: { type: boolean }
  *                 data: { type: object, properties: { user_id: { type: string }, username: { type: string }, email: { type: string } } }
  */
-router.post('/login', authController.loginController);
-router.post('/register/:school_id', authController.registerController);
+router.post("/login", authController.loginController);
+router.post("/register/:school_id", authController.registerController);
+router.post(
+  "/teacher-student/login",
+  authController.loginTeacherStudentController
+);
 
 export default router;

@@ -20,6 +20,12 @@ const registrationSchema = Joi.object({
   last_name: Joi.string().max(50).optional(),
 });
 
+const teacherStudentLoginSchema = Joi.object({
+  username: Joi.string().required(),
+  password: Joi.string().required(),
+  school_code: Joi.string().required(),
+});
+
 export const loginController = async (
   req: Request,
   res: Response,
@@ -62,6 +68,27 @@ export const registerController = async (
       username: user.username,
       email: user.email,
     });
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 400));
+  }
+};
+
+export const loginTeacherStudentController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { error, value } = teacherStudentLoginSchema.validate(req.body);
+    if (error) throw new AppError(error.details[0].message, 400);
+
+    const { username, password, school_code } = value;
+    const token = await authService.loginTeacherStudent(
+      username,
+      password,
+      school_code
+    );
+    sendResponse(res, 200, { token });
   } catch (error: any) {
     next(new AppError(error.message, error.statusCode || 400));
   }
