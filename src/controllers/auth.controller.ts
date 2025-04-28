@@ -43,11 +43,20 @@ export const registerController = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const { school_id } = req.params;
+    if (!school_id) {
+      throw new AppError("School ID is required", 400);
+    }
+
     const { error, value } = registrationSchema.validate(req.body);
     if (error) throw new AppError(error.details[0].message, 400);
 
-    const userData: UserRegistrationData = value;
+    const userData: UserRegistrationData = {
+      ...value,
+      school_id: school_id,
+    };
     const user = await userService.registerUser(userData);
+
     sendResponse(res, 201, {
       user_id: user.user_id,
       username: user.username,

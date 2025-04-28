@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model";
 import School from "../models/school.model";
 import { AppError } from "../utils/error.util";
-import { UserInstance } from "../types/models.types";
+import { UserInstance, UserRegistrationData } from "../types/models.types";
 
 export const login = async (
   username: string,
@@ -40,4 +40,89 @@ export const login = async (
   );
 
   return token;
+};
+
+// export const registerUser = async (
+//   userData: UserRegistrationData
+// ): Promise<UserInstance> => {
+//   const { username, email, password, role, first_name, last_name, school_id } =
+//     userData;
+
+//   // Check if username or email already exists
+//   const existingUser = await User.findOne({
+//     where: {
+//       username: username,
+//     },
+//   });
+//   if (existingUser) {
+//     throw new AppError("Username already taken", 400);
+//   }
+
+//   const existingEmail = await User.findOne({
+//     where: {
+//       email: email,
+//     },
+//   });
+//   if (existingEmail) {
+//     throw new AppError("Email already registered", 400);
+//   }
+
+//   // Hash the password
+//   const salt = await bcrypt.genSalt(10);
+//   const password_hash = await bcrypt.hash(password, salt);
+
+//   // Create user
+//   const newUser = await User.create({
+//     username,
+//     email,
+//     password_hash,
+//     role,
+//     first_name,
+//     last_name,
+//     school_id,
+//   });
+
+//   return newUser;
+// };
+
+export const registerUser = async (
+  userData: UserRegistrationData
+): Promise<UserInstance> => {
+  const { username, email, password, role, first_name, last_name, school_id } =
+    userData;
+
+  // Check if school exists
+  const school = await School.findByPk(school_id);
+  if (!school) {
+    throw new AppError("Invalid school ID", 404);
+  }
+
+  // Check if username or email already exists
+  const existingUser = await User.findOne({ where: { username } });
+  if (existingUser) {
+    throw new AppError("Username already taken", 400);
+  }
+
+  const existingEmail = await User.findOne({ where: { email } });
+  if (existingEmail) {
+    throw new AppError("Email already registered", 400);
+  }
+
+  // Hash the password
+  const salt = await bcrypt.genSalt(10);
+  const password_hash = await bcrypt.hash(password, salt);
+
+  // Create user
+  const newUser = await User.create({
+    username,
+    email,
+    password_hash,
+    role,
+    first_name,
+    last_name,
+    school_id,
+    is_approved: role === "Teacher" ? false : true, // 👈 automatically set is_approved false for teachers
+  });
+
+  return newUser;
 };
