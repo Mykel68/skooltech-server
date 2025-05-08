@@ -1,19 +1,29 @@
 import express from "express";
 import * as schoolController from "../controllers/school.controller";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
 const router = express.Router();
+
+/**
+ * @swagger
+ * tags:
+ *   - name: Schools
+ *     description: School management endpoints
+ */
 
 /**
  * @swagger
  * /schools:
  *   post:
  *     summary: Register a new school and its admin user
+ *     tags: [Schools]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [name, admin_username, admin_password, admin_email]
  *             properties:
  *               name:
  *                 type: string
@@ -83,8 +93,18 @@ const router = express.Router();
  *                           type: string
  *                         email:
  *                           type: string
+ *                         role:
+ *                           type: string
+ *                           enum: ['Admin']
  *       400:
- *         description: Invalid input
+ *         description: Invalid input or username/email already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  */
 router.post("/", schoolController.createSchoolController);
 
@@ -93,6 +113,7 @@ router.post("/", schoolController.createSchoolController);
  * /schools/code/{school_code}:
  *   get:
  *     summary: Get school details by school code
+ *     tags: [Schools]
  *     parameters:
  *       - in: path
  *         name: school_code
@@ -108,32 +129,47 @@ router.post("/", schoolController.createSchoolController);
  *             schema:
  *               type: object
  *               properties:
- *                 school_id:
- *                   type: string
- *                 name:
- *                   type: string
- *                 address:
- *                   type: string
- *                   nullable: true
- *                 school_image:
- *                   type: string
- *                   nullable: true
- *                 phone_number:
- *                   type: string
- *                   nullable: true
- *                 school_code:
- *                   type: string
- *                   nullable: true
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     school_id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     address:
+ *                       type: string
+ *                       nullable: true
+ *                     school_image:
+ *                       type: string
+ *                       nullable: true
+ *                     phone_number:
+ *                       type: string
+ *                       nullable: true
+ *                     school_code:
+ *                       type: string
+ *                       nullable: true
  *       404:
  *         description: School not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  */
 router.get("/code/:school_code", schoolController.getSchoolByCodeController);
 
 /**
  * @swagger
- * /schools/{school_id}:
+ * /schools/profile/{school_id}:
  *   get:
  *     summary: Get school details by school ID
+ *     tags: [Schools]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: school_id
@@ -149,32 +185,60 @@ router.get("/code/:school_code", schoolController.getSchoolByCodeController);
  *             schema:
  *               type: object
  *               properties:
- *                 school_id:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     school_id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     address:
+ *                       type: string
+ *                       nullable: true
+ *                     school_image:
+ *                       type: string
+ *                       nullable: true
+ *                     phone_number:
+ *                       type: string
+ *                       nullable: true
+ *                     school_code:
+ *                       type: string
+ *                       nullable: true
+ *       401:
+ *         description: Unauthorized - No token provided or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
  *                   type: string
- *                 name:
- *                   type: string
- *                 address:
- *                   type: string
- *                   nullable: true
- *                 school_image:
- *                   type: string
- *                   nullable: true
- *                 phone_number:
- *                   type: string
- *                   nullable: true
- *                 school_code:
- *                   type: string
- *                   nullable: true
  *       404:
  *         description: School not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  */
-router.get("/profile/:school_id", schoolController.getSchoolByIdController);
+router.get(
+  "/profile/:school_id",
+  authMiddleware,
+  schoolController.getSchoolByIdController
+);
 
 /**
  * @swagger
- * /schools/{school_id}:
+ * /schools/profile/{school_id}:
  *   patch:
  *     summary: Update school details
+ *     tags: [Schools]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: school_id
@@ -212,27 +276,59 @@ router.get("/profile/:school_id", schoolController.getSchoolByIdController);
  *             schema:
  *               type: object
  *               properties:
- *                 school_id:
- *                   type: string
- *                 name:
- *                   type: string
- *                 address:
- *                   type: string
- *                   nullable: true
- *                 school_image:
- *                   type: string
- *                   nullable: true
- *                 phone_number:
- *                   type: string
- *                   nullable: true
- *                 school_code:
- *                   type: string
- *                   nullable: true
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     school_id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     address:
+ *                       type: string
+ *                       nullable: true
+ *                     school_image:
+ *                       type: string
+ *                       nullable: true
+ *                     phone_number:
+ *                       type: string
+ *                       nullable: true
+ *                     school_code:
+ *                       type: string
+ *                       nullable: true
  *       400:
  *         description: Invalid input
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized - No token provided or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  *       404:
  *         description: School not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  */
-router.patch("/profile/:school_id", schoolController.updateSchoolController);
+router.patch(
+  "/profile/:school_id",
+  authMiddleware,
+  schoolController.updateSchoolController
+);
 
 export default router;
