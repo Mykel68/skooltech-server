@@ -4,6 +4,9 @@ import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
 import { UserRegistrationData } from "../types/models.types";
 import Joi from "joi";
+import { AuthRequest } from "../middlewares/auth.middleware";
+import { validateUUID } from "../utils/validation.util";
+import User from "../models/user.model";
 
 const userRegistrationSchema = Joi.object({
   username: Joi.string().min(3).max(30).required(),
@@ -213,6 +216,31 @@ export const deleteTeacherController = async (
     const { user_id } = req.params;
     await userService.deleteTeacher(user_id);
     sendResponse(res, 200, { message: "Teacher deleted successfully" });
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 400));
+  }
+};
+
+export const getStudentsBySchoolController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const { school_id } = req.params;
+
+  try {
+    const students = await userService.getStudentsBySchool(school_id);
+    const responseData = students.map((student) => ({
+      user_id: student.user_id,
+      username: student.username,
+      email: student.email,
+      first_name: student.first_name,
+      last_name: student.last_name,
+      role: student.role,
+      school_id: student.school_id,
+      is_approved: student.is_approved,
+    }));
+    sendResponse(res, 200, responseData);
   } catch (error: any) {
     next(new AppError(error.message, error.statusCode || 400));
   }

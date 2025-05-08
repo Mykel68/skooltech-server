@@ -3,10 +3,11 @@ import User from "../models/user.model";
 import School from "../models/school.model";
 import {
   UserRegistrationData,
-  UserInstance,
   UserAttributes,
+  UserInstance,
 } from "../types/models.types";
 import { AppError } from "../utils/error.util";
+import { validateUUID } from "../utils/validation.util";
 
 export const registerUser = async (
   userData: UserRegistrationData
@@ -39,6 +40,8 @@ export const registerUser = async (
 };
 
 export const getUserById = async (user_id: string): Promise<UserInstance> => {
+  if (!validateUUID(user_id)) throw new AppError("Invalid user ID", 400);
+
   const user = await User.findByPk(user_id);
   if (!user) throw new AppError("User not found", 404);
   return user as UserInstance;
@@ -48,6 +51,8 @@ export const updateUser = async (
   user_id: string,
   updates: Partial<UserAttributes>
 ): Promise<UserInstance> => {
+  if (!validateUUID(user_id)) throw new AppError("Invalid user ID", 400);
+
   const user = await User.findByPk(user_id);
   if (!user) throw new AppError("User not found", 404);
 
@@ -72,6 +77,8 @@ export const updateUser = async (
 export const getTeacherById = async (
   user_id: string
 ): Promise<UserInstance> => {
+  if (!validateUUID(user_id)) throw new AppError("Invalid teacher ID", 400);
+
   const teacher = await User.findOne({ where: { user_id, role: "Teacher" } });
   if (!teacher) throw new AppError("Teacher not found", 404);
   return teacher as UserInstance;
@@ -80,11 +87,23 @@ export const getTeacherById = async (
 export const getTeachersBySchool = async (
   school_id: string
 ): Promise<UserInstance[]> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+
   const school = await School.findByPk(school_id);
   if (!school) throw new AppError("School not found", 404);
 
   const teachers = await User.findAll({
     where: { school_id, role: "Teacher" },
+    attributes: [
+      "user_id",
+      "username",
+      "email",
+      "first_name",
+      "last_name",
+      "role",
+      "school_id",
+      "is_approved",
+    ],
   });
   return teachers as UserInstance[];
 };
@@ -93,6 +112,8 @@ export const updateTeacher = async (
   user_id: string,
   updates: Partial<UserAttributes>
 ): Promise<UserInstance> => {
+  if (!validateUUID(user_id)) throw new AppError("Invalid teacher ID", 400);
+
   const teacher = await User.findOne({ where: { user_id, role: "Teacher" } });
   if (!teacher) throw new AppError("Teacher not found", 404);
 
@@ -118,6 +139,8 @@ export const verifyTeacher = async (
   user_id: string,
   is_approved: boolean
 ): Promise<UserInstance> => {
+  if (!validateUUID(user_id)) throw new AppError("Invalid teacher ID", 400);
+
   const teacher = await User.findOne({ where: { user_id, role: "Teacher" } });
   if (!teacher) throw new AppError("Teacher not found", 404);
 
@@ -126,8 +149,34 @@ export const verifyTeacher = async (
 };
 
 export const deleteTeacher = async (user_id: string): Promise<void> => {
+  if (!validateUUID(user_id)) throw new AppError("Invalid teacher ID", 400);
+
   const teacher = await User.findOne({ where: { user_id, role: "Teacher" } });
   if (!teacher) throw new AppError("Teacher not found", 404);
 
   await teacher.destroy();
+};
+
+export const getStudentsBySchool = async (
+  school_id: string
+): Promise<UserInstance[]> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+
+  const school = await School.findByPk(school_id);
+  if (!school) throw new AppError("School not found", 404);
+
+  const students = await User.findAll({
+    where: { school_id, role: "Student" },
+    attributes: [
+      "user_id",
+      "username",
+      "email",
+      "first_name",
+      "last_name",
+      "role",
+      "school_id",
+      "is_approved",
+    ],
+  });
+  return students as UserInstance[];
 };

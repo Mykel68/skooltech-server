@@ -31,7 +31,7 @@ const router = express.Router();
  *                 type: string
  *                 minLength: 3
  *                 maxLength: 30
- *                 example: teacher1
+ *                 example: student1
  *               password:
  *                 type: string
  *                 minLength: 8
@@ -39,16 +39,16 @@ const router = express.Router();
  *               email:
  *                 type: string
  *                 format: email
- *                 example: teacher@school.com
+ *                 example: student@school.com
  *               role:
  *                 type: string
  *                 enum: [Teacher, Student]
- *                 example: Teacher
+ *                 example: Student
  *               first_name:
  *                 type: string
  *                 maxLength: 50
  *                 nullable: true
- *                 example: Jane
+ *                 example: John
  *               last_name:
  *                 type: string
  *                 maxLength: 50
@@ -79,13 +79,13 @@ const router = express.Router();
  *                       example: 123e4567-e89b-12d3-a456-426614174001
  *                     username:
  *                       type: string
- *                       example: teacher1
+ *                       example: student1
  *                     email:
  *                       type: string
- *                       example: teacher@school.com
+ *                       example: student@school.com
  *                     role:
  *                       type: string
- *                       example: Teacher
+ *                       example: Student
  *                     school_id:
  *                       type: string
  *                       format: uuid
@@ -153,21 +153,21 @@ router.post("/", userController.registerUserController);
  *                       example: 123e4567-e89b-12d3-a456-426614174001
  *                     username:
  *                       type: string
- *                       example: teacher1
+ *                       example: student1
  *                     email:
  *                       type: string
- *                       example: teacher@school.com
+ *                       example: student@school.com
  *                     first_name:
  *                       type: string
  *                       nullable: true
- *                       example: Jane
+ *                       example: John
  *                     last_name:
  *                       type: string
  *                       nullable: true
  *                       example: Doe
  *                     role:
  *                       type: string
- *                       example: Teacher
+ *                       example: Student
  *                     school_id:
  *                       type: string
  *                       format: uuid
@@ -231,17 +231,17 @@ router.get(
  *                 minLength: 3
  *                 maxLength: 30
  *                 nullable: true
- *                 example: teacher1_updated
+ *                 example: student1_updated
  *               email:
  *                 type: string
  *                 format: email
  *                 nullable: true
- *                 example: teacher_updated@school.com
+ *                 example: student_updated@school.com
  *               first_name:
  *                 type: string
  *                 maxLength: 50
  *                 nullable: true
- *                 example: Jane Updated
+ *                 example: John Updated
  *               last_name:
  *                 type: string
  *                 maxLength: 50
@@ -267,21 +267,21 @@ router.get(
  *                       example: 123e4567-e89b-12d3-a456-426614174001
  *                     username:
  *                       type: string
- *                       example: teacher1_updated
+ *                       example: student1_updated
  *                     email:
  *                       type: string
- *                       example: teacher_updated@school.com
+ *                       example: student_updated@school.com
  *                     first_name:
  *                       type: string
  *                       nullable: true
- *                       example: Jane Updated
+ *                       example: John Updated
  *                     last_name:
  *                       type: string
  *                       nullable: true
  *                       example: Doe
  *                     role:
  *                       type: string
- *                       example: Teacher
+ *                       example: Student
  *                     school_id:
  *                       type: string
  *                       format: uuid
@@ -424,6 +424,106 @@ router.get(
   authorize(["Admin"]),
   restrictToSchool(),
   userController.getTeachersBySchoolController
+);
+
+/**
+ * @swagger
+ * /users/{school_id}/students:
+ *   get:
+ *     summary: Get all students for a school
+ *     tags: [Students]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: school_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the school
+ *         example: 123e4567-e89b-12d3-a456-426614174000
+ *     responses:
+ *       200:
+ *         description: Students retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       user_id:
+ *                         type: string
+ *                         format: uuid
+ *                         example: 123e4567-e89b-12d3-a456-426614174002
+ *                       username:
+ *                         type: string
+ *                         example: student1
+ *                       email:
+ *                         type: string
+ *                         example: student@school.com
+ *                       first_name:
+ *                         type: string
+ *                         nullable: true
+ *                         example: John
+ *                       last_name:
+ *                         type: string
+ *                         nullable: true
+ *                         example: Doe
+ *                       role:
+ *                         type: string
+ *                         example: Student
+ *                       school_id:
+ *                         type: string
+ *                         format: uuid
+ *                         example: 123e4567-e89b-12d3-a456-426614174000
+ *                       is_approved:
+ *                         type: boolean
+ *                         example: false
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized: Invalid token"
+ *       403:
+ *         description: Forbidden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Forbidden: Insufficient permissions"
+ *       404:
+ *         description: School not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "School not found"
+ */
+router.get(
+  "/:school_id/students",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  userController.getStudentsBySchoolController
 );
 
 /**
@@ -589,7 +689,6 @@ router.get(
  *                       example: 123e4567-e89b-12d3-a456-426614174001
  *                     username:
  *                       type: string
- *                       example: teacher1_updated
  *                     email:
  *                       type: string
  *                       example: teacher_updated@school.com
