@@ -55,11 +55,15 @@ export const authorize = (roles: string[]) => {
 
 export const restrictToSchool = () => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    console.log("Request", req.params);
     if (!req.user) {
       sendResponse(res, 401, { message: "Unauthorized: No user data" });
       return;
     }
-    const schoolIdFromParams = req.params.school_id || req.body.school_id;
+    console.log("User ID:", req.user.user_id);
+    console.log("User School ID:", req.user.school_id);
+    const schoolIdFromParams = req.params.school_id;
+    console.log("School ID from Params:", schoolIdFromParams);
     if (schoolIdFromParams && req.user.school_id !== schoolIdFromParams) {
       sendResponse(res, 403, {
         message: "Forbidden: Cannot access resources from another school",
