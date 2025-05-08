@@ -4,7 +4,14 @@ import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
 
 export interface AuthRequest extends Request {
-  user?: { user_id: string; school_id: string; role: string };
+  user?: {
+    user_id: string;
+    school_id: string;
+    school_name: string;
+    school_code: string | null;
+    school_image: string | null;
+    role: string;
+  };
 }
 
 export const authMiddleware = (
@@ -14,7 +21,7 @@ export const authMiddleware = (
 ): void => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
   if (!token) {
-    res.status(401).json({ message: "No token provided" });
+    sendResponse(res, 401, { message: "Unauthorized: No token provided" });
     return;
   }
 
@@ -22,13 +29,45 @@ export const authMiddleware = (
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       user_id: string;
       school_id: string;
+      school_name: string;
+      school_code: string | null;
+      school_image: string | null;
       role: string;
     };
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+    sendResponse(res, 401, { message: "Unauthorized: Invalid token" });
   }
+};
+
+export const authorize = (roles: string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      sendResponse(res, 403, {
+        message: "Forbidden: Insufficient permissions",
+      });
+      return;
+    }
+    next();
+  };
+};
+
+export const restrictToSchool = () => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      sendResponse(res, 401, { message: "Unauthorized: No user data" });
+      return;
+    }
+    const schoolIdFromParams = req.params.school_id || req.body.school_id;
+    if (schoolIdFromParams && req.user.school_id !== schoolIdFromParams) {
+      sendResponse(res, 403, {
+        message: "Forbidden: Cannot access resources from another school",
+      });
+      return;
+    }
+    next();
+  };
 };
 
 export const verify_X_API_KEY = async (
@@ -41,11 +80,11 @@ export const verify_X_API_KEY = async (
 
     // Ensure apiKeyHeader is a string
     if (Array.isArray(apiKeyHeader)) {
-      apiKeyHeader = apiKeyHeader[0]; // Use the first value if it's an array
+      apiKeyHeader = apiKeyHeader[0];
     }
 
     if (!apiKeyHeader) {
-      sendResponse(res, 401, "Unauthorized: No API key provided");
+      sendResponse(res, 401, { message: "Unauthorized: No API key provided" });
       return;
     }
 
@@ -55,13 +94,12 @@ export const verify_X_API_KEY = async (
       : apiKeyHeader;
 
     if (apiKey !== process.env.X_API_KEY!) {
-      sendResponse(res, 401, "Unauthorized: Invalid API key");
+      sendResponse(res, 401, { message: "Unauthorized: Invalid API key" });
       return;
     }
 
     next();
   } catch (error: any) {
-    console.log(error);
     throw new AppError(error.message, 401);
   }
 };

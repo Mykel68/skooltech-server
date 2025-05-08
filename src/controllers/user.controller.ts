@@ -22,6 +22,10 @@ const userUpdateSchema = Joi.object({
   last_name: Joi.string().max(50).optional(),
 });
 
+const teacherVerifySchema = Joi.object({
+  is_approved: Joi.boolean().required(),
+});
+
 export const registerUserController = async (
   req: Request,
   res: Response,
@@ -90,6 +94,125 @@ export const updateUserController = async (
       school_id: updatedUser.school_id,
       is_approved: updatedUser.is_approved,
     });
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 400));
+  }
+};
+
+export const getTeacherByIdController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { user_id } = req.params;
+    const teacher = await userService.getTeacherById(user_id);
+    sendResponse(res, 200, {
+      user_id: teacher.user_id,
+      username: teacher.username,
+      email: teacher.email,
+      first_name: teacher.first_name,
+      last_name: teacher.last_name,
+      role: teacher.role,
+      school_id: teacher.school_id,
+      is_approved: teacher.is_approved,
+    });
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 404));
+  }
+};
+
+export const getTeachersBySchoolController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { school_id } = req.params;
+    const teachers = await userService.getTeachersBySchool(school_id);
+    sendResponse(
+      res,
+      200,
+      teachers.map((teacher) => ({
+        user_id: teacher.user_id,
+        username: teacher.username,
+        email: teacher.email,
+        first_name: teacher.first_name,
+        last_name: teacher.last_name,
+        role: teacher.role,
+        school_id: teacher.school_id,
+        is_approved: teacher.is_approved,
+      }))
+    );
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 404));
+  }
+};
+
+export const updateTeacherController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { user_id } = req.params;
+    const { error, value } = userUpdateSchema.validate(req.body);
+    if (error) throw new AppError(error.details[0].message, 400);
+
+    const updatedTeacher = await userService.updateTeacher(user_id, value);
+    sendResponse(res, 200, {
+      user_id: updatedTeacher.user_id,
+      username: updatedTeacher.username,
+      email: updatedTeacher.email,
+      first_name: updatedTeacher.first_name,
+      last_name: updatedTeacher.last_name,
+      role: updatedTeacher.role,
+      school_id: updatedTeacher.school_id,
+      is_approved: updatedTeacher.is_approved,
+    });
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 400));
+  }
+};
+
+export const verifyTeacherController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { user_id } = req.params;
+    const { error, value } = teacherVerifySchema.validate(req.body);
+    if (error) throw new AppError(error.details[0].message, 400);
+
+    const updatedTeacher = await userService.verifyTeacher(
+      user_id,
+      value.is_approved
+    );
+    sendResponse(res, 200, {
+      user_id: updatedTeacher.user_id,
+      username: updatedTeacher.username,
+      email: updatedTeacher.email,
+      first_name: updatedTeacher.first_name,
+      last_name: updatedTeacher.last_name,
+      role: updatedTeacher.role,
+      school_id: updatedTeacher.school_id,
+      is_approved: updatedTeacher.is_approved,
+    });
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 400));
+  }
+};
+
+export const deleteTeacherController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { user_id } = req.params;
+    await userService.deleteTeacher(user_id);
+    sendResponse(res, 200, { message: "Teacher deleted successfully" });
   } catch (error: any) {
     next(new AppError(error.message, error.statusCode || 400));
   }
