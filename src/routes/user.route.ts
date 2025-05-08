@@ -664,7 +664,8 @@ router.patch(
  * @swagger
  * /users/teachers/{user_id}/verify:
  *   patch:
- *     summary: Verify or unverify a teacher
+ *     summary: Verify or disverify a teacher
+ *     description: Sets the teacher's approval status to true (verify) or false (disverify), controlling their access to school resources.
  *     tags: [Teachers]
  *     security:
  *       - bearerAuth: []
@@ -688,10 +689,11 @@ router.patch(
  *             properties:
  *               is_approved:
  *                 type: boolean
+ *                 description: Set to true to verify the teacher, false to disverify
  *                 example: true
  *     responses:
  *       200:
- *         description: Teacher verification updated successfully
+ *         description: Teacher verification status updated successfully
  *         content:
  *           application/json:
  *             schema:
