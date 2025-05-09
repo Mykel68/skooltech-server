@@ -127,3 +127,13 @@ export interface ClassAttributes {
 export interface ClassInstance
   extends Model<ClassAttributes>,
     ClassAttributes {}
+
+export interface ClassStudentAttributes {
+  class_id: string;
+  student_id: string;
+  created_at?: Date;
+}
+
+export interface ClassStudentInstance
+  extends Model<ClassStudentAttributes>,
+    ClassStudentAttributes {}
