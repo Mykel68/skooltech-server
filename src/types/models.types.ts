@@ -43,6 +43,7 @@ export interface UserAttributes {
   first_name?: string;
   last_name?: string;
   is_approved?: boolean;
+  is_active?: boolean;
 }
 
 export interface UserInstance extends Model<UserAttributes>, UserAttributes {}
