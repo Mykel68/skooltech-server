@@ -13,7 +13,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /schools:
+ * /register:
  *   post:
  *     summary: Register a new school and its admin user
  *     tags: [Schools]
@@ -106,7 +106,7 @@ const router = express.Router();
  *                 message:
  *                   type: string
  */
-router.post("/", schoolController.createSchoolController);
+router.post("/register", schoolController.createSchoolController);
 
 /**
  * @swagger
