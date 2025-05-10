@@ -15,6 +15,7 @@ const School = sequelize.define<SchoolInstance>(
     school_image: { type: DataTypes.STRING, allowNull: true },
     phone_number: { type: DataTypes.STRING, allowNull: true },
     school_code: { type: DataTypes.STRING, allowNull: true, unique: true },
+    is_active: { type: DataTypes.BOOLEAN, defaultValue: false },
   },
   { tableName: "schools" }
 );
