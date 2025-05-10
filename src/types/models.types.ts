@@ -63,6 +63,9 @@ export interface SchoolInstance
 export interface SubjectAttributes {
   subject_id?: string;
   school_id: string;
+  class_id: string;
+  teacher_id: string;
+  is_approved?: boolean;
   name: string;
 }
 
