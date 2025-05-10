@@ -25,14 +25,6 @@ const GradingConfig = sequelize.define<GradingConfigInstance>(
       allowNull: false,
       validate: { min: 0, max: 1 },
     },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
   },
   {
     tableName: "grading_configs",

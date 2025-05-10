@@ -24,14 +24,6 @@ const Class = sequelize.define<ClassInstance>(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
   },
   {
     tableName: "classes",

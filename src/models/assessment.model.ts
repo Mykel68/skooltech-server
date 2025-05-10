@@ -35,14 +35,6 @@ const Assessment = sequelize.define<AssessmentInstance>(
       allowNull: false,
       defaultValue: 100,
     },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
   },
   {
     tableName: "assessments",

@@ -30,14 +30,6 @@ const GradeScale = sequelize.define<GradeScaleInstance>(
       allowNull: false,
       validate: { min: 0 },
     },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
   },
   {
     tableName: "grade_scales",

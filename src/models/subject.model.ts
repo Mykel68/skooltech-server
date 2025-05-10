@@ -36,14 +36,6 @@ const Subject = sequelize.define<SubjectInstance>(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
   },
   {
     tableName: "subjects",
