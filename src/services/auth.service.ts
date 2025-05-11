@@ -146,9 +146,9 @@ export const loginTeacherStudent = async (
   const isPasswordValid = await bcrypt.compare(password, user.password_hash);
   if (!isPasswordValid) throw new AppError("Invalid credentials", 401);
 
-  if (user.role === "Teacher" && !user.is_approved) {
-    throw new AppError("Account awaiting approval", 403);
-  }
+  // if (user.role === "Teacher" && !user.is_approved) {
+  //   throw new AppError("Account awaiting approval", 403);
+  // }
 
   const token = jwt.sign(
     {
