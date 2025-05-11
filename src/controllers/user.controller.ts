@@ -245,3 +245,18 @@ export const getStudentsBySchoolController = async (
     next(new AppError(error.message, error.statusCode || 400));
   }
 };
+
+//delete User by id
+export const deleteUserController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { user_id } = req.params;
+    await userService.deleteUser(user_id);
+    sendResponse(res, 200, { message: "User deleted successfully" });
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 400));
+  }
+};

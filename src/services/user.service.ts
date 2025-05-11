@@ -180,3 +180,12 @@ export const getStudentsBySchool = async (
   });
   return students as UserInstance[];
 };
+
+export const deleteUser = async (user_id: string): Promise<void> => {
+  if (!validateUUID(user_id)) throw new AppError("Invalid user ID", 400);
+
+  const user = await User.findByPk(user_id);
+  if (!user) throw new AppError("User not found", 404);
+
+  await user.destroy();
+};

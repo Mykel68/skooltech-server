@@ -1,5 +1,6 @@
 import express from "express";
 import * as authController from "../controllers/auth.controller";
+import * as userController from "../controllers/user.controller";
 const router = express.Router();
 
 /**
@@ -199,5 +200,69 @@ router.post(
   "/teacher-student/login",
   authController.loginTeacherStudentController
 );
+
+/**
+ * @swagger
+ * /auth/user/{user_id}:
+ *   get:
+ *     summary: Get user by ID
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: user_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the user
+ *     responses:
+ *       200:
+ *         description: User found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user_id:
+ *                       type: string
+ *                     username:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     first_name:
+ *                       type: string
+ *                     last_name:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     school_id:
+ *                       type: string
+ *                     is_approved:
+ *                       type: boolean
+ *       400:
+ *         description: Invalid input
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+
+router.delete("/user/:user_id", userController.deleteUserController);
 
 export default router;
