@@ -204,63 +204,26 @@ router.post(
 /**
  * @swagger
  * /auth/user/{user_id}:
- *   get:
- *     summary: Get user by ID
+ *   delete:
+ *     summary: Delete user by ID
  *     tags: [Auth]
- *     parameters:
- *       - in: path
- *         name: user_id
- *         required: true
- *         schema:
- *           type: string
- *         description: UUID of the user
+ *     description: Deletes a user by ID
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     user_id:
- *                       type: string
- *                     username:
- *                       type: string
- *                     email:
- *                       type: string
- *                     first_name:
- *                       type: string
- *                     last_name:
- *                       type: string
- *                     role:
- *                       type: string
- *                     school_id:
- *                       type: string
- *                     is_approved:
- *                       type: boolean
- *       400:
- *         description: Invalid input
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
+ *         description: User deleted successfully
+ *         content: {}
+ *       401:
+ *         description: Unauthorized
+ *         content: {}
  *       404:
  *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
+ *         content: {}
+ *       500:
+ *         description: Internal server error
+ *         content: {}
+ *
  */
 
 router.delete("/user/:user_id", userController.deleteUserController);
