@@ -55,7 +55,7 @@ export interface SchoolAttributes {
   school_image?: string | null;
   phone_number?: string | null;
   school_code?: string | null;
-  is_active?: boolean;
+  is_active?: boolean; // providing school code will activate  the school
 }
 
 export interface SchoolInstance

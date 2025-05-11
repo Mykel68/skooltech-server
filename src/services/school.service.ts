@@ -87,7 +87,7 @@ export const createSchool = async (
         school_id: school.school_id!,
         first_name: admin_first_name,
         last_name: admin_last_name,
-        is_approved: true,
+        is_approved: false,
       },
       { transaction: t }
     )) as UserInstance;
@@ -113,6 +113,34 @@ export const getSchoolById = async (
   return school as SchoolInstance;
 };
 
+// export const updateSchool = async (
+//   school_id: string,
+//   updates: Partial<SchoolAttributes>
+// ): Promise<SchoolInstance> => {
+//   const school = await School.findByPk(school_id);
+//   if (!school) throw new AppError("School not found", 404);
+
+//   if (updates.name && updates.name !== school.name) {
+//     const existingSchool = await School.findOne({
+//       where: { name: updates.name },
+//     });
+//     if (existingSchool)
+//       throw new AppError("School with this name already exists", 400);
+//   }
+
+//   if (updates.school_code) {
+//     const existingCode = await School.findOne({
+//       where: { school_code: updates.school_code },
+//     });
+//     if (existingCode && existingCode.school_id !== school_id) {
+//       throw new AppError("School code already exists", 400);
+//     }
+//   }
+
+//   await school.update(updates);
+//   return school as SchoolInstance;
+// };
+
 export const updateSchool = async (
   school_id: string,
   updates: Partial<SchoolAttributes>
@@ -129,12 +157,17 @@ export const updateSchool = async (
   }
 
   if (updates.school_code) {
+    // Check if school_code is taken by another school
     const existingCode = await School.findOne({
       where: { school_code: updates.school_code },
     });
+
     if (existingCode && existingCode.school_id !== school_id) {
-      throw new AppError("School code already exists", 400);
+      throw new AppError("School code already in use", 400);
     }
+
+    // Approve the school if providing a valid, unique school_code
+    updates.is_active = true;
   }
 
   await school.update(updates);

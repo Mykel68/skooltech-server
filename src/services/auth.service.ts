@@ -34,9 +34,10 @@ export const login = async (
       email: user.email,
       school_name: school.name,
       school_image: school.school_image,
+      is_school_active: school.is_active,
     },
     process.env.JWT_SECRET!,
-    { expiresIn: "1h" }
+    { expiresIn: "8h" }
   );
 
   return token;
