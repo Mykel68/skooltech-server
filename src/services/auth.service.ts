@@ -162,9 +162,10 @@ export const loginTeacherStudent = async (
       email: user.email,
       school_name: school.name,
       school_image: school.school_image,
+      is_approved: user.is_approved,
     },
     process.env.JWT_SECRET!,
-    { expiresIn: "1h" }
+    { expiresIn: "8h" }
   );
 
   return token;
