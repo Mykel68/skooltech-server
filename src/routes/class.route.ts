@@ -4,10 +4,9 @@ import {
   authorize,
   restrictToSchool,
 } from "../middlewares/auth.middleware";
-import { ClassController } from "../controllers/class.controller";
+import * as classController from "../controllers/class.controller";
 
 const router = express.Router();
-const classController = new ClassController();
 
 /**
  * @swagger
@@ -81,7 +80,7 @@ router.post(
   authMiddleware,
   authorize(["Admin"]),
   restrictToSchool(),
-  classController.createClass.bind(classController)
+  classController.createClassHandler
 );
 
 /**
@@ -135,7 +134,7 @@ router.get(
   authMiddleware,
   authorize(["Admin", "Teacher"]),
   restrictToSchool(),
-  classController.getClass.bind(classController)
+  classController.getClassHandler
 );
 
 export default router;

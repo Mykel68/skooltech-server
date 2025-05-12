@@ -42,3 +42,16 @@ export const getClassById = async (
 
   return classInstance;
 };
+
+export const getAllClassesOfSchool = async (
+  school_id: string
+): Promise<ClassInstance[]> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+
+  const classes = await Class.findAll({
+    where: { school_id },
+    include: [School],
+  });
+
+  return classes;
+};

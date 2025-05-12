@@ -1,6 +1,11 @@
 import express from "express";
 import * as schoolController from "../controllers/school.controller";
-import { authMiddleware } from "../middlewares/auth.middleware";
+import * as classController from "../controllers/class.controller";
+import {
+  authMiddleware,
+  authorize,
+  restrictToSchool,
+} from "../middlewares/auth.middleware";
 
 const router = express.Router();
 
@@ -329,6 +334,62 @@ router.patch(
   "/profile/:school_id",
   authMiddleware,
   schoolController.updateSchoolController
+);
+
+/**
+ * @swagger
+ * /classes/{school_id}:
+ *   get:
+ *     summary: Get all classes of a school
+ *     tags: [Schools]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: school_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the school
+ *     responses:
+ *       200:
+ *         description: All classes retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       class_id:
+ *                         type: string
+ *                       school_id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       grade_level:
+ *                         type: string
+ *                         nullable: true
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: School not found
+ */
+router.get(
+  "/classes/:school_id",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  classController.getAllClassesHandler
 );
 
 export default router;
