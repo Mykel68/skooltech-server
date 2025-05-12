@@ -197,4 +197,179 @@ router.get(
   subjectController.getSubjectsByClassHandler
 );
 
+/**
+ * @swagger
+ * /details/subjects/{subject_id}:
+ *   get:
+ *     summary: Get subject details
+ *     tags: [Subjects]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: subject_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the subject
+ *     responses:
+ *       200:
+ *         description: Subject retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     subject_id:
+ *                       type: string
+ *                     school_id:
+ *                       type: string
+ *                     class_id:
+ *                       type: string
+ *                     teacher_id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     is_approved:
+ *                       type: boolean
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Subject not found
+ */
+router.get(
+  "/details/:subject_id",
+  authMiddleware,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.getSubjectByIdHandler
+);
+
+/**
+ * @swagger
+ * /subjects/school/{school_id}:
+ *   get:
+ *     summary: Get all subjects of a school
+ *     tags: [Subjects]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: school_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the school
+ *     responses:
+ *       200:
+ *         description: Subjects retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       subject_id:
+ *                         type: string
+ *                       school_id:
+ *                         type: string
+ *                       class_id:
+ *                         type: string
+ *                       teacher_id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       is_approved:
+ *                         type: boolean
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: School not found
+ */
+router.get(
+  "/school/:school_id",
+  authMiddleware,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.getSubjectsOfaSchool
+);
+
+/**
+ * @swagger
+ * /subjects/class/{class_id}:
+ *   get:
+ *     summary: Get all subjects of a class
+ *     tags: [Subjects]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: class_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the class
+ *     responses:
+ *       200:
+ *         description: Subjects retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       subject_id:
+ *                         type: string
+ *                       school_id:
+ *                         type: string
+ *                       class_id:
+ *                         type: string
+ *                       teacher_id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       is_approved:
+ *                         type: boolean
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Class not found
+ */
+router.get(
+  "/class/:class_id",
+  authMiddleware,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.getSubjectsOfaClass
+);
+
 export default router;

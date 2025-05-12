@@ -68,3 +68,89 @@ export const getSubjectsByClass = async (
 
   return subjects;
 };
+
+/**
+ *
+ */
+
+export const getSubjectById = async (
+  subject_id: string,
+  school_id: string
+): Promise<SubjectInstance> => {
+  if (!validateUUID(subject_id)) throw new AppError("Invalid subject ID", 400);
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+
+  const subject = await Subject.findOne({
+    where: { subject_id, school_id },
+    include: [
+      {
+        model: Class,
+        as: "class",
+        attributes: ["name", "grade_level"],
+      },
+      {
+        model: User,
+        as: "teacher",
+        attributes: ["username", "email"],
+      },
+    ],
+  });
+
+  if (!subject) throw new AppError("Subject not found", 404);
+
+  return subject;
+};
+
+/**
+ * Fetch all subjects of a school
+ */
+export const getSubjectsOfSchool = async (
+  school_id: string
+): Promise<SubjectInstance[]> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+
+  const subjects = await Subject.findAll({
+    where: { school_id },
+    include: [
+      {
+        model: Class,
+        as: "class",
+        attributes: ["name", "grade_level"],
+      },
+      {
+        model: User,
+        as: "teacher",
+        attributes: ["username", "email"],
+      },
+    ],
+  });
+
+  return subjects;
+};
+
+/**
+ * Fetch all subjects of a class
+ */
+export const getSubjectsOfClass = async (
+  class_id: string
+): Promise<SubjectInstance[]> => {
+  if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
+
+  const subjects = await Subject.findAll({
+    where: { class_id },
+    include: [
+      {
+        model: Class,
+        as: "class",
+        attributes: ["name", "grade_level"],
+      },
+      {
+        model: User,
+        as: "teacher",
+        attributes: ["username", "email"],
+      },
+    ],
+  });
+
+  return subjects;
+};

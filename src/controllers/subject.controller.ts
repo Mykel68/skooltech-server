@@ -109,3 +109,91 @@ export const getSubjectsByClassHandler = async (
     });
   }
 };
+
+export const getSubjectByIdHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { subject_id } = req.params;
+  const school_id = (req as any).user?.school_id;
+
+  try {
+    if (!subject_id) {
+      throw new AppError("Subject ID is required", 400);
+    }
+
+    const subject = await subjectService.getSubjectById(subject_id, school_id!);
+
+    sendResponse(res, 200, subject);
+  } catch (error: any) {
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+export const getSubjectsOfaSchool = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const school_id = (req as any).user?.school_id;
+  const subjects = await subjectService.getSubjectsOfSchool(school_id!);
+
+  try {
+    sendResponse(
+      res,
+      200,
+      subjects.map((subject) => ({
+        subject_id: subject.subject_id,
+        school_id: subject.school_id,
+        class_id: subject.class_id,
+        teacher_id: subject.teacher_id,
+        name: subject.name,
+        is_approved: subject.is_approved,
+      }))
+    );
+  } catch (error: any) {
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+export const getSubjectsOfaClass = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const class_id = (req as any).user?.class_id;
+  const subjects = await subjectService.getSubjectsOfClass(class_id!);
+
+  // sendResponse(
+  //   res,
+  //   200,
+  //   subjects.map((subject) => ({
+  //     subject_id: subject.subject_id,
+  //     school_id: subject.school_id,
+  //     class_id: subject.class_id,
+  //     teacher_id: subject.teacher_id,
+  //     name: subject.name,
+  //     is_approved: subject.is_approved,
+  //   }))
+  // );
+  try {
+    sendResponse(
+      res,
+      200,
+      subjects.map((subject) => ({
+        subject_id: subject.subject_id,
+        school_id: subject.school_id,
+        class_id: subject.class_id,
+        teacher_id: subject.teacher_id,
+        name: subject.name,
+        is_approved: subject.is_approved,
+      }))
+    );
+  } catch (error: any) {
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+};
