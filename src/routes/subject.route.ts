@@ -4,10 +4,9 @@ import {
   authorize,
   restrictToSchool,
 } from "../middlewares/auth.middleware";
-import { SubjectController } from "../controllers/subject.controller";
+import * as subjectController from "../controllers/subject.controller";
 
 const router = express.Router();
-const subjectController = new SubjectController();
 
 /**
  * @swagger
@@ -81,7 +80,7 @@ router.post(
   authMiddleware,
   authorize(["Teacher"]),
   restrictToSchool(),
-  subjectController.createSubject.bind(subjectController)
+  subjectController.createSubjectHandler
 );
 
 /**
@@ -138,7 +137,7 @@ router.patch(
   authMiddleware,
   authorize(["Admin"]),
   restrictToSchool(),
-  subjectController.approveSubject.bind(subjectController)
+  subjectController.approveSubjectHandler
 );
 
 /**
@@ -195,7 +194,7 @@ router.get(
   authMiddleware,
   authorize(["Admin", "Teacher"]),
   restrictToSchool(),
-  subjectController.getSubjectsByClass.bind(subjectController)
+  subjectController.getSubjectsByClassHandler
 );
 
 export default router;
