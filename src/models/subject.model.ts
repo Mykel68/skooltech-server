@@ -46,8 +46,8 @@ const Subject = sequelize.define<SubjectInstance>(
 
 Subject.belongsTo(School, { foreignKey: "school_id" });
 School.hasMany(Subject, { foreignKey: "school_id" });
-Subject.belongsTo(Class, { foreignKey: "class_id" });
-Class.hasMany(Subject, { foreignKey: "class_id" });
+Subject.belongsTo(Class, { foreignKey: "class_id", as: "class" });
+Class.hasMany(Subject, { foreignKey: "class_id", as: "subjects" });
 Subject.belongsTo(User, { foreignKey: "teacher_id", as: "teacher" });
 User.hasMany(Subject, { foreignKey: "teacher_id", as: "subjects" });
 
