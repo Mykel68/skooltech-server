@@ -387,7 +387,7 @@ router.patch(
 router.get(
   "/classes/:school_id",
   authMiddleware,
-  authorize(["Admin"]),
+  authorize(["Admin", "Teacher"]),
   restrictToSchool(),
   classController.getAllClassesHandler
 );
