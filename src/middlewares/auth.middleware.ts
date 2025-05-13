@@ -15,6 +15,7 @@ export interface AuthRequest extends Request {
     school_image: string | null;
     role: string;
   };
+  session?: any;
 }
 
 export const authMiddleware = (
@@ -112,8 +113,9 @@ export const verify_X_API_KEY = async (
 };
 
 export const restrictToSession = () => {
-  return async (req: any, res: Response, next: NextFunction) => {
-    let { session_id } = req.params || req.query || req.body;
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    let session_id =
+      req.params.session_id || req.body.session_id || req.query.session_id;
 
     if (session_id && !validateUUID(session_id)) {
       throw new AppError("Invalid session ID", 400);
@@ -147,7 +149,7 @@ export const restrictToSession = () => {
       );
     }
 
-    req.session = session; // Attach session to request for downstream use
+    req.session = session;
     next();
   };
 };

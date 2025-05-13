@@ -3,11 +3,14 @@ import {
   authMiddleware,
   authorize,
   restrictToSchool,
+  restrictToSession,
 } from "../middlewares/auth.middleware";
-import { AssessmentController } from "../controllers/assessment.controller";
+import {
+  createAssessmentController,
+  getAssessmentsByClassAndSubjectController,
+} from "../controllers/assessment.controller";
 
 const router = express.Router();
-const assessmentController = new AssessmentController();
 
 /**
  * @swagger
@@ -45,6 +48,9 @@ const assessmentController = new AssessmentController();
  *               term_id:
  *                 type: string
  *                 description: UUID of the term
+ *               session_id:
+ *                 type: string
+ *                 description: UUID of the session (optional, defaults to current session)
  *               name:
  *                 type: string
  *                 description: Name of the assessment
@@ -103,7 +109,7 @@ router.post(
   authMiddleware,
   authorize(["Teacher"]),
   restrictToSchool(),
-  assessmentController.createAssessment.bind(assessmentController)
+  createAssessmentController
 );
 
 /**
@@ -133,6 +139,12 @@ router.post(
  *         schema:
  *           type: string
  *         description: UUID of the term
+ *       - in: query
+ *         name: session_id
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: UUID of the session (optional, defaults to current session)
  *     responses:
  *       200:
  *         description: Assessments retrieved successfully
@@ -179,9 +191,8 @@ router.get(
   authMiddleware,
   authorize(["Teacher", "Student"]),
   restrictToSchool(),
-  assessmentController.getAssessmentsByClassAndSubject.bind(
-    assessmentController
-  )
+  restrictToSession(),
+  getAssessmentsByClassAndSubjectController
 );
 
 export default router;

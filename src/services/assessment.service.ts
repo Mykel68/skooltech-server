@@ -1,9 +1,11 @@
+import { Op } from "sequelize";
 import { AppError } from "../utils/error.util";
 import { validateUUID } from "../utils/validation.util";
 import Assessment from "../models/assessment.model";
 import Subject from "../models/subject.model";
 import Class from "../models/class.model";
 import Term from "../models/term.model";
+import Session from "../models/session.model";
 
 /**
  * Create a new assessment
@@ -16,7 +18,8 @@ export const createAssessment = async (
   name: string,
   type: "Exam" | "Quiz" | "Assignment",
   date: Date,
-  max_score: number
+  max_score: number,
+  session_id?: string
 ) => {
   if (!validateUUID(subject_id)) throw new AppError("Invalid subject ID", 400);
   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
@@ -28,6 +31,7 @@ export const createAssessment = async (
   if (!date || isNaN(date.getTime())) throw new AppError("Invalid date", 400);
   if (max_score <= 0) throw new AppError("Max score must be positive", 400);
 
+  // Validate subject and teacher assignment
   const subject = await Subject.findOne({
     where: { subject_id, teacher_id, is_approved: true },
   });
@@ -37,17 +41,31 @@ export const createAssessment = async (
       404
     );
 
+  // Validate class
   const classInstance = await Class.findByPk(class_id);
   if (!classInstance) throw new AppError("Class not found", 404);
   if (classInstance.school_id !== subject.school_id)
     throw new AppError("Class does not belong to this school", 403);
 
-  const term = await Term.findByPk(term_id);
+  // Validate term and session
+  const term = await Term.findByPk(term_id, { include: [{ model: Session }] });
   if (!term) throw new AppError("Term not found", 404);
   if (term.school_id !== subject.school_id)
     throw new AppError("Term does not belong to this school", 403);
   if (date < term.start_date || date > term.end_date) {
     throw new AppError("Assessment date must be within term dates", 400);
+  }
+
+  const session = term.session;
+  if (session_id) {
+    if (session_id !== term.session_id)
+      throw new AppError("Term does not belong to the provided session", 400);
+  } else {
+    // Ensure the term's session is active
+    const currentDate = new Date();
+    if (session.start_date > currentDate || session.end_date < currentDate) {
+      throw new AppError("Term belongs to an inactive session", 400);
+    }
   }
 
   const assessment = await Assessment.create({
@@ -70,15 +88,25 @@ export const getAssessmentsByClassAndSubject = async (
   class_id: string,
   subject_id: string,
   term_id: string,
-  school_id: string
+  school_id: string,
+  session_id?: string
 ) => {
   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
   if (!validateUUID(subject_id)) throw new AppError("Invalid subject ID", 400);
   if (!validateUUID(term_id)) throw new AppError("Invalid term ID", 400);
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+  if (session_id && !validateUUID(session_id))
+    throw new AppError("Invalid session ID", 400);
 
-  const term = await Term.findOne({ where: { term_id, school_id } });
+  // Validate term and session
+  const term = await Term.findOne({
+    where: { term_id, school_id },
+    include: [{ model: Session }],
+  });
   if (!term) throw new AppError("Term not found in this school", 404);
+  if (session_id && term.session_id !== session_id) {
+    throw new AppError("Term does not belong to the provided session", 400);
+  }
 
   const assessments = await Assessment.findAll({
     where: { class_id, subject_id, term_id },

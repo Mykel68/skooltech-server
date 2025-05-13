@@ -1,17 +1,19 @@
 import { Request, Response, NextFunction } from "express";
+import Joi from "joi";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
-import Joi from "joi";
 import * as assessmentService from "../services/assessment.service";
 import { AuthRequest } from "../middlewares/auth.middleware";
 
 // Define schema for validation
 const createAssessmentSchema = Joi.object({
-  class_id: Joi.string().required(),
+  class_id: Joi.string().uuid().required(),
+  term_id: Joi.string().uuid().required(),
+  session_id: Joi.string().uuid().optional(),
   name: Joi.string().required(),
-  type: Joi.string().required(),
+  type: Joi.string().valid("Exam", "Quiz", "Assignment").required(),
   date: Joi.date().required(),
-  max_score: Joi.number().required(),
+  max_score: Joi.number().positive().required(),
 });
 
 // Create a new assessment controller
@@ -28,22 +30,26 @@ export const createAssessmentController = async (
     if (error) throw new AppError(error.details[0].message, 400);
 
     const teacher_id = req.user!.user_id;
-    const { class_id, name, type, date, max_score } = value;
+    const { class_id, term_id, session_id, name, type, date, max_score } =
+      value;
 
     const assessment = await assessmentService.createAssessment(
       subject_id,
       class_id,
+      term_id,
       teacher_id,
       name,
       type,
       new Date(date),
-      max_score
+      max_score,
+      session_id
     );
 
     sendResponse(res, 201, {
       assessment_id: assessment.assessment_id,
       subject_id: assessment.subject_id,
       class_id: assessment.class_id,
+      term_id: assessment.term_id,
       name: assessment.name,
       type: assessment.type,
       date: assessment.date,
@@ -54,6 +60,14 @@ export const createAssessmentController = async (
   }
 };
 
+// Define schema for get assessments
+const getAssessmentsSchema = Joi.object({
+  class_id: Joi.string().uuid().required(),
+  subject_id: Joi.string().uuid().required(),
+  term_id: Joi.string().uuid().required(),
+  session_id: Joi.string().uuid().optional(),
+});
+
 // Fetch assessments by class and subject controller
 export const getAssessmentsByClassAndSubjectController = async (
   req: AuthRequest,
@@ -61,17 +75,23 @@ export const getAssessmentsByClassAndSubjectController = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { class_id, subject_id } = req.params;
-    if (!class_id || !subject_id) {
-      throw new AppError("Class ID and Subject ID are required", 400);
-    }
+    const { class_id, subject_id, term_id, session_id } = req.params;
+    const { error, value } = getAssessmentsSchema.validate({
+      class_id,
+      subject_id,
+      term_id,
+      session_id,
+    });
+    if (error) throw new AppError(error.details[0].message, 400);
 
     const school_id = req.user!.school_id;
 
     const assessments = await assessmentService.getAssessmentsByClassAndSubject(
-      class_id,
-      subject_id,
-      school_id
+      value.class_id,
+      value.subject_id,
+      value.term_id,
+      school_id,
+      value.session_id
     );
 
     sendResponse(
@@ -81,6 +101,7 @@ export const getAssessmentsByClassAndSubjectController = async (
         assessment_id: a.assessment_id,
         subject_id: a.subject_id,
         class_id: a.class_id,
+        term_id: a.term_id,
         name: a.name,
         type: a.type,
         date: a.date,

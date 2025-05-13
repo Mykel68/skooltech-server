@@ -3,8 +3,14 @@ import {
   authMiddleware,
   authorize,
   restrictToSchool,
+  restrictToSession,
 } from "../middlewares/auth.middleware";
-import * as termController from "../controllers/term.controller";
+import {
+  createTerm,
+  updateTerm,
+  deleteTerm,
+  getTerms,
+} from "../controllers/term.controller";
 
 const router = express.Router();
 
@@ -96,7 +102,7 @@ router.post(
   authMiddleware,
   authorize(["Admin"]),
   restrictToSchool(),
-  termController.createTerm
+  createTerm
 );
 
 /**
@@ -174,7 +180,7 @@ router.patch(
   authMiddleware,
   authorize(["Admin"]),
   restrictToSchool(),
-  termController.updateTerm
+  updateTerm
 );
 
 /**
@@ -209,7 +215,7 @@ router.delete(
   authMiddleware,
   authorize(["Admin"]),
   restrictToSchool(),
-  termController.deleteTerm
+  deleteTerm
 );
 
 /**
@@ -223,10 +229,10 @@ router.delete(
  *     parameters:
  *       - in: path
  *         name: session_id
- *         required: true
+ *         required: false
  *         schema:
  *           type: string
- *         description: UUID of the session
+ *         description: UUID of the session (optional, defaults to current session)
  *     responses:
  *       200:
  *         description: Terms retrieved successfully
@@ -266,11 +272,12 @@ router.delete(
  *         description: Session not found
  */
 router.get(
-  "/:session_id",
+  "/:session_id?",
   authMiddleware,
   authorize(["Admin", "Teacher", "Student"]),
   restrictToSchool(),
-  termController.getTerms
+  restrictToSession(),
+  getTerms
 );
 
 export default router;
