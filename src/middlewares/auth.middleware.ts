@@ -15,7 +15,7 @@ export interface AuthRequest extends Request {
     school_image: string | null;
     role: string;
   };
-  session?: any;
+  session_id?: any;
 }
 
 export const authMiddleware = (
@@ -37,8 +37,10 @@ export const authMiddleware = (
       school_code: string | null;
       school_image: string | null;
       role: string;
+      session_id: string;
     };
     req.user = decoded;
+    req.session_id = decoded.session_id;
     next();
   } catch (error) {
     sendResponse(res, 401, { message: "Unauthorized: Invalid token" });
@@ -112,44 +114,44 @@ export const verify_X_API_KEY = async (
   }
 };
 
-export const restrictToSession = () => {
-  return async (req: AuthRequest, res: Response, next: NextFunction) => {
-    let session_id =
-      req.params.session_id || req.body.session_id || req.query.session_id;
+// export const restrictToSession = () => {
+//   return async (req: AuthRequest, res: Response, next: NextFunction) => {
+//     let session_id =
+//       req.params.session_id || req.body.session_id || req.query.session_id;
 
-    if (session_id && !validateUUID(session_id)) {
-      throw new AppError("Invalid session ID", 400);
-    }
+//     if (session_id && !validateUUID(session_id)) {
+//       throw new AppError("Invalid session ID", 400);
+//     }
 
-    if (!session_id) {
-      // Infer current session
-      const currentDate = new Date();
-      const session = await Session.findOne({
-        where: {
-          school_id: req.user!.school_id,
-          start_date: { [Op.lte]: currentDate },
-          end_date: { [Op.gte]: currentDate },
-        },
-      });
+//     if (!session_id) {
+//       // Infer current session
+//       const currentDate = new Date();
+//       const session = await Session.findOne({
+//         where: {
+//           school_id: req.user!.school_id,
+//           start_date: { [Op.lte]: currentDate },
+//           end_date: { [Op.gte]: currentDate },
+//         },
+//       });
 
-      if (!session) {
-        throw new AppError("No active session found for this school", 400);
-      }
-      session_id = session.session_id;
-    }
+//       if (!session) {
+//         throw new AppError("No active session found for this school", 400);
+//       }
+//       session_id = session.session_id;
+//     }
 
-    const session = await Session.findOne({
-      where: { session_id, school_id: req.user!.school_id },
-    });
+//     const session = await Session.findOne({
+//       where: { session_id, school_id: req.user!.school_id },
+//     });
 
-    if (!session) {
-      throw new AppError(
-        "Session not found or does not belong to this school",
-        404
-      );
-    }
+//     if (!session) {
+//       throw new AppError(
+//         "Session not found or does not belong to this school",
+//         404
+//       );
+//     }
 
-    req.session = session;
-    next();
-  };
-};
+//     req.session = session;
+//     next();
+//   };
+// };

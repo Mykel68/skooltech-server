@@ -1,7 +1,9 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Op } from "sequelize";
 import User from "../models/user.model";
 import School from "../models/school.model";
+import Session from "../models/session.model";
 import { AppError } from "../utils/error.util";
 import { UserInstance, UserRegistrationData } from "../types/models.types";
 
@@ -22,10 +24,23 @@ export const login = async (
   const school = await School.findByPk(user.school_id);
   if (!school) throw new AppError("School not found", 404);
 
+  // Find active session for the school
+  const currentDate = new Date();
+  const session = await Session.findOne({
+    where: {
+      school_id: user.school_id,
+      start_date: { [Op.lte]: currentDate },
+      end_date: { [Op.gte]: currentDate },
+    },
+  });
+  // if (!session)
+  //   throw new AppError("No active session found for this school", 400);
+
   const token = jwt.sign(
     {
       user_id: user.user_id,
       school_id: user.school_id,
+      session_id: session?.session_id, // Added session_id
       school_code: school.school_code,
       role: user.role,
       first_name: user.first_name,
@@ -42,49 +57,6 @@ export const login = async (
 
   return token;
 };
-
-// export const registerUser = async (
-//   userData: UserRegistrationData
-// ): Promise<UserInstance> => {
-//   const { username, email, password, role, first_name, last_name, school_id } =
-//     userData;
-
-//   // Check if username or email already exists
-//   const existingUser = await User.findOne({
-//     where: {
-//       username: username,
-//     },
-//   });
-//   if (existingUser) {
-//     throw new AppError("Username already taken", 400);
-//   }
-
-//   const existingEmail = await User.findOne({
-//     where: {
-//       email: email,
-//     },
-//   });
-//   if (existingEmail) {
-//     throw new AppError("Email already registered", 400);
-//   }
-
-//   // Hash the password
-//   const salt = await bcrypt.genSalt(10);
-//   const password_hash = await bcrypt.hash(password, salt);
-
-//   // Create user
-//   const newUser = await User.create({
-//     username,
-//     email,
-//     password_hash,
-//     role,
-//     first_name,
-//     last_name,
-//     school_id,
-//   });
-
-//   return newUser;
-// };
 
 export const registerUser = async (
   userData: UserRegistrationData
@@ -122,7 +94,7 @@ export const registerUser = async (
     first_name,
     last_name,
     school_id,
-    is_approved: role === "Teacher" ? false : true, // 👈 automatically set is_approved false for teachers
+    is_approved: role === "Teacher" ? false : true,
   });
 
   return newUser;
@@ -146,14 +118,23 @@ export const loginTeacherStudent = async (
   const isPasswordValid = await bcrypt.compare(password, user.password_hash);
   if (!isPasswordValid) throw new AppError("Invalid credentials", 401);
 
-  // if (user.role === "Teacher" && !user.is_approved) {
-  //   throw new AppError("Account awaiting approval", 403);
-  // }
+  // Find active session for the school
+  const currentDate = new Date();
+  const session = await Session.findOne({
+    where: {
+      school_id: user.school_id,
+      start_date: { [Op.lte]: currentDate },
+      end_date: { [Op.gte]: currentDate },
+    },
+  });
+  if (!session)
+    throw new AppError("No active session found for this school", 400);
 
   const token = jwt.sign(
     {
       user_id: user.user_id,
       school_id: user.school_id,
+      session_id: session.session_id, // Added session_id
       school_code: school.school_code,
       role: user.role,
       first_name: user.first_name,
