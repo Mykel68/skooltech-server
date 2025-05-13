@@ -7,6 +7,7 @@ import gradeRoutes from "./routes/grade.route";
 import schoolRoutes from "./routes/school.route";
 import classRoutes from "./routes/class.route";
 import subjectRoutes from "./routes/subject.route";
+import sessionRoutes from "./routes/session.route";
 import { errorMiddleware } from "./middlewares/error.middleware";
 
 const app = express();
@@ -32,6 +33,7 @@ app.use("/api/grades", gradeRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/classes", classRoutes);
 app.use("/api/subjects", subjectRoutes);
+app.use("/api/sessions", sessionRoutes);
 app.use(errorMiddleware);
 
 // welcome api route
