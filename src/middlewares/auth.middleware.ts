@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
+import Session from "../models/session.model";
+import { validateUUID } from "../utils/validation.util";
+import { Op } from "sequelize";
 
 export interface AuthRequest extends Request {
   user?: {
@@ -106,4 +109,45 @@ export const verify_X_API_KEY = async (
   } catch (error: any) {
     throw new AppError(error.message, 401);
   }
+};
+
+export const restrictToSession = () => {
+  return async (req: any, res: Response, next: NextFunction) => {
+    let { session_id } = req.params || req.query || req.body;
+
+    if (session_id && !validateUUID(session_id)) {
+      throw new AppError("Invalid session ID", 400);
+    }
+
+    if (!session_id) {
+      // Infer current session
+      const currentDate = new Date();
+      const session = await Session.findOne({
+        where: {
+          school_id: req.user!.school_id,
+          start_date: { [Op.lte]: currentDate },
+          end_date: { [Op.gte]: currentDate },
+        },
+      });
+
+      if (!session) {
+        throw new AppError("No active session found for this school", 400);
+      }
+      session_id = session.session_id;
+    }
+
+    const session = await Session.findOne({
+      where: { session_id, school_id: req.user!.school_id },
+    });
+
+    if (!session) {
+      throw new AppError(
+        "Session not found or does not belong to this school",
+        404
+      );
+    }
+
+    req.session = session; // Attach session to request for downstream use
+    next();
+  };
 };
