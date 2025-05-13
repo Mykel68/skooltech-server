@@ -37,11 +37,14 @@ const assessmentController = new AssessmentController();
  *         application/json:
  *           schema:
  *             type: object
- *             required: [class_id, name, type, date, max_score]
+ *             required: [class_id, term_id, name, type, date, max_score]
  *             properties:
  *               class_id:
  *                 type: string
  *                 description: UUID of the class
+ *               term_id:
+ *                 type: string
+ *                 description: UUID of the term
  *               name:
  *                 type: string
  *                 description: Name of the assessment
@@ -75,6 +78,8 @@ const assessmentController = new AssessmentController();
  *                       type: string
  *                     class_id:
  *                       type: string
+ *                     term_id:
+ *                       type: string
  *                     name:
  *                       type: string
  *                     type:
@@ -91,7 +96,7 @@ const assessmentController = new AssessmentController();
  *       403:
  *         description: Forbidden
  *       404:
- *         description: Subject or class not found
+ *         description: Subject, class, or term not found
  */
 router.post(
   "/:subject_id",
@@ -103,9 +108,9 @@ router.post(
 
 /**
  * @swagger
- * /assessments/{class_id}/{subject_id}:
+ * /assessments/{class_id}/{subject_id}/{term_id}:
  *   get:
- *     summary: Get assessments by class and subject
+ *     summary: Get assessments by class, subject, and term
  *     tags: [Assessments]
  *     security:
  *       - bearerAuth: []
@@ -122,6 +127,12 @@ router.post(
  *         schema:
  *           type: string
  *         description: UUID of the subject
+ *       - in: path
+ *         name: term_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the term
  *     responses:
  *       200:
  *         description: Assessments retrieved successfully
@@ -143,6 +154,8 @@ router.post(
  *                         type: string
  *                       class_id:
  *                         type: string
+ *                       term_id:
+ *                         type: string
  *                       name:
  *                         type: string
  *                       type:
@@ -158,9 +171,11 @@ router.post(
  *         description: Unauthorized
  *       403:
  *         description: Forbidden
+ *       404:
+ *         description: Term not found
  */
 router.get(
-  "/:class_id/:subject_id",
+  "/:class_id/:subject_id/:term_id",
   authMiddleware,
   authorize(["Teacher", "Student"]),
   restrictToSchool(),

@@ -1,4 +1,4 @@
-import { Model } from "sequelize";
+import { Model, Optional } from "sequelize";
 
 export interface SchoolRegistrationData {
   name: string;
@@ -77,11 +77,13 @@ export interface SubjectInstance
 
 export interface AssessmentAttributes {
   assessment_id?: string;
+  term_id: string;
   class_id: string;
   subject_id: string;
   type: "Exam" | "Quiz" | "Assignment";
   date: Date;
   max_score: number;
+  name: string;
 }
 
 export interface AssessmentInstance
@@ -142,3 +144,35 @@ export interface ClassStudentAttributes {
 export interface ClassStudentInstance
   extends Model<ClassStudentAttributes>,
     ClassStudentAttributes {}
+
+interface SessionAttributes {
+  session_id: string;
+  school_id: string;
+  name: string;
+  start_date: Date;
+  end_date: Date;
+}
+
+interface SessionCreationAttributes
+  extends Optional<
+    SessionAttributes,
+    "session_id" | "created_at" | "updated_at"
+  > {}
+export interface SessionInstance
+  extends Model<SessionAttributes, SessionCreationAttributes>,
+    SessionAttributes {}
+
+interface TermAttributes {
+  term_id: string;
+  school_id: string;
+  session_id: string;
+  name: string;
+  start_date: Date;
+  end_date: Date;
+}
+
+interface TermCreationAttributes
+  extends Optional<TermAttributes, "term_id" | "created_at" | "updated_at"> {}
+export interface TermInstance
+  extends Model<TermAttributes, TermCreationAttributes>,
+    TermAttributes {}
