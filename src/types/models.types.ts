@@ -129,6 +129,7 @@ export interface ClassAttributes {
   school_id: string;
   name: string;
   grade_level?: string;
+  short?: string;
 }
 
 export interface ClassInstance

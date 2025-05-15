@@ -5,7 +5,7 @@ import { AppError } from "../utils/error.util";
 import * as assessmentService from "../services/assessment.service";
 import { AuthRequest } from "../middlewares/auth.middleware";
 
-// Define schema for validation
+// Define schema for create assessment
 const createAssessmentSchema = Joi.object({
   class_id: Joi.string().uuid().required(),
   term_id: Joi.string().uuid().required(),
@@ -54,6 +54,8 @@ export const createAssessmentController = async (
       type: assessment.type,
       date: assessment.date,
       max_score: assessment.max_score,
+      created_at: assessment.created_at,
+      updated_at: assessment.updated_at,
     });
   } catch (error: any) {
     next(new AppError(error.message, error.statusCode || 400));
@@ -106,8 +108,54 @@ export const getAssessmentsByClassAndSubjectController = async (
         type: a.type,
         date: a.date,
         max_score: a.max_score,
+        created_at: a.created_at,
+        updated_at: a.updated_at,
       }))
     );
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 400));
+  }
+};
+
+// Define schema for get student assessments
+const getStudentAssessmentsSchema = Joi.object({
+  term_id: Joi.string().uuid().required(),
+  session_id: Joi.string().uuid().optional(),
+  class_id: Joi.string().uuid().optional(),
+  subject_id: Joi.string().uuid().optional(),
+});
+
+// Fetch assessments and scores for a student
+export const getStudentAssessmentsController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { term_id } = req.params;
+    const { session_id, class_id, subject_id } = req.query;
+
+    const { error, value } = getStudentAssessmentsSchema.validate({
+      term_id,
+      session_id,
+      class_id,
+      subject_id,
+    });
+    if (error) throw new AppError(error.details[0].message, 400);
+
+    if (req.user!.role !== "Student") {
+      throw new AppError("Only students can access this endpoint", 403);
+    }
+
+    const assessments = await assessmentService.getStudentAssessments(
+      req.user!.user_id,
+      value.term_id,
+      value.session_id,
+      value.class_id,
+      value.subject_id
+    );
+
+    sendResponse(res, 200, assessments);
   } catch (error: any) {
     next(new AppError(error.message, error.statusCode || 400));
   }

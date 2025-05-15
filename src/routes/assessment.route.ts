@@ -3,11 +3,11 @@ import {
   authMiddleware,
   authorize,
   restrictToSchool,
-  restrictToSession,
 } from "../middlewares/auth.middleware";
 import {
   createAssessmentController,
   getAssessmentsByClassAndSubjectController,
+  getStudentAssessmentsController,
 } from "../controllers/assessment.controller";
 
 const router = express.Router();
@@ -33,6 +33,7 @@ const router = express.Router();
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
  *         description: UUID of the subject
  *     requestBody:
  *       required: true
@@ -44,12 +45,15 @@ const router = express.Router();
  *             properties:
  *               class_id:
  *                 type: string
+ *                 format: uuid
  *                 description: UUID of the class
  *               term_id:
  *                 type: string
+ *                 format: uuid
  *                 description: UUID of the term
  *               session_id:
  *                 type: string
+ *                 format: uuid
  *                 description: UUID of the session (optional, defaults to current session)
  *               name:
  *                 type: string
@@ -95,6 +99,12 @@ const router = express.Router();
  *                       format: date-time
  *                     max_score:
  *                       type: number
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                     updated_at:
+ *                       type: string
+ *                       format: date-time
  *       400:
  *         description: Invalid input
  *       401:
@@ -126,24 +136,28 @@ router.post(
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
  *         description: UUID of the class
  *       - in: path
  *         name: subject_id
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
  *         description: UUID of the subject
  *       - in: path
  *         name: term_id
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
  *         description: UUID of the term
  *       - in: query
  *         name: session_id
  *         required: false
  *         schema:
  *           type: string
+ *           format: uuid
  *         description: UUID of the session (optional, defaults to current session)
  *     responses:
  *       200:
@@ -177,6 +191,12 @@ router.post(
  *                         format: date-time
  *                       max_score:
  *                         type: number
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                       updated_at:
+ *                         type: string
+ *                         format: date-time
  *       400:
  *         description: Invalid input
  *       401:
@@ -191,8 +211,116 @@ router.get(
   authMiddleware,
   authorize(["Teacher", "Student"]),
   restrictToSchool(),
-  restrictToSession(),
   getAssessmentsByClassAndSubjectController
+);
+
+/**
+ * @swagger
+ * /assessments/student/{term_id}:
+ *   get:
+ *     summary: Get assessments and scores for a student
+ *     tags: [Assessments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: term_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the term
+ *       - in: query
+ *         name: session_id
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the session (optional, defaults to term's session)
+ *       - in: query
+ *         name: class_id
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the class (optional, defaults to student's current class)
+ *       - in: query
+ *         name: subject_id
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the subject (optional)
+ *     responses:
+ *       200:
+ *         description: Assessments retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       assessment_id:
+ *                         type: string
+ *                       subject_id:
+ *                         type: string
+ *                       subject_name:
+ *                         type: string
+ *                       class_id:
+ *                         type: string
+ *                       class_name:
+ *                         type: string
+ *                       class_grade_level:
+ *                         type: string
+ *                       term_id:
+ *                         type: string
+ *                       term_name:
+ *                         type: string
+ *                       session_id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       type:
+ *                         type: string
+ *                         enum: [Exam, Quiz, Assignment]
+ *                       date:
+ *                         type: string
+ *                         format: date-time
+ *                       max_score:
+ *                         type: number
+ *                       score:
+ *                         type: number
+ *                         nullable: true
+ *                       letter_grade:
+ *                         type: string
+ *                         nullable: true
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                       updated_at:
+ *                         type: string
+ *                         format: date-time
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Term not found
+ */
+router.get(
+  "/student/:term_id",
+  authMiddleware,
+  authorize(["Student"]),
+  restrictToSchool(),
+  getStudentAssessmentsController
 );
 
 export default router;

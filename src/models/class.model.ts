@@ -20,6 +20,10 @@ const Class = sequelize.define<ClassInstance>(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    short: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     grade_level: {
       type: DataTypes.STRING,
       allowNull: true,

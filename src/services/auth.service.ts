@@ -6,6 +6,7 @@ import School from "../models/school.model";
 import Session from "../models/session.model";
 import { AppError } from "../utils/error.util";
 import { UserInstance, UserRegistrationData } from "../types/models.types";
+import ClassStudent from "../models/class_student.model";
 
 export const login = async (
   username: string,
@@ -17,6 +18,7 @@ export const login = async (
   const isPasswordValid = await bcrypt.compare(password, user.password_hash);
   if (!isPasswordValid) throw new AppError("Invalid credentials", 401);
 
+  // Although this is not the login endpoint for teachers and students, we need to check if the user is a teacher and if the account is approved
   if (user.role === "Teacher" && !user.is_approved) {
     throw new AppError("Account awaiting approval", 403);
   }
@@ -130,6 +132,14 @@ export const loginTeacherStudent = async (
   if (!session)
     throw new AppError("No active session found for this school", 400);
 
+  let class_id: string | undefined;
+  if (user.role === "Student") {
+    const classStudent = await ClassStudent.findOne({
+      where: { student_id: user.user_id },
+    });
+    if (classStudent) class_id = classStudent.class_id;
+  }
+
   const token = jwt.sign(
     {
       user_id: user.user_id,
@@ -144,6 +154,7 @@ export const loginTeacherStudent = async (
       school_name: school.name,
       school_image: school.school_image,
       is_approved: user.is_approved,
+      class_id,
     },
     process.env.JWT_SECRET!,
     { expiresIn: "8h" }
