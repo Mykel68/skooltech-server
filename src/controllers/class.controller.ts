@@ -92,6 +92,7 @@ export const getAllClassesHandler = async (
         school_id: c.school_id,
         name: c.name,
         grade_level: c.grade_level,
+        short: c.short,
       })),
     });
   } catch (error: any) {
