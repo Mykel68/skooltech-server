@@ -11,7 +11,8 @@ import { ClassInstance } from "../types/models.types";
 export const createClass = async (
   school_id: string,
   name: string,
-  grade_level?: string
+  grade_level?: string,
+  short?: string
 ): Promise<ClassInstance> => {
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
   if (!name) throw new AppError("Class name is required", 400);
@@ -19,7 +20,12 @@ export const createClass = async (
   const school = await School.findByPk(school_id);
   if (!school) throw new AppError("School not found", 404);
 
-  const classInstance = await Class.create({ school_id, name, grade_level });
+  const classInstance = await Class.create({
+    school_id,
+    name,
+    grade_level,
+    short,
+  });
   return classInstance;
 };
 

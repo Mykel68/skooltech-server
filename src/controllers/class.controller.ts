@@ -11,8 +11,9 @@ export const createClassHandler = async (
   res: Response
 ): Promise<void> => {
   const { school_id } = req.params;
-  const { name, grade_level } = req.body;
-
+  const { name, grade_level, short } = req.body;
+  console.log("Class instance", school_id, name, grade_level, short);
+  console.log("Body", req.body);
   try {
     if (!school_id || !name) {
       throw new AppError("School ID and name are required", 400);
@@ -21,7 +22,8 @@ export const createClassHandler = async (
     const classInstance = await classService.createClass(
       school_id,
       name,
-      grade_level
+      grade_level,
+      short
     );
 
     sendResponse(res, 201, {
@@ -31,6 +33,7 @@ export const createClassHandler = async (
       grade_level: classInstance.grade_level,
     });
   } catch (error: any) {
+    console.log("Error", error);
     sendResponse(res, error.statusCode || 500, {
       message: error.message || "Internal server error",
     });
