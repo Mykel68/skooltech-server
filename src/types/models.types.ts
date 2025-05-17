@@ -13,6 +13,17 @@ export interface SchoolRegistrationData {
   admin_last_name?: string;
 }
 
+export interface StudentTeacherRegistrationData {
+  username: string;
+  password: string;
+  email: string;
+  role: "Student" | "Teacher";
+  first_name?: string;
+  last_name?: string;
+  school_id: string;
+  class_id?: string;
+}
+
 export interface UserRegistrationData {
   username: string;
   password: string;

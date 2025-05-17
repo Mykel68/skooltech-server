@@ -228,4 +228,87 @@ router.post(
 
 router.delete("/user/:user_id", userController.deleteUserController);
 
+/**
+ * @swagger
+ * /auth/register-teacher-student/{school_id}:
+ *   post:
+ *     summary: User self-registration for a specific school
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: school_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the school
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [username, password, email, role, first_name, last_name]
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: ['Student', 'Teacher']
+ *               first_name:
+ *                 type: string
+ *               last_name:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user_id:
+ *                       type: string
+ *                     username:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     school_id:
+ *                       type: string
+ *                     is_approved:
+ *                       type: boolean
+ *       400:
+ *         description: Invalid input or username/email already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: School not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+router.post(
+  "/register-teacher-student/:school_id",
+  authController.registerTeacherStudent
+);
+
 export default router;

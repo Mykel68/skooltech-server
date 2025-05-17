@@ -1,12 +1,19 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Op } from "sequelize";
+import { DataTypes, Op } from "sequelize";
 import User from "../models/user.model";
 import School from "../models/school.model";
 import Session from "../models/session.model";
 import { AppError } from "../utils/error.util";
-import { UserInstance, UserRegistrationData } from "../types/models.types";
+import {
+  StudentTeacherRegistrationData,
+  UserInstance,
+  UserRegistrationData,
+} from "../types/models.types";
 import ClassStudent from "../models/class_student.model";
+import { validateUUID } from "../utils/validation.util";
+import Class from "../models/class.model";
+import { v4 as uuidv4 } from "uuid";
 
 export const login = async (
   username: string,
@@ -161,4 +168,85 @@ export const loginTeacherStudent = async (
   );
 
   return token;
+};
+
+// Register user function
+export const registerTeacherStudent = async (
+  userData: StudentTeacherRegistrationData
+): Promise<UserInstance> => {
+  const {
+    username,
+    email,
+    password,
+    role,
+    first_name,
+    last_name,
+    school_id,
+    class_id,
+  } = userData;
+
+  // Validate inputs
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+  if (role === "Student" && !class_id)
+    throw new AppError("Class ID is required for students", 400);
+  if (role !== "Student" && class_id)
+    throw new AppError("Class ID is only allowed for students", 400);
+  if (class_id && !validateUUID(class_id))
+    throw new AppError("Invalid class ID", 400);
+
+  // Verify school exists
+  const school = await School.findByPk(school_id);
+  if (!school) throw new AppError("School not found", 404);
+
+  // Verify username and email uniqueness
+  const existingUser = await User.findOne({ where: { username } });
+  if (existingUser) throw new AppError("Username already taken", 400);
+
+  const existingEmail = await User.findOne({ where: { email } });
+  if (existingEmail) throw new AppError("Email already registered", 400);
+
+  // Validate class_id for students
+  if (role === "Student" && class_id) {
+    const classInstance = await Class.findByPk(class_id);
+    if (!classInstance) throw new AppError("Class not found", 404);
+    if (classInstance.school_id !== school_id) {
+      throw new AppError("Class does not belong to this school", 403);
+    }
+  }
+
+  // Validate role
+  if (!["Admin", "Teacher", "Student", "Parent"].includes(role)) {
+    throw new AppError("Invalid role", 400);
+  }
+
+  // Hash password
+  const salt = await bcrypt.genSalt(10);
+  const password_hash = await bcrypt.hash(password, salt);
+
+  const user_id = uuidv4();
+
+  // Create user
+  const newUser = await User.create({
+    user_id,
+    username,
+    email,
+    password_hash,
+    role,
+    first_name,
+    last_name,
+    school_id,
+    is_approved: role === "Teacher" ? false : true,
+    is_active: true,
+  });
+
+  // Assign student to class via ClassStudent
+  if (role === "Student" && class_id) {
+    await ClassStudent.create({
+      class_id,
+      student_id: user_id,
+      created_at: new Date(),
+    });
+  }
+
+  return newUser;
 };
