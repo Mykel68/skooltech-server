@@ -392,4 +392,45 @@ router.get(
   classController.getAllClassesHandler
 );
 
+/**
+ * @swagger
+ * /classes/{school_id}/no-auth:
+ *   get:
+ *     summary: Get all classes of a school without authentication
+ *     tags: [Schools]
+ *     parameters:
+ *       - in: path
+ *         name: school_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the school
+ *     responses:
+ *       200:
+ *         description: All classes retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       class_id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       grade_level:
+ *                         type: string
+ *                         nullable: true
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: School not found
+ */
+router.get("/classes/:school_id/no-auth", classController.getAllClassesHandler);
 export default router;
