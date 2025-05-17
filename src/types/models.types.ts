@@ -162,6 +162,7 @@ interface SessionAttributes {
   session_id: string;
   school_id: string;
   name: string;
+  is_active: boolean;
   start_date: Date;
   end_date: Date;
 }

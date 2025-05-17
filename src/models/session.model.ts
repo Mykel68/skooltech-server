@@ -20,6 +20,10 @@ const Session = sequelize.define<SessionInstance>(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
     start_date: {
       type: DataTypes.DATE,
       allowNull: false,
