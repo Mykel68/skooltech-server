@@ -372,4 +372,63 @@ router.get(
   subjectController.getSubjectsOfaClass
 );
 
+/**
+ * @swagger
+ * /subjects/teacher/{teacher_id}:
+ *   get:
+ *     summary: Get all subjects of a teacher
+ *     tags: [Subjects]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: teacher_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the teacher
+ *     responses:
+ *       200:
+ *         description: Subjects retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       subject_id:
+ *                         type: string
+ *                       school_id:
+ *                         type: string
+ *                       class_id:
+ *                         type: string
+ *                       teacher_id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       is_approved:
+ *                         type: boolean
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Teacher not found
+ */
+router.get(
+  "/teacher/:teacher_id",
+  authMiddleware,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.getSubjectsOfaTeacher
+);
+
 export default router;

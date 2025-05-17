@@ -154,3 +154,32 @@ export const getSubjectsOfClass = async (
 
   return subjects;
 };
+
+/**
+ * Get subjects of a teacher from a school
+ */
+export const getSubjectsOfTeacherFromSchool = async (
+  teacher_id: string,
+  school_id: string
+): Promise<SubjectInstance[]> => {
+  if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+
+  const subjects = await Subject.findAll({
+    where: { teacher_id, school_id },
+    include: [
+      {
+        model: Class,
+        as: "class",
+        attributes: ["name", "grade_level"],
+      },
+      {
+        model: User,
+        as: "teacher",
+        attributes: ["username", "email"],
+      },
+    ],
+  });
+
+  return subjects;
+};

@@ -201,3 +201,38 @@ export const getSubjectsOfaClass = async (
     });
   }
 };
+
+export const getSubjectsOfaTeacher = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const teacher_id = (req as any).user?.user_id;
+  const school_id = (req as any).user?.school_id;
+  const subjects = await subjectService.getSubjectsOfTeacherFromSchool(
+    teacher_id!,
+    school_id!
+  );
+
+  try {
+    sendResponse(
+      res,
+      200,
+      subjects.map((subject: any) => ({
+        subject_id: subject.subject_id,
+        // school_id: subject.school_id,
+        // class_id: subject.class_id,
+        class_name: subject.class?.name, // <-- class name
+        grade_level: subject.class?.grade_level,
+        // teacher_id: subject.teacher_id,
+        // teacher_name: subject.teacher?.username, // <-- teacher name
+        // teacher_email: subject.teacher?.email,
+        name: subject.name,
+        is_approved: subject.is_approved,
+      }))
+    );
+  } catch (error: any) {
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+};
