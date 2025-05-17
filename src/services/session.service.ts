@@ -140,7 +140,10 @@ export const getSessions = async (
 
   const sessions = await Session.findAll({
     where: { school_id },
-    order: [["start_date", "DESC"]],
+    order: [
+      ["is_active", "DESC"], // Active sessions first
+      ["start_date", "DESC"], // Then by start_date descending
+    ],
   });
   return sessions;
 };
