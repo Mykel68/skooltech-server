@@ -147,3 +147,25 @@ export const getSessions = async (
   });
   return sessions;
 };
+
+export const getSessionById = async (
+  session_id: string,
+  school_id: string
+): Promise<SessionInstance> => {
+  if (!validateUUID(session_id)) throw new AppError("Invalid session ID", 400);
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+
+  const session = await Session.findByPk(session_id, {
+    include: [
+      {
+        model: School,
+        as: "school",
+        attributes: ["name", "address", "school_image", "phone_number"],
+      },
+    ],
+  });
+
+  if (!session) throw new AppError("Session not found", 404);
+
+  return session;
+};

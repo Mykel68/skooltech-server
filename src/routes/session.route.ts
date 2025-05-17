@@ -3,6 +3,7 @@ import { authMiddleware, authorize } from "../middlewares/auth.middleware";
 import {
   createSession,
   editSession,
+  getSessionByIdController,
   getSessions,
 } from "../controllers/session.controller";
 
@@ -239,5 +240,84 @@ router.patch(
  *         description: Forbidden
  */
 router.get("/:school_id", authMiddleware, getSessions);
+
+/**
+ * @swagger
+ * /sessions/{school_id}/{session_id}:
+ *   get:
+ *     summary: Get a session by ID
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: school_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the school
+ *       - in: path
+ *         name: session_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the session
+ *     responses:
+ *       200:
+ *         description: Session retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     session_id:
+ *                       type: string
+ *                       format: uuid
+ *                       example: 123e4567-e89b-12d3-a456-426614174000
+ *                     school_id:
+ *                       type: string
+ *                       format: uuid
+ *                       example: 123e4567-e89b-12d3-a456-426614174000
+ *                     name:
+ *                       type: string
+ *                       example: 2023/2024
+ *                     is_active:
+ *                       type: boolean
+ *                       example: true
+ *                     start_date:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2023-01-01T00:00:00.000Z
+ *                     end_date:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2023-12-31T00:00:00.000Z
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2023-01-01T00:00:00.000Z
+ *                     updated_at:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2023-02-01T00:00:00.000Z
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Session not found
+ */
+
+router.get("/:school_id/:session_id", authMiddleware, getSessionByIdController);
 
 export default router;

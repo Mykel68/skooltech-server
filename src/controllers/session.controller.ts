@@ -129,3 +129,24 @@ export const getSessions = async (
     next(new AppError(error.message, error.statusCode || 500));
   }
 };
+
+export const getSessionByIdController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      throw new AppError("Unauthorized: No user data", 401);
+    }
+
+    const { session_id } = req.params;
+    const school_id = req.user.school_id;
+
+    const session = await sessionService.getSessionById(session_id, school_id);
+
+    sendResponse(res, 200, session);
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 500));
+  }
+};
