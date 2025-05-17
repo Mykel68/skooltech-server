@@ -3,14 +3,8 @@ import {
   authMiddleware,
   authorize,
   restrictToSchool,
-  restrictToSession,
 } from "../middlewares/auth.middleware";
-import {
-  createTerm,
-  updateTerm,
-  deleteTerm,
-  getTerms,
-} from "../controllers/term.controller";
+import * as termController from "../controllers/term.controller";
 
 const router = express.Router();
 
@@ -35,12 +29,14 @@ const router = express.Router();
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
  *         description: UUID of the school
  *       - in: path
  *         name: session_id
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
  *         description: UUID of the session
  *     requestBody:
  *       required: true
@@ -88,6 +84,12 @@ const router = express.Router();
  *                     end_date:
  *                       type: string
  *                       format: date-time
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                     updated_at:
+ *                       type: string
+ *                       format: date-time
  *       400:
  *         description: Invalid input
  *       401:
@@ -102,7 +104,7 @@ router.post(
   authMiddleware,
   authorize(["Admin"]),
   restrictToSchool(),
-  createTerm
+  termController.createTerm
 );
 
 /**
@@ -119,6 +121,7 @@ router.post(
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
  *         description: UUID of the term
  *     requestBody:
  *       required: true
@@ -126,7 +129,7 @@ router.post(
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, start_date, end_date]
+ *             minProperties: 1
  *             properties:
  *               name:
  *                 type: string
@@ -139,6 +142,7 @@ router.post(
  *                 type: string
  *                 format: date-time
  *                 description: End date of the term
+ *             description: At least one field must be provided. Any combination of fields can be updated.
  *     responses:
  *       200:
  *         description: Term updated successfully
@@ -166,6 +170,12 @@ router.post(
  *                     end_date:
  *                       type: string
  *                       format: date-time
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                     updated_at:
+ *                       type: string
+ *                       format: date-time
  *       400:
  *         description: Invalid input
  *       401:
@@ -180,7 +190,7 @@ router.patch(
   authMiddleware,
   authorize(["Admin"]),
   restrictToSchool(),
-  updateTerm
+  termController.updateTerm
 );
 
 /**
@@ -197,6 +207,7 @@ router.patch(
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
  *         description: UUID of the term
  *     responses:
  *       204:
@@ -215,7 +226,7 @@ router.delete(
   authMiddleware,
   authorize(["Admin"]),
   restrictToSchool(),
-  deleteTerm
+  termController.deleteTerm
 );
 
 /**
@@ -232,6 +243,7 @@ router.delete(
  *         required: false
  *         schema:
  *           type: string
+ *           format: uuid
  *         description: UUID of the session (optional, defaults to current session)
  *     responses:
  *       200:
@@ -262,6 +274,12 @@ router.delete(
  *                       end_date:
  *                         type: string
  *                         format: date-time
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                       updated_at:
+ *                         type: string
+ *                         format: date-time
  *       400:
  *         description: Invalid input
  *       401:
@@ -272,12 +290,11 @@ router.delete(
  *         description: Session not found
  */
 router.get(
-  "/:session_id?",
+  "/:session_id",
   authMiddleware,
   authorize(["Admin", "Teacher", "Student"]),
   restrictToSchool(),
-  restrictToSession(),
-  getTerms
+  termController.getTerms
 );
 
 export default router;

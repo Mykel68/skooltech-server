@@ -2,8 +2,8 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/db";
 import Subject from "./subject.model";
 import Class from "./class.model";
-import Term from "./term.model";
 import { AssessmentInstance } from "../types/models.types";
+import { Term } from "./term.model";
 
 const Assessment = sequelize.define<AssessmentInstance>(
   "Assessment",

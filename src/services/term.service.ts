@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import { AppError } from "../utils/error.util";
 import { validateUUID } from "../utils/validation.util";
-import Term from "../models/term.model";
+import { Term } from "../models/term.model";
 import Session from "../models/session.model";
 import School from "../models/school.model";
 import { TermInstance } from "../types/models.types";
@@ -52,39 +52,66 @@ export const createTerm = async (
 
 export const updateTerm = async (
   term_id: string,
-  name: string,
-  start_date: Date,
-  end_date: Date
+  updates: {
+    name?: string;
+    start_date?: Date;
+    end_date?: Date;
+  }
 ): Promise<TermInstance> => {
   if (!validateUUID(term_id)) throw new AppError("Invalid term ID", 400);
-  if (!name) throw new AppError("Term name is required", 400);
-  if (
-    !start_date ||
-    !end_date ||
-    isNaN(start_date.getTime()) ||
-    isNaN(end_date.getTime())
-  ) {
-    throw new AppError("Valid start and end dates are required", 400);
-  }
-  if (end_date <= start_date)
-    throw new AppError("End date must be after start date", 400);
+  if (!Object.keys(updates).length)
+    throw new AppError("At least one field must be provided", 400);
 
   const term = await Term.findByPk(term_id);
   if (!term) throw new AppError("Term not found", 404);
 
   const session = await Session.findByPk(term.session_id);
   if (!session) throw new AppError("Session not found", 404);
-  if (start_date < session.start_date || end_date > session.end_date) {
-    throw new AppError("Term dates must be within session dates", 400);
+
+  const { name, start_date, end_date } = updates;
+
+  // Validate provided fields
+  if (name !== undefined && name === "")
+    throw new AppError("Term name cannot be empty", 400);
+  if (name) {
+    const existingTerm = await Term.findOne({
+      where: {
+        session_id: term.session_id,
+        name,
+        term_id: { [Op.ne]: term_id },
+      },
+    });
+    if (existingTerm)
+      throw new AppError("Term name already exists for this session", 400);
   }
 
-  const existingTerm = await Term.findOne({
-    where: { session_id: term.session_id, name, term_id: { [Op.ne]: term_id } },
-  });
-  if (existingTerm)
-    throw new AppError("Term name already exists for this session", 400);
+  if (start_date && isNaN(start_date.getTime()))
+    throw new AppError("Invalid start date", 400);
+  if (end_date && isNaN(end_date.getTime()))
+    throw new AppError("Invalid end date", 400);
 
-  await term.update({ name, start_date, end_date });
+  // Validate date consistency
+  const effectiveStartDate = start_date || term.start_date;
+  const effectiveEndDate = end_date || term.end_date;
+  if ((start_date || end_date) && effectiveEndDate <= effectiveStartDate)
+    throw new AppError("End date must be after start date", 400);
+
+  // Validate session date boundaries
+  if (
+    (start_date && start_date < session.start_date) ||
+    (end_date && end_date > session.end_date)
+  )
+    throw new AppError("Term dates must be within session dates", 400);
+
+  // Prepare update object
+  // const updateData: Partial<TermInstance> = {
+  //   updated_at: new Date(),
+  // };
+  // if (name !== undefined) updateData.name = name;
+  // if (start_date) updateData.start_date = start_date;
+  // if (end_date) updateData.end_date = end_date;
+
+  await term.update(updates);
   return term;
 };
 
@@ -102,7 +129,7 @@ export const deleteTerm = async (term_id: string): Promise<void> => {
 };
 
 export const getTerms = async (
-  session_id: string | undefined,
+  session_id: string,
   school_id: string
 ): Promise<TermInstance[]> => {
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
@@ -129,6 +156,9 @@ export const getTerms = async (
   });
   if (!session) throw new AppError("Session not found in this school", 404);
 
-  const terms = await Term.findAll({ where: { session_id: targetSessionId } });
+  const terms = await Term.findAll({
+    where: { session_id: targetSessionId },
+    order: [["start_date", "ASC"]],
+  });
   return terms;
 };
