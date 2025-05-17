@@ -80,6 +80,7 @@ export interface SubjectAttributes {
   teacher_id: string;
   is_approved?: boolean;
   name: string;
+  short?: string;
 }
 
 export interface SubjectInstance

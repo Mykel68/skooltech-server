@@ -32,6 +32,10 @@ const Subject = sequelize.define<SubjectInstance>(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    short: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     is_approved: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
