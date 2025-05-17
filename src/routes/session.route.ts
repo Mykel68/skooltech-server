@@ -318,6 +318,10 @@ router.get("/:school_id", authMiddleware, getSessions);
  *         description: Session not found
  */
 
-router.get("/:school_id/:session_id", authMiddleware, getSessionByIdController);
+router.get(
+  "/id/:school_id/:session_id",
+  authMiddleware,
+  getSessionByIdController
+);
 
 export default router;
