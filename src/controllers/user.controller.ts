@@ -246,6 +246,24 @@ export const getStudentsBySchoolController = async (
   }
 };
 
+export const getStudentsBySchoolControllers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const { school_id } = req.params;
+  try {
+    if (!school_id) {
+      throw new AppError("Invalid school ID", 400);
+    }
+
+    const students = await userService.getStudentBySchool(school_id);
+    sendResponse(res, 200, students);
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 400));
+  }
+};
+
 //delete User by id
 export const deleteUserController = async (
   req: Request,

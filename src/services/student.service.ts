@@ -4,9 +4,11 @@ import ClassStudent from "../models/class_student.model";
 import GradeScale from "../models/gradeScale.model";
 import GradingConfig from "../models/gradingConfig.model";
 import Score from "../models/score.model";
+import Student from "../models/student.model";
 import Subject from "../models/subject.model";
-import { Term } from "../models/term.model";
+import { School, Term } from "../models/term.model";
 import User from "../models/user.model";
+import { ClassStudentInstance } from "../types/models.types";
 import { AppError } from "../utils/error.util";
 import { validateUUID } from "../utils/validation.util";
 
@@ -64,6 +66,43 @@ export const getStudentById = async (user_id: string): Promise<any> => {
   if (!student) throw new AppError("Student not found", 404);
   return student;
 };
+
+// export const getStudentBySchool = async (school_id: string): Promise<any[]> => {
+//   if (!validateUUID(school_id)) throw new AppError("Invalid school id", 400);
+//   const school = await School.findByPk(school_id);
+//   if (!school) throw new AppError("School not found", 404);
+
+//   const students = await Student.findAll({
+//     where: { school_id },
+//     include: [
+//       {
+//         model: User,
+//         as: "user",
+//         attributes: [
+//           "user_id",
+//           "username",
+//           "email",
+//           "first_name",
+//           "lastname",
+//           "is_approved",
+//         ],
+//       },
+//       {
+//         model: Class,
+//         as: "class",
+//         attributes: ["class_id", "name"],
+//       },
+//     ],
+//     order: [
+//       ["user", "lastname", "ASC"],
+//       ["user", "first_name", "ASC"],
+//     ],
+//   });
+//   return students.map((student) => ({
+//     ...student.user.toJSON(),
+//     class: student.class ? student.class.toJSON() : null,
+//   }));
+// };
 
 // export const getStudentScores = async (
 //   student_id: string,

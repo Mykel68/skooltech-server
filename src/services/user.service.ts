@@ -5,9 +5,12 @@ import {
   UserRegistrationData,
   UserAttributes,
   UserInstance,
+  ClassStudentInstance,
 } from "../types/models.types";
 import { AppError } from "../utils/error.util";
 import { validateUUID } from "../utils/validation.util";
+import Student from "../models/student.model";
+import Class from "../models/class.model";
 
 export const registerUser = async (
   userData: UserRegistrationData
@@ -178,7 +181,41 @@ export const getStudentsBySchool = async (
       "is_approved",
     ],
   });
+  // add the class of the student to the return also
   return students as UserInstance[];
+};
+
+export const getStudentBySchool = async (
+  school_id: string
+): Promise<ClassStudentInstance[]> => {
+  // also sending the class of the student
+  if (!validateUUID(school_id)) throw new AppError("Invalid school id", 400);
+  const school = await School.findByPk(school_id);
+  if (!school) throw new AppError("School not found", 404);
+
+  const students = await Student.findAll({
+    where: { school_id },
+    include: [
+      {
+        model: User,
+        attributes: [
+          "user_id",
+          "username",
+          "email",
+          "first_name",
+          "last_name",
+          "role",
+          "school_id",
+          "is_approved",
+        ],
+      },
+      {
+        model: Class,
+        attributes: ["class_id", "name", "grade_level"],
+      },
+    ],
+  });
+  return students as ClassStudentInstance[];
 };
 
 export const deleteUser = async (user_id: string): Promise<void> => {

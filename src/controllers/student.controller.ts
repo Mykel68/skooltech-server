@@ -25,6 +25,7 @@ export const getStudentByClass = async (
     });
   }
 };
+
 // export const getStudentInClass = async (
 //   req: Request,
 //   res: Response
