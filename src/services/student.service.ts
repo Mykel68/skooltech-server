@@ -19,26 +19,35 @@ export const getStudentByClass = async (
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
 
+  // Verify class belongs to the school
   const classRecord = await Class.findOne({
     where: { class_id, school_id },
   });
   if (!classRecord) throw new AppError("Class not found in this school", 404);
 
-  const users = await User.findAll({
-    where: { role: "Student", school_id },
+  // Query the join table with eager loading of students
+  const enrolledStudents = await ClassStudent.findAll({
+    where: { class_id },
+    include: [
+      {
+        model: User,
+        as: "student", // make sure this alias matches your association
+        where: { role: "Student", school_id },
+        attributes: { exclude: ["password_hash"] }, // exclude sensitive info if you want
+      },
+    ],
   });
-  if (!users.length) throw new AppError("No students found in this class", 404);
-  // return users;
-  const students = users.map((user) => ({
-    ...user.toJSON(),
+
+  if (!enrolledStudents.length)
+    throw new AppError("No students found in this class", 404);
+
+  // Map to a cleaner response including student data and class info
+  const students = enrolledStudents.map((enrollment: any) => ({
+    ...enrollment.student.toJSON(),
     class: classRecord.toJSON(),
   }));
 
-  const filteredStudents = students.filter((student) => {
-    return student.class.class_id === class_id;
-  });
-
-  return filteredStudents;
+  return students;
 };
 
 export const getStudentsBySchool = async (

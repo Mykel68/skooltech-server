@@ -57,9 +57,7 @@ export interface UserAttributes {
   is_active?: boolean;
 }
 
-export interface UserInstance extends Model<UserAttributes>, UserAttributes {
-  class?: ClassInstance;
-}
+export interface UserInstance extends Model<UserAttributes>, UserAttributes {}
 
 export interface SchoolAttributes {
   school_id?: string;
