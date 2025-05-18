@@ -220,7 +220,7 @@ export const getSubjectsOfaTeacher = async (
       subjects.map((subject: any) => ({
         subject_id: subject.subject_id,
         // school_id: subject.school_id,
-        // class_id: subject.class_id,
+        class_id: subject.class_id,
         class_name: subject.class?.name, // <-- class name
         grade_level: subject.class?.grade_level,
         // teacher_id: subject.teacher_id,
