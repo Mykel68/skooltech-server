@@ -185,15 +185,13 @@ export const getStudentsBySchool = async (
   return students as UserInstance[];
 };
 
-export const getStudentBySchool = async (
-  school_id: string
-): Promise<ClassStudentInstance[]> => {
+export const getStudentBySchool = async (school_id: string): Promise<any[]> => {
   // also sending the class of the student
   if (!validateUUID(school_id)) throw new AppError("Invalid school id", 400);
   const school = await School.findByPk(school_id);
   if (!school) throw new AppError("School not found", 404);
 
-  const students = await Student.findAll({
+  const students = await User.findAll({
     where: { school_id },
     include: [
       {
@@ -215,7 +213,7 @@ export const getStudentBySchool = async (
       },
     ],
   });
-  return students as ClassStudentInstance[];
+  return students;
 };
 
 export const deleteUser = async (user_id: string): Promise<void> => {

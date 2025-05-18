@@ -49,8 +49,6 @@ export const getStudentByClass = async (
 
   const student = await Class.findOne({
     where: { class_id, school_id },
-    attributes: ["first_name", "last_name"],
-    order: [["last_name", "ASC"]],
   });
   if (!student) throw new AppError("Student not found", 404);
   if (student.school_id !== classRecord.school_id)
