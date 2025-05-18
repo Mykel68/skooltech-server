@@ -47,7 +47,7 @@ export const getStudentByClass = async (
 
   const student = await Class.findOne({
     where: { class_id, school_id },
-    attributes: ["user_id", "username", "email", "first_name", "last_name"],
+    attributes: ["username", "email", "first_name", "last_name"],
     order: [
       ["last_name", "ASC"],
       ["first_name", "ASC"],
