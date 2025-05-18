@@ -16,7 +16,7 @@ export const getStudentByClass = async (
     const { class_id } = req.params;
     const school_id = req.user.school_id;
 
-    const student = await studentService.getStudentByClass(class_id, school_id);
+    const student = await studentService.getStudentByClass(school_id, class_id);
 
     sendResponse(res, 200, student);
   } catch (error: any) {

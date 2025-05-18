@@ -3,15 +3,22 @@ import sequelize from "../config/db";
 import User from "./user.model";
 import Class from "./class.model";
 import School from "./school.model";
+import { ClassInstance, UserInstance } from "../types/models.types";
 
-class Student extends Model {
-  public student_id!: string;
-  public user_id!: string;
-  public class_id!: string;
-  public school_id!: string;
+interface StudentAttributes {
+  student_id: string;
+  user_id: string;
+  class_id: string;
+  school_id: string;
 }
 
-Student.init(
+interface StudentInstance extends Model<StudentAttributes>, StudentAttributes {
+  user: UserInstance;
+  class: ClassInstance;
+}
+
+const Student = sequelize.define<StudentInstance>(
+  "Student",
   {
     student_id: {
       type: DataTypes.UUID,
@@ -22,29 +29,31 @@ Student.init(
       type: DataTypes.UUID,
       allowNull: false,
       unique: true,
-      references: { model: "users", key: "user_id" },
+      references: { model: User, key: "user_id" },
     },
     class_id: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: { model: "classes", key: "class_id" },
+      references: { model: Class, key: "class_id" },
     },
     school_id: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: { model: "schools", key: "school_id" },
+      references: { model: School, key: "school_id" },
     },
   },
   {
-    sequelize,
     tableName: "students",
     timestamps: false,
+    underscored: true,
   }
 );
 
+// Associations
 Student.belongsTo(User, { foreignKey: "user_id" });
 Student.belongsTo(Class, { foreignKey: "class_id" });
 Student.belongsTo(School, { foreignKey: "school_id" });
+
 User.hasOne(Student, { foreignKey: "user_id" });
 Class.hasMany(Student, { foreignKey: "class_id" });
 School.hasMany(Student, { foreignKey: "school_id" });

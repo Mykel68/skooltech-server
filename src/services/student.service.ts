@@ -12,6 +12,78 @@ import { ClassStudentInstance } from "../types/models.types";
 import { AppError } from "../utils/error.util";
 import { validateUUID } from "../utils/validation.util";
 
+export const getStudentByClass = async (
+  school_id: string,
+  class_id: string
+): Promise<any[]> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+  if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
+
+  const classRecord = await Class.findOne({
+    where: { class_id, school_id },
+  });
+  if (!classRecord) throw new AppError("Class not found in this school", 404);
+
+  const users = await User.findAll({
+    where: { role: "Student", school_id },
+  });
+  if (!users.length) throw new AppError("No students found in this class", 404);
+  // return users;
+  const students = users.map((user) => ({
+    ...user.toJSON(),
+    class: classRecord.toJSON(),
+  }));
+
+  const filteredStudents = students.filter((student) => {
+    return student.class.class_id === class_id;
+  });
+
+  return filteredStudents;
+};
+
+export const getStudentsBySchool = async (
+  school_id: string
+): Promise<any[]> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+
+  const school = await School.findByPk(school_id);
+  if (!school) throw new AppError("School not found", 404);
+
+  const students = await Student.findAll({
+    where: { school_id },
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: [
+          "user_id",
+          "username",
+          "email",
+          "first_name",
+          "last_name",
+          "role",
+          "school_id",
+          "is_approved",
+        ],
+      },
+      {
+        model: Class,
+        as: "class",
+        attributes: ["class_id", "name"],
+      },
+    ],
+    order: [
+      ["user", "last_name", "ASC"],
+      ["user", "first_name", "ASC"],
+    ],
+  });
+
+  return students.map((student) => ({
+    ...student.user.toJSON(),
+    class: student.class ? student.class.toJSON() : null,
+  }));
+};
+
 // export const getStudentInClass = async (
 //   class_id: string,
 //   student_id: string
@@ -35,25 +107,19 @@ import { validateUUID } from "../utils/validation.util";
 //   return student;
 // };
 
-export const getStudentByClass = async (
-  class_id: string,
-  school_id: string
-): Promise<any> => {
-  if (!class_id) throw new AppError("Invalid class ID", 400);
-  if (!school_id) throw new AppError("Invalid student ID", 400);
+// export const getStudentByClass = async (
+//   class_id: string,
+//   school_id: string
+// ): Promise<any> => {
+//   if (!class_id) throw new AppError("Invalid class ID", 400);
+//   if (!school_id) throw new AppError("Invalid student ID", 400);
 
-  const classRecord = await Class.findOne({
-    where: { class_id, school_id: school_id },
-  });
-  if (!classRecord) throw new AppError("Class not found", 404);
-
-  const student = await Class.findOne({
-    where: { class_id, school_id },
-  });
-  if (!student) throw new AppError("Student not found", 404);
-  if (student.school_id !== classRecord.school_id)
-    throw new AppError("Student does not belong to this school", 403);
-};
+//   const student = await User.findOne({
+//     where: { school_id, role: "Student" },
+//   });
+//   if (!student) throw new AppError("Student not found", 404);
+//   return student;
+// };
 
 export const getStudentById = async (user_id: string): Promise<any> => {
   if (!user_id) throw new AppError("Invalid user ID", 400);

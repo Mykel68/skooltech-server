@@ -17,7 +17,7 @@ const User = sequelize.define<UserInstance>(
       references: { model: School, key: "school_id" },
     },
     role: {
-      type: DataTypes.ENUM("Admin", "Teacher", "Student", "Parent"),
+      type: DataTypes.ENUM("Admin", "Teacher", "Student"),
       allowNull: false,
     },
     username: {
