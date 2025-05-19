@@ -166,12 +166,12 @@ export const updateGradingSetting = async (
   });
 
   // Check for existing setting
-  const existingSetting = await GradingSetting.findOne({
-    where: { class_id, teacher_id },
-  });
-  if (existingSetting) {
-    throw new AppError("Grading setting already exists", 400);
-  }
+  // const existingSetting = await GradingSetting.findOne({
+  //   where: { class_id, teacher_id },
+  // });
+  // if (existingSetting) {
+  //   throw new AppError("Grading setting already exists", 400);
+  // }
 
   const gradingSetting = await GradingSetting.create({
     class_id,
