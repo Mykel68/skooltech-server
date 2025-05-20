@@ -5,6 +5,7 @@ import Class from "./class.model";
 import GradingSetting from "./grading_setting.model";
 import School from "./school.model";
 import ClassStudent from "./class_student.model";
+import { UserInstance } from "../types/models.types";
 
 interface StudentScoreAttributes {
   score_id?: string;
@@ -22,7 +23,9 @@ interface StudentScoreAttributes {
 
 interface StudentScoreInstance
   extends Model<StudentScoreAttributes>,
-    StudentScoreAttributes {}
+    StudentScoreAttributes {
+  student?: UserInstance;
+}
 
 const StudentScore = sequelize.define<StudentScoreInstance>(
   "StudentScore",

@@ -163,3 +163,141 @@ export const assignStudentScores = async (
 
   return results;
 };
+
+export const getStudentScores = async (
+  school_id: string,
+  class_id: string,
+  teacher_id: string
+): Promise<any[]> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+  if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
+  if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
+
+  // Verify class exists in school
+  const classRecord = await Class.findOne({
+    where: { class_id, school_id },
+  });
+  if (!classRecord) throw new AppError("Class not found in this school", 404);
+
+  // Verify teacher is authorized
+  const teacher = await User.findOne({
+    where: {
+      user_id: teacher_id,
+      school_id,
+      role: "Teacher",
+      is_approved: true,
+    },
+  });
+  if (!teacher) throw new AppError("Teacher not found or not authorized", 403);
+
+  // Get grading setting
+  const gradingSetting = await GradingSetting.findOne({
+    where: { class_id, teacher_id, school_id },
+  });
+  if (!gradingSetting)
+    throw new AppError(
+      "Grading setting not found for this class and teacher",
+      404
+    );
+
+  // Fetch scores with student details
+  const scores = await StudentScore.findAll({
+    where: {
+      class_id,
+      school_id,
+      teacher_id,
+      grading_setting_id: gradingSetting.grading_setting_id,
+    },
+    include: [
+      {
+        model: User,
+        as: "student",
+        where: { role: "Student", is_approved: true },
+        attributes: ["user_id", "first_name", "last_name"],
+      },
+    ],
+    attributes: ["score_id", "scores", "total_score"],
+  });
+
+  // Format response
+  return scores.map((score) => ({
+    score_id: score.score_id,
+    student: {
+      user_id: score.student?.user_id,
+      first_name: score.student?.first_name,
+      last_name: score.student?.last_name,
+    },
+    scores: score.scores,
+    total_score: score.total_score,
+  }));
+};
+
+// export const getStudentScores = async (
+//   school_id: string,
+//   class_id: string,
+//   term_id: string
+// ): Promise<any[]> => {
+//   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+//   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
+//   if (!validateUUID(term_id)) throw new AppError("Invalid term ID", 400);
+
+//   const classRecord = await Class.findOne({
+//     where: { class_id, school_id },
+//   });
+//   if (!classRecord) throw new AppError("Class not found in this school", 404);
+
+//   const enrollment = await ClassStudent.findOne({
+//     where: { class_id, student_id: user_id },
+//   });
+//   if (!enrollment)
+//     throw new AppError("Student not enrolled in this class", 403);
+
+//   const scores = await Score.findAll({
+//     where: { student_id },
+//     include: [
+//       {
+//         model: Assessment,
+//         where: { class_id, term_id },
+//         include: [
+//           { model: Subject, attributes: ["subject_id", "name"] },
+//           { model: Term, attributes: ["term_id", "name"] },
+//         ],
+//       },
+//     ],
+//   });
+
+//   const gradingConfigs = await GradingConfig.findAll({
+//     where: { school_id: student.school_id },
+//   });
+//   const gradeScales = await GradeScale.findAll({
+//     where: { school_id: student.school_id },
+//   });
+
+//   return scores.map((score) => {
+//     const assessment = score.assessment;
+//     const percentage = (score.score / assessment.max_score) * 100;
+//     const gradeScale = gradeScales.find(
+//       (scale) => percentage >= scale.min_score && percentage <= scale.max_score
+//     );
+//     const config = gradingConfigs.find(
+//       (config) => config.assessment_type === assessment.type
+//     );
+//     return {
+//       score_id: score.score_id,
+//       assessment_id: score.assessment_id,
+//       assessment_name: assessment.name,
+//       assessment_type: assessment.type,
+//       assessment_date: assessment.date,
+//       term_id: assessment.term.term_id,
+//       term_name: assessment.term.name,
+//       subject_id: assessment.subject.subject_id,
+//       subject_name: assessment.subject.name,
+//       class_id: assessment.class_id,
+//       score: score.score,
+//       max_score: assessment.max_score,
+//       percentage,
+//       letter_grade: gradeScale ? gradeScale.letter_grade : null,
+//       weight: config ? config.weight : null,
+//     };
+//   });
+// };

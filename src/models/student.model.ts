@@ -54,7 +54,9 @@ Student.belongsTo(User, { foreignKey: "user_id" });
 Student.belongsTo(Class, { foreignKey: "class_id" });
 Student.belongsTo(School, { foreignKey: "school_id" });
 
-User.hasOne(Student, { foreignKey: "user_id" });
+Student.belongsTo(User, { foreignKey: "user_id", as: "user" });
+User.hasOne(Student, { foreignKey: "user_id", as: "studentInfo" }); // <- alias added
+
 Class.hasMany(Student, { foreignKey: "class_id" });
 School.hasMany(Student, { foreignKey: "school_id" });
 

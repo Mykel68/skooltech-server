@@ -4,7 +4,10 @@ import {
   authorize,
   restrictToSchool,
 } from "../middlewares/auth.middleware";
-import { assignScores } from "../controllers/student_score.controller";
+import {
+  assignScores,
+  getScores,
+} from "../controllers/student_score.controller";
 
 const router = express.Router();
 
@@ -126,6 +129,89 @@ router.post(
   authorize(["Teacher"]),
   restrictToSchool(),
   assignScores
+);
+
+/**
+ * @swagger
+ * /student-scores/{school_id}/{class_id}:
+ *   get:
+ *     summary: Retrieve student scores for a class
+ *     tags: [Student Scores]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: school_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the school
+ *       - in: path
+ *         name: class_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the class
+ *     responses:
+ *       200:
+ *         description: Student scores retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       score_id:
+ *                         type: string
+ *                       student:
+ *                         type: object
+ *                         properties:
+ *                           user_id:
+ *                             type: string
+ *                           first_name:
+ *                             type: string
+ *                           last_name:
+ *                             type: string
+ *                       scores:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             component_name:
+ *                               type: string
+ *                             score:
+ *                               type: number
+ *                       total_score:
+ *                         type: number
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                       updated_at:
+ *                         type: string
+ *                         format: date-time
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Class or grading setting not found
+ */
+router.get(
+  "/:school_id/:class_id",
+  authMiddleware,
+  authorize(["Teacher"]),
+  restrictToSchool(),
+  getScores
 );
 
 export default router;

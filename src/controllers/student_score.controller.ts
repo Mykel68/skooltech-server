@@ -1,5 +1,5 @@
 import { Response, NextFunction } from "express";
-import { assignStudentScores } from "../services/student_score.service";
+import { assignStudentScores, getStudentScores } from "../services/student_score.service";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
 import { AuthRequest } from "../middlewares/auth.middleware";
@@ -39,6 +39,42 @@ export const assignScores = async (
   } catch (error: any) {
     console.error("Assign Scores Error:", error.message, {
       body: req.body,
+      errorDetails: error,
+    });
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+export const getScores = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      throw new AppError("Unauthorized: No user data", 401);
+    }
+
+    const { school_id, class_id } = req.params;
+    const teacher_id = req.user.user_id;
+
+    console.log("Get Scores Request:", { school_id, class_id, teacher_id });
+
+    const studentScores = await getStudentScores(
+      school_id,
+      class_id,
+      teacher_id
+    );
+
+    sendResponse(res, 200, {
+      message: "Student scores retrieved successfully",
+      data: studentScores,
+    });
+  } catch (error: any) {
+    console.error("Get Scores Error:", error.message, {
+      params: req.params,
       errorDetails: error,
     });
     sendResponse(res, error.statusCode || 500, {
