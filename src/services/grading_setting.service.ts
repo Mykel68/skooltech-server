@@ -124,7 +124,7 @@ export const updateGradingSetting = async (
   class_id: string,
   teacher_id: string,
   components: GradingComponent[]
-): Promise<GradingSettingInstance> => {
+): Promise<any> => {
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
   if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
@@ -173,12 +173,20 @@ export const updateGradingSetting = async (
   //   throw new AppError("Grading setting already exists", 400);
   // }
 
-  const gradingSetting = await GradingSetting.create({
-    class_id,
-    teacher_id,
-    school_id,
-    components,
-  });
+  // const gradingSetting = await GradingSetting.update({
+  //   class_id,
+  //   teacher_id,
+  //   school_id,
+  //   components,
+  // });
+  const gradingSetting = await GradingSetting.update(
+    {
+      components,
+    },
+    {
+      where: { class_id, teacher_id },
+    }
+  );
 
   return gradingSetting;
 };
