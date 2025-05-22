@@ -7,7 +7,6 @@ import StudentScore, {
 import GradingSetting from "../models/grading_setting.model";
 import Class from "../models/class.model";
 import User from "../models/user.model";
-import Student from "../models/student.model";
 import ClassStudent from "../models/class_student.model";
 
 interface ScoreInput {
@@ -46,11 +45,21 @@ export const assignStudentScores = async (
   const gradingSetting = await GradingSetting.findOne({
     where: { class_id, teacher_id, school_id },
   });
+  console.log("Grading Setting Query:", {
+    class_id,
+    teacher_id,
+    school_id,
+    gradingSetting: gradingSetting ? gradingSetting.toJSON() : null,
+  });
   if (!gradingSetting)
     throw new AppError(
       "Grading setting not found for this class and teacher",
       404
     );
+  if (!gradingSetting.grading_setting_id) {
+    console.error("Grading Setting ID is undefined:", gradingSetting.toJSON());
+    throw new AppError("Invalid grading setting ID", 500);
+  }
 
   // Validate component names
   const validComponents = gradingSetting.components.map((comp) => comp.name);
@@ -60,23 +69,7 @@ export const assignStudentScores = async (
     if (!validateUUID(input.user_id))
       throw new AppError(`Invalid user ID: ${input.user_id}`, 400);
 
-    // Verify student
-    // const student = await User.findOne({
-    //   where: {
-    //     user_id: input.user_id,
-    //     school_id,
-    //     role: "Student",
-    //     is_approved: true,
-    //   },
-    //   include: [{ model: Student, as: "student", where: { class_id } }],
-    // });
-    // if (!student || !student.student)
-    //   throw new AppError(
-    //     `Student not found in this class: ${input.user_id}`,
-    //     404
-    //   );
-
-    // verfify student is in class
+    // Verify student is in class
     const classStudent = await ClassStudent.findOne({
       where: { class_id, student_id: input.user_id },
     });
@@ -142,108 +135,42 @@ export const assignStudentScores = async (
     });
     if (existingScore) {
       throw new AppError(
-        `Scores already assigned for student ${input.user_id} in this class`,
+        `Scores already assigned for student ${input.user_id}. Use PATCH to update.`,
         409
       );
     }
 
     // Create score
-    const studentScore = await StudentScore.create({
-      grading_setting_id: gradingSetting.grading_setting_id as string,
-      user_id: input.user_id,
-      class_id,
-      teacher_id,
-      school_id,
-      scores: input.scores,
-      total_score,
-    });
-
-    results.push(studentScore);
+    try {
+      const studentScore = await StudentScore.create({
+        grading_setting_id: gradingSetting.grading_setting_id as string,
+        user_id: input.user_id,
+        class_id,
+        teacher_id,
+        school_id,
+        scores: input.scores,
+        total_score,
+      });
+      results.push(studentScore);
+    } catch (error: any) {
+      console.error("Student Score Creation Error:", error.message, {
+        input,
+        grading_setting_id: gradingSetting.grading_setting_id,
+      });
+      throw new AppError(
+        `Failed to create student score: ${error.message}`,
+        400
+      );
+    }
   }
 
   return results;
 };
 
-export const getStudentScores = async (
-  school_id: string,
-  class_id: string,
-  teacher_id: string
-): Promise<any[]> => {
-  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
-  if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
-  if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
-
-  // Verify class exists in school
-  const classRecord = await Class.findOne({
-    where: { class_id, school_id },
-  });
-  if (!classRecord) throw new AppError("Class not found in this school", 404);
-
-  // Verify teacher is authorized
-  const teacher = await User.findOne({
-    where: {
-      user_id: teacher_id,
-      school_id,
-      role: "Teacher",
-      is_approved: true,
-    },
-  });
-  if (!teacher) throw new AppError("Teacher not found or not authorized", 403);
-
-  // Get grading setting
-  const gradingSetting = await GradingSetting.findOne({
-    where: { class_id, teacher_id, school_id },
-  });
-  if (!gradingSetting)
-    throw new AppError(
-      "Grading setting not found for this class and teacher",
-      404
-    );
-
-  // Fetch scores with student details
-  const scores = await StudentScore.findAll({
-    where: {
-      class_id,
-      school_id,
-      teacher_id,
-      grading_setting_id: gradingSetting.grading_setting_id,
-    },
-    include: [
-      {
-        model: User,
-        as: "student",
-        where: { role: "Student", is_approved: true },
-        attributes: ["user_id", "first_name", "last_name"],
-      },
-    ],
-    attributes: ["score_id", "scores", "total_score"],
-  });
-
-  // also return the class of the student
-  const classes = await Class.findAll({
-    where: { class_id },
-    attributes: ["class_id", "name", "grade_level"],
-  });
-
-  // Format response
-  return scores.map((score) => ({
-    class: classes,
-    score_id: score.score_id,
-    student: {
-      user_id: score.student?.user_id,
-      first_name: score.student?.first_name,
-      last_name: score.student?.last_name,
-    },
-    scores: score.scores,
-    total_score: score.total_score,
-  }));
-};
-
-export const editStudentScore = async (
+export const editStudentScores = async (
   school_id: string,
   class_id: string,
   teacher_id: string,
-  score_id: string,
   scoreInputs: ScoreInput[]
 ): Promise<StudentScoreInstance[]> => {
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
@@ -271,11 +198,21 @@ export const editStudentScore = async (
   const gradingSetting = await GradingSetting.findOne({
     where: { class_id, teacher_id, school_id },
   });
+  console.log("Grading Setting Query for Edit:", {
+    class_id,
+    teacher_id,
+    school_id,
+    gradingSetting: gradingSetting ? gradingSetting.toJSON() : null,
+  });
   if (!gradingSetting)
     throw new AppError(
       "Grading setting not found for this class and teacher",
       404
     );
+  if (!gradingSetting.grading_setting_id) {
+    console.error("Grading Setting ID is undefined:", gradingSetting.toJSON());
+    throw new AppError("Invalid grading setting ID", 500);
+  }
 
   // Validate component names
   const validComponents = gradingSetting.components.map((comp) => comp.name);
@@ -285,23 +222,7 @@ export const editStudentScore = async (
     if (!validateUUID(input.user_id))
       throw new AppError(`Invalid user ID: ${input.user_id}`, 400);
 
-    // Verify student
-    // const student = await User.findOne({
-    //   where: {
-    //     user_id: input.user_id,
-    //     school_id,
-    //     role: "Student",
-    //     is_approved: true,
-    //   },
-    //   include: [{ model: Student, as: "student", where: { class_id } }],
-    // });
-    // if (!student || !student.student)
-    //   throw new AppError(
-    //     `Student not found in this class: ${input.user_id}`,
-    //     404
-    //   );
-
-    // verfify student is in class
+    // Verify student is in class
     const classStudent = await ClassStudent.findOne({
       where: { class_id, student_id: input.user_id },
     });
@@ -357,7 +278,7 @@ export const editStudentScore = async (
       total_score += (score * comp.weight) / 100;
     }
 
-    // Check for existing score
+    // Find existing score
     const existingScore = await StudentScore.findOne({
       where: {
         grading_setting_id: gradingSetting.grading_setting_id,
@@ -365,25 +286,118 @@ export const editStudentScore = async (
         class_id,
       },
     });
+
     if (!existingScore) {
       throw new AppError(
-        `No score found for student ${input.user_id} in this class`,
+        `No scores found for student ${input.user_id} in this class. Use POST to create.`,
         404
       );
     }
+
     try {
-      await existingScore.update({
+      // Update existing score
+      const studentScore = await existingScore.update({
         scores: input.scores,
         total_score,
       });
-      results.push(existingScore);
-    } catch (err) {
+      console.log("Score Updated:", {
+        user_id: input.user_id,
+        scores: input.scores,
+        total_score,
+      });
+      results.push(studentScore);
+    } catch (error: any) {
+      console.error("Student Score Update Error:", error.message, {
+        input,
+        grading_setting_id: gradingSetting.grading_setting_id,
+      });
       throw new AppError(
-        `Failed to update score for student ${input.user_id} in this class`,
+        `Failed to update student score: ${error.message}`,
         400
       );
     }
   }
 
   return results;
+};
+
+export const getStudentScores = async (
+  school_id: string,
+  class_id: string,
+  teacher_id: string
+): Promise<any[]> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+  if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
+  if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
+
+  // Verify class exists in school
+  const classRecord = await Class.findOne({
+    where: { class_id, school_id },
+  });
+  if (!classRecord) throw new AppError("Class not found in this school", 404);
+
+  // Verify teacher is authorized
+  const teacher = await User.findOne({
+    where: {
+      user_id: teacher_id,
+      school_id,
+      role: "Teacher",
+      is_approved: true,
+    },
+  });
+  if (!teacher) throw new AppError("Teacher not found or not authorized", 403);
+
+  // Get grading setting
+  const gradingSetting = await GradingSetting.findOne({
+    where: { class_id, teacher_id, school_id },
+  });
+  if (!gradingSetting)
+    throw new AppError(
+      "Grading setting not found for this class and teacher",
+      404
+    );
+
+  // Fetch scores with student details
+  const scores = (await StudentScore.findAll({
+    where: {
+      class_id,
+      school_id,
+      teacher_id,
+      grading_setting_id: gradingSetting.grading_setting_id,
+    },
+    include: [
+      {
+        model: User,
+        as: "student",
+        where: { role: "Student", is_approved: true },
+        attributes: ["user_id", "first_name", "last_name"],
+      },
+    ],
+    attributes: [
+      "score_id",
+      "scores",
+      "total_score",
+      "created_at",
+      "updated_at",
+    ],
+  })) as StudentScoreInstance[];
+
+  // Fetch class details
+  const classes = await Class.findAll({
+    where: { class_id },
+    attributes: ["class_id", "name", "grade_level"],
+  });
+
+  // Format response
+  return scores.map((score) => ({
+    class: classes,
+    score_id: score.score_id,
+    student: {
+      user_id: score.student?.user_id ?? "",
+      first_name: score.student?.first_name ?? "",
+      last_name: score.student?.last_name ?? "",
+    },
+    scores: score.scores,
+    total_score: score.total_score,
+  }));
 };

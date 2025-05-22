@@ -23,7 +23,7 @@ const router = express.Router();
  * @swagger
  * /student-scores/{school_id}/{class_id}:
  *   post:
- *     summary: Assign scores to students in a class
+ *     summary: Create new scores for students in a class
  *     tags: [Student Scores]
  *     security:
  *       - bearerAuth: []
@@ -71,7 +71,7 @@ const router = express.Router();
  *             required: [scores]
  *     responses:
  *       201:
- *         description: Student scores assigned successfully
+ *         description: Student scores created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -122,19 +122,7 @@ const router = express.Router();
  *       404:
  *         description: Class, student, or grading setting not found
  *       409:
- *         description: Scores already assigned
- */
-router.post(
-  "/:school_id/:class_id",
-  authMiddleware,
-  authorize(["Teacher"]),
-  restrictToSchool(),
-  assignScores
-);
-
-/**
- * @swagger
- * /student-scores/{school_id}/{class_id}:
+ *         description: Scores already exist
  *   get:
  *     summary: Retrieve student scores for a class
  *     tags: [Student Scores]
@@ -170,6 +158,17 @@ router.post(
  *                   items:
  *                     type: object
  *                     properties:
+ *                       class:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             class_id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                             grade_level:
+ *                               type: string
  *                       score_id:
  *                         type: string
  *                       student:
@@ -206,20 +205,8 @@ router.post(
  *         description: Forbidden
  *       404:
  *         description: Class or grading setting not found
- */
-router.get(
-  "/:school_id/:class_id",
-  authMiddleware,
-  authorize(["Teacher"]),
-  restrictToSchool(),
-  getScores
-);
-
-/**
- * @swagger
- * /student-scores/{school_id}/{class_id}:
  *   patch:
- *     summary: Edit student scores for a class
+ *     summary: Update existing student scores in a class
  *     tags: [Student Scores]
  *     security:
  *       - bearerAuth: []
@@ -229,13 +216,15 @@ router.get(
  *         required: true
  *         schema:
  *           type: string
- *         description: School ID
+ *           format: uuid
+ *         description: UUID of the school
  *       - in: path
  *         name: class_id
  *         required: true
  *         schema:
  *           type: string
- *         description: Class ID
+ *           format: uuid
+ *         description: UUID of the class
  *     requestBody:
  *       required: true
  *       content:
@@ -243,8 +232,6 @@ router.get(
  *           schema:
  *             type: object
  *             properties:
- *               score_id:
- *                 type: string
  *               scores:
  *                 type: array
  *                 items:
@@ -252,6 +239,7 @@ router.get(
  *                   properties:
  *                     user_id:
  *                       type: string
+ *                       format: uuid
  *                     scores:
  *                       type: array
  *                       items:
@@ -263,10 +251,10 @@ router.get(
  *                             type: number
  *                         required: [component_name, score]
  *                   required: [user_id, scores]
- *             required: [score_id, scores]
+ *             required: [scores]
  *     responses:
- *       201:
- *         description: Student scores edited successfully
+ *       200:
+ *         description: Student scores updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -315,10 +303,24 @@ router.get(
  *       403:
  *         description: Forbidden
  *       404:
- *         description: Class, student, or grading setting not found
- *       409:
- *         description: Scores already assigned
+ *         description: Class, student, or scores not found
  */
+router.post(
+  "/:school_id/:class_id",
+  authMiddleware,
+  authorize(["Teacher"]),
+  restrictToSchool(),
+  assignScores
+);
+
+router.get(
+  "/:school_id/:class_id",
+  authMiddleware,
+  authorize(["Teacher"]),
+  restrictToSchool(),
+  getScores
+);
+
 router.patch(
   "/:school_id/:class_id",
   authMiddleware,
