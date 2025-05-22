@@ -351,6 +351,7 @@ export const getStudentScores = async (
   const gradingSetting = await GradingSetting.findOne({
     where: { class_id, teacher_id, school_id },
   });
+  // console.log("gradingSetting", gradingSetting?.components);
   if (!gradingSetting)
     throw new AppError(
       "Grading setting not found for this class and teacher",
@@ -392,6 +393,7 @@ export const getStudentScores = async (
   return scores.map((score) => ({
     class: classes,
     score_id: score.score_id,
+    grading: gradingSetting?.components,
     student: {
       user_id: score.student?.user_id ?? "",
       first_name: score.student?.first_name ?? "",
