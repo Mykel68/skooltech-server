@@ -403,3 +403,156 @@ export const getStudentScores = async (
     total_score: score.total_score,
   }));
 };
+
+export const editBulkStudentScores = async (
+  school_id: string,
+  class_id: string,
+  teacher_id: string,
+  scoreInputs: ScoreInput[]
+): Promise<StudentScoreInstance[]> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+  if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
+  if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
+
+  // Verify class exists in school
+  const classRecord = await Class.findOne({
+    where: { class_id, school_id },
+  });
+  if (!classRecord) throw new AppError("Class not found in this school", 404);
+
+  // Verify teacher is authorized
+  const teacher = await User.findOne({
+    where: {
+      user_id: teacher_id,
+      school_id,
+      role: "Teacher",
+      is_approved: true,
+    },
+  });
+  if (!teacher) throw new AppError("Teacher not found or not authorized", 403);
+
+  // Get grading setting
+  const gradingSetting = await GradingSetting.findOne({
+    where: { class_id, teacher_id, school_id },
+  });
+  if (!gradingSetting)
+    throw new AppError(
+      "Grading setting not found for this class and teacher",
+      404
+    );
+  if (!gradingSetting.grading_setting_id) {
+    throw new AppError("Invalid grading setting ID", 500);
+  }
+
+  // Validate component names
+  const validComponents = gradingSetting.components.map((comp) => comp.name);
+
+  // Collect user_ids to bulk verify their enrollment
+  const userIds = scoreInputs.map((input) => input.user_id);
+
+  // Bulk verify all students are in the class
+  const enrolledStudents = await ClassStudent.findAll({
+    where: { class_id, student_id: { [Op.in]: userIds } },
+  });
+
+  const enrolledStudentIds = enrolledStudents.map((cs) => cs.student_id);
+  const missingStudents = userIds.filter(
+    (id) => !enrolledStudentIds.includes(id)
+  );
+  if (missingStudents.length > 0) {
+    throw new AppError(
+      `Students not found in this class: ${missingStudents.join(", ")}`,
+      404
+    );
+  }
+
+  const results: StudentScoreInstance[] = [];
+
+  // Use a transaction to ensure all-or-nothing updates
+  const updatedScores = await StudentScore.sequelize?.transaction(async (t) => {
+    for (const input of scoreInputs) {
+      if (!validateUUID(input.user_id)) {
+        throw new AppError(`Invalid user ID: ${input.user_id}`, 400);
+      }
+
+      // Validate scores length and components
+      if (
+        !Array.isArray(input.scores) ||
+        input.scores.length !== validComponents.length
+      ) {
+        throw new AppError(
+          `Scores must match grading components: ${validComponents.join(", ")}`,
+          400
+        );
+      }
+
+      const scoreMap = new Map(
+        input.scores.map((s) => [s.component_name, s.score])
+      );
+      const missingComponents = validComponents.filter(
+        (comp) => !scoreMap.has(comp)
+      );
+      if (missingComponents.length > 0) {
+        throw new AppError(
+          `Missing scores for components: ${missingComponents.join(", ")}`,
+          400
+        );
+      }
+
+      const invalidScores = input.scores.filter(
+        (s) =>
+          !validComponents.includes(s.component_name) ||
+          typeof s.score !== "number" ||
+          isNaN(s.score) ||
+          s.score < 0 ||
+          s.score > 100
+      );
+      if (invalidScores.length > 0) {
+        throw new AppError(
+          `Invalid scores: ${JSON.stringify(invalidScores)}`,
+          400
+        );
+      }
+
+      // Calculate total score
+      let total_score = 0;
+      for (const comp of gradingSetting.components) {
+        const score = scoreMap.get(comp.name) || 0;
+        total_score += (score * comp.weight) / 100;
+      }
+
+      // Find existing score record
+      const existingScore = await StudentScore.findOne({
+        where: {
+          grading_setting_id: gradingSetting.grading_setting_id,
+          user_id: input.user_id,
+          class_id,
+        },
+        transaction: t,
+        lock: t.LOCK.UPDATE, // Lock for update inside transaction
+      });
+
+      if (!existingScore) {
+        throw new AppError(
+          `No scores found for student ${input.user_id} in this class. Use POST to create.`,
+          404
+        );
+      }
+
+      // Update score record
+      const updatedScore = await existingScore.update(
+        {
+          scores: input.scores,
+          total_score,
+        },
+        { transaction: t }
+      );
+
+      results.push(updatedScore);
+    }
+
+    return results;
+  });
+
+  return updatedScores ?? results;
+};

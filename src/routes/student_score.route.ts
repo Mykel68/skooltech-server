@@ -6,6 +6,7 @@ import {
 } from "../middlewares/auth.middleware";
 import {
   assignScores,
+  bulkEditScores,
   editScores,
   getScores,
 } from "../controllers/student_score.controller";
@@ -327,6 +328,118 @@ router.patch(
   authorize(["Teacher"]),
   restrictToSchool(),
   editScores
+);
+
+/**
+ * @swagger
+ * /student-scores/bulk/{school_id}/{class_id}:
+ *   patch:
+ *     summary: Bulk update existing student scores in a class
+ *     tags: [Student Scores]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: school_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the school
+ *       - in: path
+ *         name: class_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the class
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               scores:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     user_id:
+ *                       type: string
+ *                       format: uuid
+ *                     scores:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           component_name:
+ *                             type: string
+ *                           score:
+ *                             type: number
+ *                         required: [component_name, score]
+ *                   required: [user_id, scores]
+ *             required: [scores]
+ *     responses:
+ *       200:
+ *         description: Student scores bulk updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       score_id:
+ *                         type: string
+ *                       grading_setting_id:
+ *                         type: string
+ *                       user_id:
+ *                         type: string
+ *                       class_id:
+ *                         type: string
+ *                       teacher_id:
+ *                         type: string
+ *                       school_id:
+ *                         type: string
+ *                       scores:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             component_name:
+ *                               type: string
+ *                             score:
+ *                               type: number
+ *                       total_score:
+ *                         type: number
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                       updated_at:
+ *                         type: string
+ *                         format: date-time
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Class, student, or scores not found
+ */
+
+router.patch(
+  "/bulk/:school_id/:class_id",
+  authMiddleware,
+  authorize(["Teacher"]),
+  restrictToSchool(),
+  bulkEditScores
 );
 
 export default router;

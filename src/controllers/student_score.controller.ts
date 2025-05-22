@@ -129,3 +129,89 @@ export const getScores = async (
     });
   }
 };
+
+// export const bulkAssignScores = async (
+//   req: AuthRequest,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     if (!req.user) {
+//       throw new AppError("Unauthorized: No user data", 401);
+//     }
+
+//     const { school_id, class_id } = req.params;
+//     const { scores } = req.body;
+//     const teacher_id = req.user.user_id;
+
+//     console.log("Assign Scores Request:", {
+//       school_id,
+//       class_id,
+//       teacher_id,
+//       scores,
+//     });
+
+//     const studentScores = await assignStudentScores(
+//       school_id,
+//       class_id,
+//       teacher_id,
+//       scores
+//     );
+
+//     sendResponse(res, 201, {
+//       message: "Student scores created successfully",
+//       data: studentScores,
+//     });
+//   } catch (error: any) {
+//     console.error("Assign Scores Error:", error.message, {
+//       body: req.body,
+//       errorDetails: error,
+//     });
+//     sendResponse(res, error.statusCode || 500, {
+//       message: error.message || "Internal server error",
+//     });
+//   }
+// };
+
+export const bulkEditScores = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      throw new AppError("Unauthorized: No user data", 401);
+    }
+
+    const { school_id, class_id } = req.params;
+    const { scores } = req.body;
+    const teacher_id = req.user.user_id;
+
+    console.log("Edit Scores Request:", {
+      school_id,
+      class_id,
+      teacher_id,
+      scores,
+    });
+
+    const studentScores = await editStudentScores(
+      school_id,
+      class_id,
+      teacher_id,
+      scores
+    );
+
+    sendResponse(res, 200, {
+      message: "Student scores updated successfully",
+      data: studentScores,
+    });
+  } catch (error: any) {
+    console.error("Edit Scores Error:", error.message, {
+      body: req.body,
+      errorDetails: error,
+    });
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+};
