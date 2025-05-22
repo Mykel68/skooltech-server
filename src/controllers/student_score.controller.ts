@@ -1,5 +1,9 @@
 import { Response, NextFunction } from "express";
-import { assignStudentScores, getStudentScores } from "../services/student_score.service";
+import {
+  assignStudentScores,
+  editStudentScore,
+  getStudentScores,
+} from "../services/student_score.service";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
 import { AuthRequest } from "../middlewares/auth.middleware";
@@ -75,6 +79,51 @@ export const getScores = async (
   } catch (error: any) {
     console.error("Get Scores Error:", error.message, {
       params: req.params,
+      errorDetails: error,
+    });
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+export const editScores = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      throw new AppError("Unauthorized: No user data", 401);
+    }
+
+    const { school_id, class_id } = req.params;
+    const { score_id, scores } = req.body; // Array of { user_id, scores }
+    const teacher_id = req.user.user_id;
+
+    console.log("Edit Scores Request:", {
+      school_id,
+      class_id,
+      teacher_id,
+      score_id,
+      scores,
+    });
+
+    const studentScores = await editStudentScore(
+      school_id,
+      class_id,
+      teacher_id,
+      score_id,
+      scores
+    );
+
+    sendResponse(res, 201, {
+      message: "Student scores edited successfully",
+      data: studentScores,
+    });
+  } catch (error: any) {
+    console.error("Edit Scores Error:", error.message, {
+      body: req.body,
       errorDetails: error,
     });
     sendResponse(res, error.statusCode || 500, {
