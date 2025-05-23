@@ -57,6 +57,7 @@ export const getAllClassesOfSchool = async (
   const classes = await Class.findAll({
     where: { school_id },
     include: [School],
+    order: [["name", "ASC"]],
   });
 
   return classes;
