@@ -137,4 +137,50 @@ router.get(
   classController.getClassHandler
 );
 
+/**
+ * @swagger
+ * /classes/:{student_id}
+ *   get:
+ *     summary: Get student's class
+ *     tags: [Classes]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Student's class retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     class_id:
+ *                       type: string
+ *                     school_id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     grade_level:
+ *                       type: string
+ *                       nullable: true
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Student not found or class not found
+ */
+router.get(
+  "/:student_id",
+  authMiddleware,
+  authorize(["Student"]),
+  classController.getStudentClassHandler
+);
+
 export default router;

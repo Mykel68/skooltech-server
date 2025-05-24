@@ -62,3 +62,25 @@ export const getAllClassesOfSchool = async (
 
   return classes;
 };
+
+export const getStudentClass = async (
+  school_id: string,
+  student_id: string
+): Promise<ClassInstance> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+  if (!validateUUID(student_id)) throw new AppError("Invalid student ID", 400);
+
+  const classInstance = await Class.findOne({
+    where: { school_id },
+    include: [
+      {
+        model: School,
+        as: "school",
+      },
+    ],
+  });
+
+  if (!classInstance) throw new AppError("Class not found", 404);
+
+  return classInstance;
+};

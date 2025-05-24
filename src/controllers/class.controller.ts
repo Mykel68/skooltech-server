@@ -101,3 +101,32 @@ export const getAllClassesHandler = async (
     });
   }
 };
+
+export const getStudentClassHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { school_id, student_id } = req.params;
+
+  try {
+    if (!school_id || !student_id) {
+      throw new AppError("School ID, and student ID are required", 400);
+    }
+
+    const classInstance = await classService.getStudentClass(
+      school_id,
+      student_id
+    );
+
+    sendResponse(res, 200, {
+      class_id: classInstance.class_id,
+      school_id: classInstance.school_id,
+      name: classInstance.name,
+      grade_level: classInstance.grade_level,
+    });
+  } catch (error: any) {
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+};
