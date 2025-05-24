@@ -139,7 +139,7 @@ router.get(
 
 /**
  * @swagger
- * /classes/:{student_id}
+ * /classes/student/{school_id}/{student_id}:
  *   get:
  *     summary: Get student's class
  *     tags: [Classes]
@@ -177,7 +177,7 @@ router.get(
  *         description: Student not found or class not found
  */
 router.get(
-  "/:student_id",
+  "/student/:school_id/:student_id",
   authMiddleware,
   authorize(["Student"]),
   classController.getStudentClassHandler

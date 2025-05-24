@@ -75,7 +75,6 @@ export const getStudentClass = async (
     include: [
       {
         model: School,
-        as: "school",
       },
     ],
   });
