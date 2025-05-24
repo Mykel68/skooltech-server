@@ -14,6 +14,7 @@ import ClassStudent from "../models/class_student.model";
 import { validateUUID } from "../utils/validation.util";
 import Class from "../models/class.model";
 import { v4 as uuidv4 } from "uuid";
+import ClassTeacher from "../models/class_teacher.model";
 
 export const login = async (
   username: string,
