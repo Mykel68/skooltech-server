@@ -431,4 +431,66 @@ router.get(
   subjectController.getSubjectsOfaTeacher
 );
 
+/**
+ * @swagger
+ * /subjects:
+ *  delete:
+ *    summary: Delete a subject
+ *    tags: [Subjects]
+ *    security:
+ *      - bearerAuth: []
+ *    parameters:
+ *      - in: path
+ *        name: subject_id
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: UUID of the subject
+ *    responses:
+ *      200:
+ *        description: Subject deleted successfully
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                success:
+ *                  type: boolean
+ *                data:
+ *                  type: object
+ *                  properties:
+ *                    message:
+ *                      type: string
+ *                    subject:
+ *                      type: object
+ *                      properties:
+ *                        subject_id:
+ *                          type: string
+ *                        school_id:
+ *                          type: string
+ *                        class_id:
+ *                          type: string
+ *                        teacher_id:
+ *                          type: string
+ *                        name:
+ *                          type: string
+ *                        is_approved:
+ *                          type: boolean
+ *      400:
+ *        description: Invalid input
+ *      401:
+ *        description: Unauthorized
+ *      403:
+ *        description: Forbidden
+ *      404:
+ *        description: Subject not found
+ */
+router.delete(
+  "/:subject_id",
+  authMiddleware,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.deleteSubjectHandler
+);
+
 export default router;

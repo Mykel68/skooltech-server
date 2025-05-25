@@ -12,7 +12,8 @@ import { SubjectInstance } from "../types/models.types";
 export const createSubject = async (
   class_id: string,
   teacher_id: string,
-  name: string
+  name: string,
+  short: string
 ): Promise<SubjectInstance> => {
   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
   if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
@@ -31,6 +32,7 @@ export const createSubject = async (
     class_id,
     teacher_id,
     name,
+    short,
   });
 
   return subject;
@@ -182,4 +184,13 @@ export const getSubjectsOfTeacherFromSchool = async (
   });
 
   return subjects;
+};
+
+export const deleteSubject = async (subject_id: string) => {
+  if (!validateUUID(subject_id)) throw new AppError("Invalid subject ID", 400);
+
+  const subject = await Subject.findByPk(subject_id);
+  if (!subject) throw new AppError("Subject not found", 404);
+
+  await subject.destroy();
 };

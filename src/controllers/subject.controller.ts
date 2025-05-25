@@ -11,7 +11,7 @@ export const createSubjectHandler = async (
   res: Response
 ): Promise<void> => {
   const { class_id } = req.params;
-  const { name } = req.body;
+  const { name, short } = req.body;
   const teacher_id = (req as any).user?.user_id;
 
   try {
@@ -22,7 +22,8 @@ export const createSubjectHandler = async (
     const subject = await subjectService.createSubject(
       class_id,
       teacher_id!,
-      name
+      name,
+      short
     );
 
     sendResponse(res, 201, {
@@ -235,4 +236,30 @@ export const getSubjectsOfaTeacher = async (
       message: error.message || "Internal server error",
     });
   }
+};
+
+export const deleteSubjectHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { subject_id } = req.params;
+  const school_id = (req as any).user?.school_id;
+
+  try {
+    if (!subject_id) {
+      throw new AppError("Subject ID is required", 400);
+    }
+
+    const subject = await subjectService.deleteSubject(subject_id);
+
+    sendResponse(res, 200, {
+      message: "subject deleted",
+      subject,
+    });
+  } catch (error: any) {
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+  return;
 };
