@@ -15,6 +15,7 @@ export const createSubject = async (
   name: string,
   short: string
 ): Promise<SubjectInstance> => {
+  console.log("short", short);
   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
   if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
   if (!name) throw new AppError("Subject name is required", 400);
@@ -152,6 +153,35 @@ export const getSubjectsOfClass = async (
         attributes: ["username", "email"],
       },
     ],
+  });
+
+  return subjects;
+};
+
+/**
+ * Fetch all subjects of a class by student
+ */
+export const getSubjectsOfClassByStudent = async (
+  school_id: string,
+  class_id: string
+): Promise<SubjectInstance[]> => {
+  if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+
+  const subjects = await Subject.findAll({
+    where: { class_id, is_approved: true, school_id },
+    // include: [
+    //   {
+    //     model: Class,
+    //     as: "class",
+    //     attributes: ["name", "grade_level"],
+    //   },
+    //   {
+    //     model: User,
+    //     as: "teacher",
+    //     attributes: ["username", "email"],
+    //   },
+    // ],
   });
 
   return subjects;

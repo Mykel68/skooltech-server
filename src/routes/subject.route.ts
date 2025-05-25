@@ -367,9 +367,68 @@ router.get(
 router.get(
   "/class/:class_id",
   authMiddleware,
-  authorize(["Admin", "Teacher", "Student"]),
+  authorize(["Admin", "Teacher"]),
   restrictToSchool(),
   subjectController.getSubjectsOfaClass
+);
+
+/**
+ * /class/{class_id}/student:
+ *   get:
+ *     summary: Get all subjects of a class by student
+ *     tags: [Subjects]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: class_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UUID of the class
+ *     responses:
+ *       200:
+ *         description: Subjects retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       subject_id:
+ *                         type: string
+ *                       school_id:
+ *                         type: string
+ *                       class_id:
+ *                         type: string
+ *                       teacher_id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       is_approved:
+ *                         type: boolean
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Class not found
+ */
+
+router.get(
+  "/class/:class_id/student",
+  authMiddleware,
+  authorize(["Student"]),
+  restrictToSchool(),
+  subjectController.getSubjectByaStudent
 );
 
 /**
@@ -433,7 +492,7 @@ router.get(
 
 /**
  * @swagger
- * /subjects:
+ * /subjects/{subject_id}:
  *  delete:
  *    summary: Delete a subject
  *    tags: [Subjects]

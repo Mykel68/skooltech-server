@@ -11,6 +11,7 @@ export const createSubjectHandler = async (
   res: Response
 ): Promise<void> => {
   const { class_id } = req.params;
+  console.log("body", req.body);
   const { name, short } = req.body;
   const teacher_id = (req as any).user?.user_id;
 
@@ -229,6 +230,34 @@ export const getSubjectsOfaTeacher = async (
         // teacher_email: subject.teacher?.email,
         name: subject.name,
         is_approved: subject.is_approved,
+      }))
+    );
+  } catch (error: any) {
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+export const getSubjectByaStudent = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { class_id } = req.params;
+  const school_id = (req as any).user?.school_id;
+  const subjects = await subjectService.getSubjectsOfClassByStudent(
+    school_id!,
+    class_id
+  );
+  try {
+    sendResponse(
+      res,
+      200,
+      subjects.map((subject) => ({
+        subject_id: subject.subject_id,
+        class_id: subject.class_id,
+        name: subject.name,
+        short: subject.short,
       }))
     );
   } catch (error: any) {
