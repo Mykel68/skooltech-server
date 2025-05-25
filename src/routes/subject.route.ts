@@ -367,7 +367,7 @@ router.get(
 router.get(
   "/class/:class_id",
   authMiddleware,
-  authorize(["Admin", "Teacher"]),
+  authorize(["Admin", "Teacher", "Student"]),
   restrictToSchool(),
   subjectController.getSubjectsOfaClass
 );
