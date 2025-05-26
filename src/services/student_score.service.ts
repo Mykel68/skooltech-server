@@ -556,3 +556,81 @@ export const editBulkStudentScores = async (
 
   return updatedScores ?? results;
 };
+
+export const getStudentOwnScores = async (
+  school_id: string,
+  class_id: string,
+  student_id: string
+): Promise<any> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+  if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
+  if (!validateUUID(student_id)) throw new AppError("Invalid student ID", 400);
+
+  const classRecord = await Class.findOne({
+    where: { class_id, school_id },
+  });
+  if (!classRecord) throw new AppError("Class not found in this school", 404);
+
+  // const classStudent = await ClassStudent.findOne({
+  //   where: { class_id, student_id },
+  // });
+  // if (!classStudent)
+  //   throw new AppError("Student not enrolled in this class", 403);
+
+  const score = (await StudentScore.findOne({
+    where: {
+      class_id,
+      school_id,
+      user_id: student_id,
+    },
+    include: [
+      {
+        model: User,
+        as: "teacher",
+        attributes: ["user_id", "first_name", "last_name"],
+      },
+      {
+        model: GradingSetting,
+        as: "grading_setting",
+        attributes: ["grading_setting_id", "components"],
+      },
+    ],
+    attributes: [
+      "score_id",
+      "scores",
+      "total_score",
+      "created_at",
+      "updated_at",
+    ],
+  })) as StudentScoreInstance;
+
+  if (!score) {
+    return {
+      class: {
+        class_id: classRecord.class_id,
+        name: classRecord.name,
+        grade_level: classRecord.grade_level,
+      },
+      scores: [],
+      total_score: null,
+      created_at: null,
+      updated_at: null,
+    };
+  }
+
+  return {
+    class: {
+      class_id: classRecord.class_id,
+      name: classRecord.name,
+      grade_level: classRecord.grade_level,
+    },
+    score_id: score.score_id,
+    // teacher: {
+    //   user_id: score.teacher?.user_id ?? "",
+    //   first_name: score.teacher?.first_name ?? "",
+    //   last_name: score.teacher?.last_name ?? "",
+    // },
+    scores: score.scores,
+    total_score: score.total_score,
+  };
+};

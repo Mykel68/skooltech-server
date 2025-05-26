@@ -2,6 +2,7 @@ import { Response, NextFunction } from "express";
 import {
   assignStudentScores,
   editStudentScores,
+  getStudentOwnScores,
   getStudentScores,
 } from "../services/student_score.service";
 import { sendResponse } from "../utils/response.util";
@@ -208,6 +209,46 @@ export const bulkEditScores = async (
   } catch (error: any) {
     console.error("Edit Scores Error:", error.message, {
       body: req.body,
+      errorDetails: error,
+    });
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+export const getOwnScores = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      throw new AppError("Unauthorized: No user data", 401);
+    }
+
+    const { school_id, class_id } = req.params;
+    const student_id = req.user.user_id;
+
+    console.log("Get Own Scores Request:", {
+      school_id,
+      class_id,
+      student_id,
+    });
+
+    const studentScores = await getStudentOwnScores(
+      school_id,
+      class_id,
+      student_id
+    );
+
+    sendResponse(res, 200, {
+      message: "Student scores retrieved successfully",
+      data: studentScores,
+    });
+  } catch (error: any) {
+    console.error("Get Own Scores Error:", error.message, {
+      params: req.params,
       errorDetails: error,
     });
     sendResponse(res, error.statusCode || 500, {
