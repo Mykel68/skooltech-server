@@ -634,3 +634,111 @@ export const getStudentOwnScores = async (
     total_score: score.total_score,
   };
 };
+
+export const getStudentSubjectsAndScores = async (
+  school_id: string,
+  student_id: string
+): Promise<any[]> => {
+  if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+  if (!validateUUID(student_id)) throw new AppError("Invalid student ID", 400);
+
+  const student = await User.findOne({
+    where: {
+      user_id: student_id,
+      school_id,
+      role: "Student",
+      is_approved: true,
+    },
+  });
+  if (!student) throw new AppError("Student not found or not authorized", 404);
+
+  const classStudents = await ClassStudent.findAll({
+    where: { student_id, school_id },
+    include: [
+      {
+        model: Class,
+        as: "class",
+        attributes: ["class_id", "name", "grade_level"],
+      },
+    ],
+  });
+
+  if (!classStudents.length) {
+    return [];
+  }
+
+  const classIds = classStudents.map((cs) => cs.class_id);
+
+  const scores = (await StudentScore.findAll({
+    where: {
+      school_id,
+      user_id: student_id,
+      class_id: { [Op.in]: classIds },
+    },
+    include: [
+      {
+        model: User,
+        as: "teacher",
+        attributes: ["user_id", "first_name", "last_name"],
+      },
+      {
+        model: Class,
+        as: "class",
+        attributes: ["class_id", "name", "grade_level"],
+      },
+      {
+        model: GradingSetting,
+        as: "grading_setting",
+        attributes: ["grading_setting_id", "components"],
+        include: [
+          {
+            model: ClassTeacher,
+            as: "class_teacher",
+            attributes: ["subject_id"],
+            include: [
+              {
+                model: Subject,
+                as: "subject",
+                attributes: ["subject_id", "name"],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    attributes: [
+      "score_id",
+      "class_id",
+      "scores",
+      "total_score",
+      "created_at",
+      "updated_at",
+    ],
+  })) as StudentScoreInstance[];
+
+  return scores.map((score) => {
+    const subject = score.grading_setting?.class_teacher?.subject;
+    return {
+      class: {
+        class_id: score.class?.class_id ?? "",
+        name: score.class?.name ?? "",
+        grade_level: score.class?.grade_level ?? "",
+      },
+      score_id: score.score_id,
+      teacher: {
+        user_id: score.teacher?.user_id ?? "",
+        first_name: score.teacher?.first_name ?? "",
+        last_name: score.teacher?.last_name ?? "",
+      },
+      subject: {
+        subject_id: subject?.subject_id ?? "",
+        name: subject?.name ?? "Unknown",
+      },
+      scores: score.scores,
+      total_score: score.total_score,
+      grade: getGrade(score.total_score),
+      created_at: score.created_at,
+      updated_at: score.updated_at,
+    };
+  });
+};
