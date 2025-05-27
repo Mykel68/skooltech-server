@@ -8,6 +8,7 @@ import GradingSetting from "../models/grading_setting.model";
 import Class from "../models/class.model";
 import User from "../models/user.model";
 import ClassStudent from "../models/class_student.model";
+import Subject from "../models/subject.model";
 
 interface ScoreInput {
   user_id: string;
@@ -635,6 +636,93 @@ export const getStudentOwnScores = async (
   };
 };
 
+// export const getStudentSubjectsAndScores = async (
+//   school_id: string,
+//   student_id: string
+// ): Promise<any[]> => {
+//   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+//   if (!validateUUID(student_id)) throw new AppError("Invalid student ID", 400);
+
+//   const student = await User.findOne({
+//     where: {
+//       user_id: student_id,
+//       school_id,
+//       role: "Student",
+//       is_approved: true,
+//     },
+//   });
+//   if (!student) throw new AppError("Student not found or not authorized", 404);
+
+//   const classStudents = await ClassStudent.findAll({
+//     where: { student_id },
+//     include: [
+//       {
+//         model: Class,
+//         as: "class",
+//         attributes: ["class_id", "name", "grade_level"],
+//       },
+//     ],
+//   });
+
+//   if (!classStudents.length) {
+//     return [];
+//   }
+
+//   const classIds = classStudents.map((cs) => cs.class_id);
+
+//   const scores = (await StudentScore.findAll({
+//     where: {
+//       school_id,
+//       user_id: student_id,
+//       class_id: { [Op.in]: classIds },
+//     },
+//     include: [
+//       {
+//         model: User,
+//         as: "teacher",
+//         attributes: ["user_id", "first_name", "last_name"],
+//       },
+//       {
+//         model: Class,
+//         as: "class",
+//         attributes: ["class_id", "name", "grade_level"],
+//       },
+//       {
+//         model: GradingSetting,
+//         as: "grading_setting",
+//         attributes: ["grading_setting_id", "components"],
+//         include: [
+//           {
+//             model: Subject,
+//             as: "subject",
+//             attributes: ["subject_id", "name"],
+//           },
+//         ],
+//       },
+//     ],
+//     attributes: ["score_id", "class_id", "scores", "total_score"],
+//   })) as StudentScoreInstance[];
+
+//   return scores.map((score) => {
+//     const subject = score?.grading_setting_id;
+//     return {
+//       class: {
+//         class_id: score?.class_id ?? "",
+//         name: score ?? "",
+//         grade_level: score?.grading_setting_id ?? "",
+//       },
+//       score_id: score.score_id,
+//       subject: {
+//         subject_id: subject ?? "",
+//         name: name ?? "Unknown",
+//       },
+//       scores: score.scores,
+//       total_score: score.total_score,
+//       grade: score.total_score,
+//     };
+//   });
+// };
+
 export const getStudentSubjectsAndScores = async (
   school_id: string,
   student_id: string
@@ -650,10 +738,11 @@ export const getStudentSubjectsAndScores = async (
       is_approved: true,
     },
   });
+
   if (!student) throw new AppError("Student not found or not authorized", 404);
 
   const classStudents = await ClassStudent.findAll({
-    where: { student_id, school_id },
+    where: { student_id },
     include: [
       {
         model: Class,
@@ -663,13 +752,11 @@ export const getStudentSubjectsAndScores = async (
     ],
   });
 
-  if (!classStudents.length) {
-    return [];
-  }
+  if (!classStudents.length) return [];
 
   const classIds = classStudents.map((cs) => cs.class_id);
 
-  const scores = (await StudentScore.findAll({
+  const scores = await StudentScore.findAll({
     where: {
       school_id,
       user_id: student_id,
@@ -692,43 +779,27 @@ export const getStudentSubjectsAndScores = async (
         attributes: ["grading_setting_id", "components"],
         include: [
           {
-            model: ClassTeacher,
-            as: "class_teacher",
-            attributes: ["subject_id"],
-            include: [
-              {
-                model: Subject,
-                as: "subject",
-                attributes: ["subject_id", "name"],
-              },
-            ],
+            model: Subject,
+            as: "subject",
+            attributes: ["subject_id", "name"],
           },
         ],
       },
     ],
-    attributes: [
-      "score_id",
-      "class_id",
-      "scores",
-      "total_score",
-      "created_at",
-      "updated_at",
-    ],
-  })) as StudentScoreInstance[];
+    attributes: ["score_id", "class_id", "scores", "total_score"],
+  });
 
   return scores.map((score) => {
-    const subject = score.grading_setting?.class_teacher?.subject;
+    const gradingSetting = score.grading_setting_id as any;
+    const subject = gradingSetting?.subject;
+    const classInfo = score.class_id as any;
+
     return {
-      class: {
-        class_id: score.class?.class_id ?? "",
-        name: score.class?.name ?? "",
-        grade_level: score.class?.grade_level ?? "",
-      },
       score_id: score.score_id,
-      teacher: {
-        user_id: score.teacher?.user_id ?? "",
-        first_name: score.teacher?.first_name ?? "",
-        last_name: score.teacher?.last_name ?? "",
+      class: {
+        class_id: classInfo?.class_id ?? "",
+        name: classInfo?.name ?? "Unknown",
+        grade_level: classInfo?.grade_level ?? "Unknown",
       },
       subject: {
         subject_id: subject?.subject_id ?? "",
@@ -736,9 +807,7 @@ export const getStudentSubjectsAndScores = async (
       },
       scores: score.scores,
       total_score: score.total_score,
-      grade: getGrade(score.total_score),
-      created_at: score.created_at,
-      updated_at: score.updated_at,
+      grade: score.total_score, // You might want to compute this differently
     };
   });
 };

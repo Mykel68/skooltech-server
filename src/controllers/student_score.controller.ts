@@ -4,6 +4,7 @@ import {
   editStudentScores,
   getStudentOwnScores,
   getStudentScores,
+  getStudentSubjectsAndScores,
 } from "../services/student_score.service";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
@@ -248,6 +249,32 @@ export const getOwnScores = async (
     });
   } catch (error: any) {
     console.error("Get Own Scores Error:", error.message, {
+      params: req.params,
+      errorDetails: error,
+    });
+    sendResponse(res, error.statusCode || 500, {
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+export const getStudentSubjectsAndScoresHandler = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const { school_id, student_id } = req.params;
+    const subjectsAndScores = await getStudentSubjectsAndScores(
+      school_id,
+      student_id
+    );
+
+    sendResponse(res, 200, {
+      message: "Student subjects and scores retrieved successfully",
+      data: subjectsAndScores,
+    });
+  } catch (error: any) {
+    console.error("Get Subjects and Scores Error:", error.message, {
       params: req.params,
       errorDetails: error,
     });
