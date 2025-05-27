@@ -1,10 +1,10 @@
-import express from "express";
+import express from 'express';
 import {
-  authMiddleware,
-  authorize,
-  restrictToSchool,
-} from "../middlewares/auth.middleware";
-import * as termController from "../controllers/term.controller";
+	authMiddleware,
+	authorize,
+	restrictToSchool,
+} from '../middlewares/auth.middleware';
+import * as termController from '../controllers/term.controller';
 
 const router = express.Router();
 
@@ -100,11 +100,11 @@ const router = express.Router();
  *         description: Session not found
  */
 router.post(
-  "/:school_id/:session_id",
-  authMiddleware,
-  authorize(["Admin"]),
-  restrictToSchool(),
-  termController.createTerm
+	'/:school_id/:session_id',
+	authMiddleware,
+	authorize(['Admin']),
+	restrictToSchool(),
+	termController.createTerm
 );
 
 /**
@@ -186,11 +186,11 @@ router.post(
  *         description: Term not found
  */
 router.patch(
-  "/:term_id",
-  authMiddleware,
-  authorize(["Admin"]),
-  restrictToSchool(),
-  termController.updateTerm
+	'/:term_id',
+	authMiddleware,
+	authorize(['Admin']),
+	restrictToSchool(),
+	termController.updateTerm
 );
 
 /**
@@ -222,11 +222,11 @@ router.patch(
  *         description: Term not found
  */
 router.delete(
-  "/:term_id",
-  authMiddleware,
-  authorize(["Admin"]),
-  restrictToSchool(),
-  termController.deleteTerm
+	'/:term_id',
+	authMiddleware,
+	authorize(['Admin']),
+	restrictToSchool(),
+	termController.deleteTerm
 );
 
 /**
@@ -290,11 +290,73 @@ router.delete(
  *         description: Session not found
  */
 router.get(
-  "/:session_id",
-  authMiddleware,
-  authorize(["Admin", "Teacher", "Student"]),
-  restrictToSchool(),
-  termController.getTerms
+	'/:session_id',
+	authMiddleware,
+	authorize(['Admin', 'Teacher', 'Student']),
+	restrictToSchool(),
+	termController.getTerms
+);
+
+/**
+ * @swagger
+ * /sessions/{school_id}:
+ *   get:
+ *     summary: Retrieve all academic sessions and their terms for a school
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: school_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the school
+ *     responses:
+ *       200:
+ *         description: School sessions retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         term_id:
+ *                           type: string
+ *                           format: uuid
+ *                         name:
+ *                           type: string
+ *                         start_date:
+ *                           type: string
+ *                           format: date-time
+ *                         end_date:
+ *                           type: string
+ *                           format: date-time
+ *       400:
+ *         description: Invalid school ID
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+
+router.get(
+	'/school/:school_id',
+	authMiddleware,
+	authorize(['Admin', 'Teacher', 'Student']),
+	restrictToSchool(),
+	termController.getSessions
 );
 
 export default router;

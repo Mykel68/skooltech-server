@@ -159,3 +159,34 @@ export const getTerms = async (
 		});
 	}
 };
+
+export const getSessions = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		if (!req.user) {
+			throw new AppError('Unauthorized: No user data', 401);
+		}
+
+		const { school_id } = req.params;
+
+		console.log('Get Sessions Request:', { school_id });
+
+		const sessions = await termService.getSchoolSessions(school_id);
+
+		sendResponse(res, 200, {
+			message: 'School sessions retrieved successfully',
+			data: sessions,
+		});
+	} catch (error: any) {
+		console.error('Get Sessions Error:', error.message, {
+			params: req.params,
+			errorDetails: error,
+		});
+		sendResponse(res, error.statusCode || 500, {
+			message: error.message || 'Internal server error',
+		});
+	}
+};
