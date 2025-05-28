@@ -192,8 +192,9 @@ export const getSchoolSessions = async (school_id: string): Promise<any> => {
 			},
 		],
 		order: [
-			['start_date', 'ASC'],
-			[{ model: Term, as: 'terms' }, 'start_date', 'ASC'],
+			['is_active', 'DESC'],
+			['start_date', 'DESC'],
+			[{ model: Term, as: 'terms' }, 'start_date', 'DESC'],
 		],
 	});
 
