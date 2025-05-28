@@ -14,6 +14,7 @@ export const createSession = async (
 ): Promise<SessionInstance> => {
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
 	if (!name) throw new AppError('Session name is required', 400);
+
 	if (
 		!start_date ||
 		!end_date ||
@@ -34,19 +35,18 @@ export const createSession = async (
 	if (existingSession)
 		throw new AppError('Session name already exists for this school', 400);
 
-	if (is_active) {
-		await Session.update(
-			{ is_active: false },
-			{ where: { school_id, is_active: true } }
-		);
-	}
+	// Check if there's an already active session for this school
+	const hasActiveSession = await Session.findOne({
+		where: { school_id, is_active: true },
+	});
 
+	// If there's already an active session, set is_active to false
 	const session = await Session.create({
 		school_id,
 		name,
 		start_date,
 		end_date,
-		is_active,
+		is_active: !hasActiveSession, // only true if no active session exists
 	});
 
 	return session;
