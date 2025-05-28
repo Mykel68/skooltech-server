@@ -174,7 +174,9 @@ interface SessionCreationAttributes
 	> {}
 export interface SessionInstance
 	extends Model<SessionAttributes, SessionCreationAttributes>,
-		SessionAttributes {}
+		SessionAttributes {
+	terms?: TermInstance[];
+}
 
 interface TermAttributes {
 	term_id: string;

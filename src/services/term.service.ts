@@ -175,29 +175,45 @@ export const getSchoolSessions = async (school_id: string): Promise<any> => {
 		throw new AppError('Invalid school ID', 400);
 	}
 
-	const terms = await Term.findAll({
+	const sessions = await Session.findAll({
 		where: { school_id },
-		attributes: ['term_id', 'name', 'start_date', 'end_date'],
-		order: [['start_date', 'ASC']],
+		attributes: [
+			'session_id',
+			'name',
+			'is_active',
+			'start_date',
+			'end_date',
+		],
+		include: [
+			{
+				model: Term,
+				as: 'terms',
+				attributes: ['term_id', 'name', 'start_date', 'end_date'],
+			},
+		],
+		order: [
+			['start_date', 'ASC'],
+			[{ model: Term, as: 'terms' }, 'start_date', 'ASC'],
+		],
 	});
 
-	if (!terms.length) {
-		return {};
+	const data: Record<string, any> = {};
+
+	for (const session of sessions) {
+		data[session.session_id] = {
+			name: session.name,
+			is_active: session.is_active,
+			start_date: session.start_date,
+			end_date: session.end_date,
+			terms:
+				session.terms?.map((term) => ({
+					term_id: term.term_id,
+					name: term.name,
+					start_date: term.start_date,
+					end_date: term.end_date,
+				})) || [],
+		};
 	}
 
-	const sessions: { [key: string]: any[] } = {};
-
-	for (const term of terms) {
-		if (!sessions[term.name]) {
-			sessions[term.name] = [];
-		}
-		sessions[term.name].push({
-			term_id: term.term_id,
-			name: term.name,
-			start_date: term.start_date,
-			end_date: term.end_date,
-		});
-	}
-
-	return sessions;
+	return { sessions: data };
 };
