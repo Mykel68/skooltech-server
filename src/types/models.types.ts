@@ -1,4 +1,5 @@
 import { Model, Optional } from 'sequelize';
+import { StudentScoreInstance } from '../models/student_score.model';
 
 export interface SchoolRegistrationData {
 	name: string;
@@ -142,6 +143,7 @@ export interface ClassAttributes {
 	name: string;
 	grade_level?: string;
 	short?: string;
+	student?: UserInstance;
 }
 
 export interface ClassInstance
@@ -156,8 +158,13 @@ export interface ClassStudentAttributes {
 
 export interface ClassStudentInstance
 	extends Model<ClassStudentAttributes>,
-		ClassStudentAttributes {}
+		ClassStudentAttributes {
+	student?: UserInstance;
+	StudentScores?: StudentScoreInstance[];
 
+	// Add this line to fix the TS error:
+	Class?: ClassInstance;
+}
 interface SessionAttributes {
 	session_id: string;
 	school_id: string;
