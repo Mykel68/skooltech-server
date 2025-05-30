@@ -1,10 +1,10 @@
-import express from "express";
+import express from 'express';
 import {
-  authMiddleware,
-  authorize,
-  restrictToSchool,
-} from "../middlewares/auth.middleware";
-import * as getStudentController from "../controllers/student.controller";
+	authMiddleware,
+	authorize,
+	restrictToSchool,
+} from '../middlewares/auth.middleware';
+import * as getStudentController from '../controllers/student.controller';
 
 const router = express.Router();
 
@@ -70,11 +70,11 @@ const router = express.Router();
  *         description: Class not found
  */
 router.get(
-  "/:school_id/:class_id",
-  authMiddleware,
-  authorize(["Admin", "Teacher"]),
-  restrictToSchool(),
-  getStudentController.getStudentByClass
+	'/:school_id/:class_id',
+	authMiddleware,
+	authorize(['Admin', 'Teacher']),
+	restrictToSchool(),
+	getStudentController.getStudentByClass
 );
 
 export default router;

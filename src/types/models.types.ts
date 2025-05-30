@@ -86,8 +86,9 @@ export interface SubjectAttributes {
 
 export interface SubjectInstance
 	extends Model<SubjectAttributes>,
-		SubjectAttributes {}
-
+		SubjectAttributes {
+	teacher?: UserInstance;
+}
 export interface AssessmentAttributes {
 	assessment_id?: string;
 	term_id: string;
