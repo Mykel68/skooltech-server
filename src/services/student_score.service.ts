@@ -350,13 +350,9 @@ export const getStudentScores = async (
 	if (!validateUUID(teacher_id))
 		throw new AppError('Invalid teacher ID', 400);
 
-	// Verify class exists in school
-	const classRecord = await Class.findOne({
-		where: { class_id, school_id },
-	});
+	const classRecord = await Class.findOne({ where: { class_id, school_id } });
 	if (!classRecord) throw new AppError('Class not found in this school', 404);
 
-	// Verify teacher is authorized
 	const teacher = await User.findOne({
 		where: {
 			user_id: teacher_id,
@@ -365,64 +361,87 @@ export const getStudentScores = async (
 			is_approved: true,
 		},
 	});
-	if (!teacher)
-		throw new AppError('Teacher not found or not authorized', 403);
+	if (!teacher) throw new AppError('Teacher not authorized', 403);
 
-	// Get grading setting
 	const gradingSetting = await GradingSetting.findOne({
 		where: { class_id, teacher_id, school_id },
 	});
-	// console.log("gradingSetting", gradingSetting?.components);
 	if (!gradingSetting)
 		throw new AppError(
 			'Grading setting not found for this class and teacher',
 			404
 		);
 
-	// Fetch scores with student details
-	const scores = (await StudentScore.findAll({
-		where: {
-			class_id,
-			school_id,
-			teacher_id,
-			grading_setting_id: gradingSetting.grading_setting_id,
-		},
+	const classStudents = await ClassStudent.findAll({
+		where: { class_id },
 		include: [
 			{
 				model: User,
 				as: 'student',
 				where: { role: 'Student', is_approved: true },
 				attributes: ['user_id', 'first_name', 'last_name'],
+				required: true,
 			},
 		],
+	});
+
+	const studentIds = classStudents
+		.map((cs) => cs.student?.user_id)
+		.filter((id): id is string => typeof id === 'string');
+
+	const scores = await StudentScore.findAll({
+		where: {
+			class_id,
+			school_id,
+			teacher_id,
+			grading_setting_id: gradingSetting.grading_setting_id,
+			user_id: studentIds,
+		},
 		attributes: [
+			'user_id',
 			'score_id',
 			'scores',
 			'total_score',
 			'created_at',
 			'updated_at',
 		],
-	})) as StudentScoreInstance[];
-
-	// Fetch class details
-	const classes = await Class.findAll({
-		where: { class_id },
-		attributes: ['class_id', 'name', 'grade_level'],
 	});
 
-	// Format response
-	return scores.map((score) => ({
-		class: classes,
-		score_id: score.score_id,
-		grading: gradingSetting?.components,
-		student: {
-			user_id: score.student?.user_id ?? '',
-			first_name: score.student?.first_name ?? '',
-			last_name: score.student?.last_name ?? '',
+	const scoreMap = new Map<string, StudentScoreInstance>();
+	scores.forEach((score) => {
+		scoreMap.set(score.user_id, score);
+	});
+
+	const response = classStudents.map((cs) => {
+		const student = cs.student;
+		if (!student?.user_id) {
+			throw new AppError('Missing student user_id', 500);
+		}
+
+		const score = scoreMap.get(student.user_id);
+		return {
+			student: {
+				user_id: student.user_id,
+				first_name: student.first_name,
+				last_name: student.last_name,
+				score_id: score?.score_id ?? null,
+				scores: score?.scores ?? [],
+				total_score: score?.total_score ?? null,
+			},
+		};
+	});
+
+	return [
+		{
+			class: {
+				class_id: classRecord.class_id,
+				name: classRecord.name,
+				grade_level: classRecord.grade_level,
+			},
+			grading: gradingSetting.components,
+			students: response,
 		},
-		scores: score.scores,
-		total_score: score.total_score,
-	}));
+	];
 };
 
 export const editBulkStudentScores = async (
