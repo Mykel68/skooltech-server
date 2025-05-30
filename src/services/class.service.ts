@@ -4,6 +4,7 @@ import Class from '../models/class.model';
 import School from '../models/school.model';
 import { ClassInstance } from '../types/models.types';
 import ClassStudent from '../models/class_student.model';
+import sequelize from '../config/db';
 
 /**
  * Create a new class in a school
@@ -67,27 +68,44 @@ export const getAllClassesOfSchool = async (
 export const getStudentClass = async (
 	school_id: string,
 	student_id: string
-): Promise<ClassInstance> => {
+): Promise<ClassInstance & { student_count: number }> => {
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
 	if (!validateUUID(student_id))
 		throw new AppError('Invalid student ID', 400);
 
+	// Step 1: Find class_id from ClassStudent
 	const classStudent = await ClassStudent.findOne({
 		where: { student_id },
-		include: [
-			{
-				model: Class,
-				where: { school_id },
-			},
-		],
+		attributes: ['class_id'],
 	});
 
-	if (!classStudent || !classStudent.Class) {
-		throw new AppError(
-			'Class not found for the student in this school',
-			404
-		);
+	if (!classStudent || !classStudent.class_id) {
+		throw new AppError('Student is not assigned to a class', 404);
 	}
 
-	return classStudent.Class;
+	// Step 2: Find the class with student count
+	const classData = await Class.findOne({
+		where: {
+			class_id: classStudent.class_id,
+			school_id,
+		},
+		attributes: {
+			include: [
+				[
+					sequelize.literal(`(
+            SELECT COUNT(*) FROM class_students
+            WHERE class_students.class_id = "Class"."class_id"
+          )`),
+					'student_count',
+				],
+			],
+		},
+		raw: true,
+	});
+
+	if (!classData) {
+		throw new AppError('Class not found', 404);
+	}
+
+	return classData as ClassInstance & { student_count: number };
 };
