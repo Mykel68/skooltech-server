@@ -115,6 +115,7 @@ export const loginTeacherStudentController = async (
     );
     sendResponse(res, 200, { token });
   } catch (error: any) {
+    console.log("err",error)
     next(new AppError(error.message, error.statusCode || 400));
   }
 };
