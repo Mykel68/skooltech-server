@@ -19,10 +19,12 @@ export const assignStudentScores = async (
 	school_id: string,
 	class_id: string,
 	teacher_id: string,
+	subject_id: string,
 	scoreInputs: ScoreInput[]
 ): Promise<StudentScoreInstance[]> => {
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
 	if (!validateUUID(class_id)) throw new AppError('Invalid class ID', 400);
+	if (!validateUUID(subject_id)) throw new AppError('Invalid class ID', 400);
 	if (!validateUUID(teacher_id))
 		throw new AppError('Invalid teacher ID', 400);
 
@@ -141,6 +143,7 @@ export const assignStudentScores = async (
 				grading_setting_id: gradingSetting.grading_setting_id,
 				user_id: input.user_id,
 				class_id,
+				subject_id,
 			},
 		});
 		if (existingScore) {
@@ -158,6 +161,7 @@ export const assignStudentScores = async (
 				class_id,
 				teacher_id,
 				school_id,
+				subject_id,
 				scores: input.scores,
 				total_score,
 			});

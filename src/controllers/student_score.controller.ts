@@ -20,7 +20,7 @@ export const assignScores = async (
 			throw new AppError('Unauthorized: No user data', 401);
 		}
 
-		const { school_id, class_id } = req.params;
+		const { school_id, class_id, subject_id } = req.params;
 		const { scores } = req.body;
 		const teacher_id = req.user.user_id;
 
@@ -28,6 +28,7 @@ export const assignScores = async (
 			school_id,
 			class_id,
 			teacher_id,
+			subject_id,
 			scores,
 		});
 
@@ -35,6 +36,7 @@ export const assignScores = async (
 			school_id,
 			class_id,
 			teacher_id,
+			subject_id,
 			scores
 		);
 

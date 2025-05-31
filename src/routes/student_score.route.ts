@@ -1,17 +1,17 @@
-import express from "express";
+import express from 'express';
 import {
-  authMiddleware,
-  authorize,
-  restrictToSchool,
-} from "../middlewares/auth.middleware";
+	authMiddleware,
+	authorize,
+	restrictToSchool,
+} from '../middlewares/auth.middleware';
 import {
-  assignScores,
-  bulkEditScores,
-  editScores,
-  getOwnScores,
-  getScores,
-  getStudentSubjectsAndScoresHandler,
-} from "../controllers/student_score.controller";
+	assignScores,
+	bulkEditScores,
+	editScores,
+	getOwnScores,
+	getScores,
+	getStudentSubjectsAndScoresHandler,
+} from '../controllers/student_score.controller';
 
 const router = express.Router();
 
@@ -24,7 +24,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /student-scores/{school_id}/{class_id}:
+ * /student-scores/{school_id}/{class_id}/{subject_id}:
  *   post:
  *     summary: Create new scores for students in a class
  *     tags: [Student Scores]
@@ -309,27 +309,27 @@ const router = express.Router();
  *         description: Class, student, or scores not found
  */
 router.post(
-  "/:school_id/:class_id",
-  authMiddleware,
-  authorize(["Teacher"]),
-  restrictToSchool(),
-  assignScores
+	'/:school_id/:class_id/:subject_id',
+	authMiddleware,
+	authorize(['Teacher']),
+	restrictToSchool(),
+	assignScores
 );
 
 router.get(
-  "/:school_id/:class_id",
-  authMiddleware,
-  authorize(["Teacher"]),
-  restrictToSchool(),
-  getScores
+	'/:school_id/:class_id',
+	authMiddleware,
+	authorize(['Teacher']),
+	restrictToSchool(),
+	getScores
 );
 
 router.patch(
-  "/:school_id/:class_id",
-  authMiddleware,
-  authorize(["Teacher"]),
-  restrictToSchool(),
-  editScores
+	'/:school_id/:class_id',
+	authMiddleware,
+	authorize(['Teacher']),
+	restrictToSchool(),
+	editScores
 );
 
 /**
@@ -437,11 +437,11 @@ router.patch(
  */
 
 router.patch(
-  "/bulk/:school_id/:class_id",
-  authMiddleware,
-  authorize(["Teacher"]),
-  restrictToSchool(),
-  bulkEditScores
+	'/bulk/:school_id/:class_id',
+	authMiddleware,
+	authorize(['Teacher']),
+	restrictToSchool(),
+	bulkEditScores
 );
 
 /**
@@ -527,11 +527,11 @@ router.patch(
  *         description: Class, student, or scores not found
  */
 router.get(
-  "/own/:school_id/:class_id",
-  authMiddleware,
-  authorize(["Student"]),
-  restrictToSchool(),
-  getOwnScores
+	'/own/:school_id/:class_id',
+	authMiddleware,
+	authorize(['Student']),
+	restrictToSchool(),
+	getOwnScores
 );
 
 /**
@@ -613,11 +613,11 @@ router.get(
  *         description: Class, student, or scores not found
  */
 router.get(
-  "/result/:school_id/:class_id",
-  authMiddleware,
-  authorize(["Teacher"]),
-  restrictToSchool(),
-  getStudentSubjectsAndScoresHandler
+	'/result/:school_id/:class_id',
+	authMiddleware,
+	authorize(['Teacher']),
+	restrictToSchool(),
+	getStudentSubjectsAndScoresHandler
 );
 
 export default router;
