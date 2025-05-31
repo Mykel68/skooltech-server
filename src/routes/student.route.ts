@@ -77,4 +77,11 @@ router.get(
 	getStudentController.getStudentByClass
 );
 
+router.get(
+	'/:student_id/class/:class_id/scores',
+	authMiddleware,
+	authorize(['Admin', 'Student']),
+	restrictToSchool(),
+	getStudentController.getStudentSubjectScoresController
+);
 export default router;

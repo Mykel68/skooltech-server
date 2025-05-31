@@ -5,28 +5,23 @@ import Class from './class.model';
 import GradingSetting from './grading_setting.model';
 import School from './school.model';
 import ClassStudent from './class_student.model';
-import Student from './student.model';
-import { UserInstance } from '../types/models.types';
+import Subject from './subject.model';
 
 interface StudentScoreAttributes {
 	score_id?: string;
+	subject_id?: string;
 	grading_setting_id: string;
 	user_id: string;
 	class_id: string;
 	teacher_id: string;
 	school_id: string;
-	scores: {
-		component_name: string;
-		score: number;
-	}[];
+	scores: { component_name: string; score: number }[];
 	total_score: number;
 }
 
 interface StudentScoreInstance
 	extends Model<StudentScoreAttributes>,
-		StudentScoreAttributes {
-	student?: UserInstance;
-}
+		StudentScoreAttributes {}
 
 const StudentScore = sequelize.define<StudentScoreInstance>(
 	'StudentScore',
@@ -36,6 +31,12 @@ const StudentScore = sequelize.define<StudentScoreInstance>(
 			defaultValue: DataTypes.UUIDV4,
 			primaryKey: true,
 		},
+		subject_id: {
+			type: DataTypes.UUID,
+			allowNull: false,
+			references: { model: Subject, key: 'subject_id' }, // Assuming you have a Subject model/table
+		},
+
 		grading_setting_id: {
 			type: DataTypes.UUID,
 			allowNull: false,
@@ -59,7 +60,7 @@ const StudentScore = sequelize.define<StudentScoreInstance>(
 		school_id: {
 			type: DataTypes.UUID,
 			allowNull: false,
-			references: { model: 'schools', key: 'school_id' },
+			references: { model: School, key: 'school_id' },
 		},
 		scores: {
 			type: DataTypes.JSONB,
@@ -71,14 +72,14 @@ const StudentScore = sequelize.define<StudentScoreInstance>(
 					if (!Array.isArray(value) || value.length === 0) {
 						throw new Error('Scores must be a non-empty array');
 					}
-					value.forEach((score, index) => {
+					value.forEach((score, i) => {
 						if (
 							!score.component_name ||
 							typeof score.component_name !== 'string' ||
 							score.component_name.trim() === ''
 						) {
 							throw new Error(
-								`Score at index ${index} is missing a valid component name`
+								`Score at index ${i} is missing a valid component name`
 							);
 						}
 						if (
@@ -117,30 +118,19 @@ const StudentScore = sequelize.define<StudentScoreInstance>(
 	}
 );
 
-// ✅ Define associations
-StudentScore.belongsTo(School, { foreignKey: 'school_id', as: 'school' });
-StudentScore.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
-StudentScore.belongsTo(User, { foreignKey: 'user_id', as: 'student' }); // main student-user
-StudentScore.belongsTo(ClassStudent, {
-	foreignKey: 'class_id',
-	as: 'class_student',
-});
+// Associations
+
+StudentScore.belongsTo(User, { foreignKey: 'user_id', as: 'student' });
 StudentScore.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
+StudentScore.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
+StudentScore.belongsTo(School, { foreignKey: 'school_id', as: 'school' });
 StudentScore.belongsTo(GradingSetting, {
 	foreignKey: 'grading_setting_id',
 	as: 'grading_setting',
 });
-
-// ❌ Removed duplicate alias for 'student'
-// StudentScore.belongsTo(User, { foreignKey: 'user_id', as: 'student' });
-
-// ✅ Renamed conflicting alias
-StudentScore.belongsTo(Student, { foreignKey: 'studentId', as: 'studentInfo' });
-
-// ✅ Different alias, allowed
-StudentScore.belongsTo(Student, {
-	foreignKey: 'createdBy',
-	as: 'creatorStudent',
+StudentScore.belongsTo(ClassStudent, {
+	foreignKey: 'class_id',
+	as: 'class_student',
 });
 
 export default StudentScore;
