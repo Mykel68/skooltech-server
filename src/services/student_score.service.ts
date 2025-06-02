@@ -311,10 +311,10 @@ export const editStudentScores = async (
 		});
 
 		if (!existingScore) {
-			throw new AppError(
-				`No scores found for student ${input.user_id} in this class. Use POST to create.`,
-				404
+			console.warn(
+				`Skipping student ${input.user_id}: No existing score record`
 			);
+			continue;
 		}
 
 		try {
