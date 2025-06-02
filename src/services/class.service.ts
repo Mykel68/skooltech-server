@@ -51,6 +51,46 @@ export const getClassById = async (
 	return classInstance;
 };
 
+/**
+ * Update a class
+ * @returns Promise<ClassInstance>
+ */
+export const updateClass = async (
+	class_id: string,
+	school_id: string,
+	updates: Partial<Pick<ClassInstance, 'name' | 'grade_level' | 'short'>>
+): Promise<ClassInstance> => {
+	if (!validateUUID(class_id)) throw new AppError('Invalid class ID', 400);
+	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
+
+	const classInstance = await Class.findOne({
+		where: { class_id, school_id },
+	});
+	if (!classInstance) throw new AppError('Class not found', 404);
+
+	await classInstance.update(updates);
+	return classInstance;
+};
+
+/**
+ * Delete a class by ID
+ * @returns Promise<void>
+ */
+export const deleteClass = async (
+	class_id: string,
+	school_id: string
+): Promise<void> => {
+	if (!validateUUID(class_id)) throw new AppError('Invalid class ID', 400);
+	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
+
+	const classInstance = await Class.findOne({
+		where: { class_id, school_id },
+	});
+	if (!classInstance) throw new AppError('Class not found', 404);
+
+	await classInstance.destroy();
+};
+
 export const getAllClassesOfSchool = async (
 	school_id: string
 ): Promise<ClassInstance[]> => {

@@ -1,10 +1,10 @@
-import express from "express";
+import express from 'express';
 import {
-  authMiddleware,
-  authorize,
-  restrictToSchool,
-} from "../middlewares/auth.middleware";
-import * as classController from "../controllers/class.controller";
+	authMiddleware,
+	authorize,
+	restrictToSchool,
+} from '../middlewares/auth.middleware';
+import * as classController from '../controllers/class.controller';
 
 const router = express.Router();
 
@@ -76,11 +76,11 @@ const router = express.Router();
  *         description: School not found
  */
 router.post(
-  "/:school_id",
-  authMiddleware,
-  authorize(["Admin"]),
-  restrictToSchool(),
-  classController.createClassHandler
+	'/:school_id',
+	authMiddleware,
+	authorize(['Admin']),
+	restrictToSchool(),
+	classController.createClassHandler
 );
 
 /**
@@ -130,11 +130,11 @@ router.post(
  *         description: Class not found
  */
 router.get(
-  "/:class_id",
-  authMiddleware,
-  authorize(["Admin", "Teacher"]),
-  restrictToSchool(),
-  classController.getClassHandler
+	'/:class_id',
+	authMiddleware,
+	authorize(['Admin', 'Teacher']),
+	restrictToSchool(),
+	classController.getClassHandler
 );
 
 /**
@@ -177,10 +177,23 @@ router.get(
  *         description: Student not found or class not found
  */
 router.get(
-  "/student/:school_id/:student_id",
-  authMiddleware,
-  authorize(["Student"]),
-  classController.getStudentClassHandler
+	'/student/:school_id/:student_id',
+	authMiddleware,
+	authorize(['Student']),
+	classController.getStudentClassHandler
+);
+
+router.put(
+	'/:school_id/:class_id',
+	authMiddleware,
+	authorize(['Admin']),
+	classController.updateClass
+);
+router.delete(
+	'/:school_id/:class_id',
+	authMiddleware,
+	authorize(['Admin']),
+	classController.deleteClass
 );
 
 export default router;

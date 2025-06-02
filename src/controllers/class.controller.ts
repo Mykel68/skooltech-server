@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import * as classService from '../services/class.service';
 import { sendResponse } from '../utils/response.util';
 import { AppError } from '../utils/error.util';
@@ -37,6 +37,47 @@ export const createClassHandler = async (
 		sendResponse(res, error.statusCode || 500, {
 			message: error.message || 'Internal server error',
 		});
+	}
+};
+
+/**
+ * update class by ID
+ */
+
+export const updateClass = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { class_id, school_id } = req.params;
+		const updates = req.body;
+		const updatedClass = await classService.updateClass(
+			class_id,
+			school_id,
+			updates
+		);
+		res.json({ success: true, data: updatedClass });
+	} catch (err) {
+		next(err);
+	}
+};
+
+/**
+ * Delete class by ID
+ */
+
+export const deleteClass = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { class_id, school_id } = req.params;
+		await classService.deleteClass(class_id, school_id);
+		res.status(204).send();
+	} catch (err) {
+		next(err);
 	}
 };
 
