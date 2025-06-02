@@ -279,22 +279,29 @@ export const getSubjectByaStudent = async (
 	}
 };
 
-export const deleteSubjectHandler = async (
+export const updateSubjectHandler = async (
 	req: Request,
 	res: Response
 ): Promise<void> => {
-	const { subject_id } = req.params;
-	const school_id = (req as any).user?.school_id;
+	const { subject_id, school_id } = req.params;
+	const updates = req.body;
 
 	try {
 		if (!subject_id) {
 			throw new AppError('Subject ID is required', 400);
 		}
+		if (!school_id) {
+			throw new AppError('School ID is required', 400);
+		}
 
-		const subject = await subjectService.deleteSubject(subject_id);
+		const subject = await subjectService.updateSubject(
+			school_id,
+			subject_id,
+			updates
+		);
 
 		sendResponse(res, 200, {
-			message: 'subject deleted',
+			message: 'Subject updated successfully',
 			subject,
 		});
 	} catch (error: any) {
@@ -302,5 +309,43 @@ export const deleteSubjectHandler = async (
 			message: error.message || 'Internal server error',
 		});
 	}
-	return;
+};
+
+export const deleteSubjectHandler = async (
+	req: Request,
+	res: Response
+): Promise<void> => {
+	const { subject_id, school_id: paramSchoolId } = req.params;
+	const userSchoolId = (req as any).user?.school_id;
+
+	try {
+		if (!subject_id) {
+			throw new AppError('Subject ID is required', 400);
+		}
+		if (!paramSchoolId) {
+			throw new AppError('School ID is required in the route', 400);
+		}
+		if (!userSchoolId) {
+			throw new AppError(
+				'School ID missing from authenticated user',
+				401
+			);
+		}
+		if (paramSchoolId !== userSchoolId) {
+			throw new AppError(
+				'You are not authorized to access this school',
+				403
+			);
+		}
+
+		await subjectService.deleteSubject(userSchoolId, subject_id);
+
+		sendResponse(res, 200, {
+			message: 'Subject deleted successfully',
+		});
+	} catch (error: any) {
+		sendResponse(res, error.statusCode || 500, {
+			message: error.message || 'Internal server error',
+		});
+	}
 };

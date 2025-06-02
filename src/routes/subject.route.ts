@@ -490,6 +490,14 @@ router.get(
 	subjectController.getSubjectsOfaTeacher
 );
 
+router.patch(
+	'/:school_id/:subject_id',
+	authMiddleware,
+	authorize(['Admin', 'Teacher']),
+	restrictToSchool(),
+	subjectController.updateSubjectHandler
+);
+
 /**
  * @swagger
  * /subjects/{subject_id}:
@@ -545,7 +553,7 @@ router.get(
  *        description: Subject not found
  */
 router.delete(
-	'/:subject_id',
+	'/school_id/:subject_id',
 	authMiddleware,
 	authorize(['Admin', 'Teacher']),
 	restrictToSchool(),

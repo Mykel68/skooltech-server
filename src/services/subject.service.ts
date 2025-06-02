@@ -59,6 +59,27 @@ export const approveSubject = async (
 };
 
 /**
+ * update a subject
+ */
+export const updateSubject = async (
+	school_id: string,
+	subject_id: string,
+	updates: Partial<SubjectInstance>
+): Promise<SubjectInstance> => {
+	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
+
+	if (!validateUUID(subject_id))
+		throw new AppError('Invalid subject ID', 400);
+
+	const subject = await Subject.findByPk(subject_id);
+	if (!subject) throw new AppError('Subject not found', 404);
+
+	await subject.update(updates);
+
+	return subject;
+};
+
+/**
  * Fetch all approved subjects for a given class and school
  */
 export const getSubjectsByClass = async (
@@ -219,12 +240,19 @@ export const getSubjectsOfTeacherFromSchool = async (
 	return subjects;
 };
 
-export const deleteSubject = async (subject_id: string) => {
+export const deleteSubject = async (
+	school_id: string,
+	subject_id: string
+): Promise<void> => {
 	if (!validateUUID(subject_id))
 		throw new AppError('Invalid subject ID', 400);
+	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
 
-	const subject = await Subject.findByPk(subject_id);
-	if (!subject) throw new AppError('Subject not found', 404);
+	const subject = await Subject.findOne({
+		where: { subject_id, school_id },
+	});
+
+	if (!subject) throw new AppError('Subject not found for this school', 404);
 
 	await subject.destroy();
 };
