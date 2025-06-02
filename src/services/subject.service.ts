@@ -67,12 +67,29 @@ export const updateSubject = async (
 	updates: Partial<SubjectInstance>
 ): Promise<SubjectInstance> => {
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
-
 	if (!validateUUID(subject_id))
 		throw new AppError('Invalid subject ID', 400);
 
-	const subject = await Subject.findByPk(subject_id);
+	const subject = await Subject.findOne({ where: { subject_id, school_id } });
 	if (!subject) throw new AppError('Subject not found', 404);
+
+	// ✅ If class_id is being updated, validate it
+	if (updates.class_id) {
+		if (!validateUUID(updates.class_id)) {
+			throw new AppError('Invalid class ID', 400);
+		}
+
+		const classExists = await Class.findOne({
+			where: {
+				class_id: updates.class_id,
+				school_id,
+			},
+		});
+
+		if (!classExists) {
+			throw new AppError('Class does not exist in this school', 404);
+		}
+	}
 
 	await subject.update(updates);
 
