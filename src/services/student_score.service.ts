@@ -28,7 +28,7 @@ export const assignStudentScores = async (
   if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
 
   const subject = await Subject.findOne({
-    where: { subject_id, school_id },
+    where: { subject_id, school_id, teacher_id, class_id },
   });
   if (!subject) {
     throw new AppError(`Subject not found in this school: ${subject_id}`, 404);
@@ -182,12 +182,20 @@ export const assignStudentScores = async (
 export const editStudentScores = async (
   school_id: string,
   class_id: string,
+  subject_id: string,
   teacher_id: string,
   scoreInputs: ScoreInput[]
 ): Promise<StudentScoreInstance[]> => {
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
   if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
+
+  const subject = await Subject.findOne({
+    where: { subject_id, school_id, class_id, teacher_id },
+  });
+  if (!subject) {
+    throw new AppError(`Subject not found in this school: ${subject_id}`, 404);
+  }
 
   // Verify class exists in school
   const classRecord = await Class.findOne({
