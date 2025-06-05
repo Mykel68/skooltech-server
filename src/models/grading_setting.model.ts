@@ -3,12 +3,14 @@ import sequelize from "../config/db";
 import Class from "./class.model";
 import User from "./user.model";
 import School from "./school.model";
+import Subject from "./subject.model";
 
 interface GradingSettingAttributes {
   grading_setting_id?: string;
   class_id: string;
   teacher_id: string;
   school_id: string;
+  subject_id: string; // ← newly added
   components: {
     name: string;
     weight: number;
@@ -40,7 +42,12 @@ const GradingSetting = sequelize.define<GradingSettingInstance>(
     school_id: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: { model: "schools", key: "school_id" },
+      references: { model: School, key: "school_id" },
+    },
+    subject_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: Subject, key: "subject_id" }, // ← newly added
     },
     components: {
       type: DataTypes.JSONB,
@@ -75,15 +82,19 @@ const GradingSetting = sequelize.define<GradingSettingInstance>(
     indexes: [
       {
         unique: true,
-        fields: ["class_id", "teacher_id"],
+        // previously was fields: ["class_id", "teacher_id"]
+        // Now make the tuple (class_id, subject_id, teacher_id) unique:
+        fields: ["class_id", "subject_id", "teacher_id"],
       },
     ],
   }
 );
 
+// Associations
 GradingSetting.belongsTo(School, { foreignKey: "school_id", as: "school" });
 GradingSetting.belongsTo(Class, { foreignKey: "class_id", as: "class" });
 GradingSetting.belongsTo(User, { foreignKey: "teacher_id", as: "teacher" });
+GradingSetting.belongsTo(Subject, { foreignKey: "subject_id", as: "subject" });
 
 export default GradingSetting;
 export { GradingSettingInstance };

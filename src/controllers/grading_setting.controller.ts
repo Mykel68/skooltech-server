@@ -15,17 +15,15 @@ export const setGradingSettings = async (
   next: NextFunction
 ) => {
   try {
-    if (!req.user) {
-      throw new AppError("Unauthorized: No user data", 401);
-    }
-
-    const { school_id, class_id } = req.params;
-    const { components } = req.body;
+    const { school_id, class_id, subject_id } = req.params;
+    if (!req.user) throw new AppError("Unauthorized", 401);
     const teacher_id = req.user.user_id;
+    const { components } = req.body;
 
     const gradingSetting = await createGradingSetting(
       school_id,
       class_id,
+      subject_id,
       teacher_id,
       components
     );
@@ -47,15 +45,14 @@ export const getGradingSettings = async (
   next: NextFunction
 ) => {
   try {
-    if (!req.user) {
-      throw new AppError("Unauthorized: No user data", 401);
-    }
-    const { school_id, class_id } = req.params;
+    const { school_id, class_id, subject_id } = req.params;
+    if (!req.user) throw new AppError("Unauthorized", 401);
     const teacher_id = req.user.user_id;
 
     const gradingSetting = await getGradingSetting(
       school_id,
       class_id,
+      subject_id,
       teacher_id
     );
 
@@ -76,24 +73,22 @@ export const updateGradingSettings = async (
   next: NextFunction
 ) => {
   try {
-    if (!req.user) {
-      throw new AppError("Unauthorized: No user data", 401);
-    }
-
-    const { school_id, class_id } = req.params;
-    const { components } = req.body;
+    const { school_id, class_id, subject_id } = req.params;
+    if (!req.user) throw new AppError("Unauthorized", 401);
     const teacher_id = req.user.user_id;
+    const { components } = req.body;
 
-    const gradingSetting = await updateGradingSetting(
+    const updated = await updateGradingSetting(
       school_id,
       class_id,
+      subject_id,
       teacher_id,
       components
     );
 
     sendResponse(res, 200, {
       message: "Grading settings updated successfully",
-      data: gradingSetting,
+      data: updated,
     });
   } catch (error: any) {
     sendResponse(res, error.statusCode || 500, {
@@ -108,14 +103,11 @@ export const deleteGradingSettings = async (
   next: NextFunction
 ) => {
   try {
-    if (!req.user) {
-      throw new AppError("Unauthorized: No user data", 401);
-    }
-
-    const { school_id, class_id } = req.params;
+    const { school_id, class_id, subject_id } = req.params;
+    if (!req.user) throw new AppError("Unauthorized", 401);
     const teacher_id = req.user.user_id;
 
-    await deleteGradingSetting(school_id, class_id, teacher_id);
+    await deleteGradingSetting(school_id, class_id, subject_id, teacher_id);
 
     sendResponse(res, 200, {
       message: "Grading settings deleted successfully",
