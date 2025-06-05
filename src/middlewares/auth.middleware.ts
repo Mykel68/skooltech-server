@@ -68,7 +68,7 @@ export const restrictToSchool = () => {
     }
     console.log("User ID:", req.user.user_id);
     console.log("User School ID:", req.user.school_id);
-    const schoolIdFromParams = req.params.school_id;
+    const schoolIdFromParams = req.params.school_id || req.params.schoolId;
     console.log("School ID from Params:", schoolIdFromParams);
     if (schoolIdFromParams && req.user.school_id !== schoolIdFromParams) {
       sendResponse(res, 403, {

@@ -680,13 +680,7 @@ export const getStudentOwnScores = async (
   });
   if (!classRecord) throw new AppError("Class not found in this school", 404);
 
-  // const classStudent = await ClassStudent.findOne({
-  //   where: { class_id, student_id },
-  // });
-  // if (!classStudent)
-  //   throw new AppError("Student not enrolled in this class", 403);
-
-  const score = (await StudentScore.findOne({
+  const scores = await StudentScore.findAll({
     where: {
       class_id,
       school_id,
@@ -703,6 +697,11 @@ export const getStudentOwnScores = async (
         as: "grading_setting",
         attributes: ["grading_setting_id", "components"],
       },
+      {
+        model: Subject,
+        as: "subject",
+        attributes: ["subject_id", "name", "short"],
+      },
     ],
     attributes: [
       "score_id",
@@ -711,21 +710,7 @@ export const getStudentOwnScores = async (
       "created_at",
       "updated_at",
     ],
-  })) as StudentScoreInstance;
-
-  if (!score) {
-    return {
-      class: {
-        class_id: classRecord.class_id,
-        name: classRecord.name,
-        grade_level: classRecord.grade_level,
-      },
-      scores: [],
-      total_score: null,
-      created_at: null,
-      updated_at: null,
-    };
-  }
+  });
 
   return {
     class: {
@@ -733,14 +718,16 @@ export const getStudentOwnScores = async (
       name: classRecord.name,
       grade_level: classRecord.grade_level,
     },
-    score_id: score.score_id,
-    // teacher: {
-    //   user_id: score.teacher?.user_id ?? "",
-    //   first_name: score.teacher?.first_name ?? "",
-    //   last_name: score.teacher?.last_name ?? "",
-    // },
-    scores: score.scores,
-    total_score: score.total_score,
+    subjectsWithScores: scores.map((s) => ({
+      subject: {
+        subject_id: s.subject?.subject_id,
+        name: s.subject?.name,
+        short: s.subject?.short,
+      },
+      score_id: s.score_id,
+      scores: s.scores,
+      total_score: s.total_score,
+    })),
   };
 };
 

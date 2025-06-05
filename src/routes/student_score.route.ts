@@ -527,7 +527,7 @@ router.patch(
  *         description: Class, student, or scores not found
  */
 router.get(
-  "/own/:school_id/:class_id",
+  "/student/:school_id/:class_id",
   authMiddleware,
   authorize(["Student"]),
   restrictToSchool(),
