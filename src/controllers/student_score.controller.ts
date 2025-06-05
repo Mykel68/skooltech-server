@@ -110,7 +110,7 @@ export const getScores = async (
       throw new AppError("Unauthorized: No user data", 401);
     }
 
-    const { school_id, class_id } = req.params;
+    const { school_id, class_id, subject_id } = req.params;
     const teacher_id = req.user.user_id;
 
     console.log("Get Scores Request:", { school_id, class_id, teacher_id });
@@ -118,6 +118,7 @@ export const getScores = async (
     const studentScores = await getStudentScores(
       school_id,
       class_id,
+      subject_id,
       teacher_id
     );
 

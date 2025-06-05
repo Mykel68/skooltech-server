@@ -317,7 +317,7 @@ router.post(
 );
 
 router.get(
-  "/:school_id/:class_id",
+  "/:school_id/:class_id/:subject_id",
   authMiddleware,
   authorize(["Teacher"]),
   restrictToSchool(),

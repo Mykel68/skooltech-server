@@ -344,16 +344,53 @@ export const editStudentScores = async (
 export const getStudentScores = async (
   school_id: string,
   class_id: string,
+  subject_id: string,
   teacher_id: string
-): Promise<any[]> => {
+): Promise<
+  Array<{
+    class: {
+      class_id: string;
+      name: string;
+      grade_level: string | null;
+    };
+    grading: { name: string; weight: number }[];
+    students: Array<{
+      student: {
+        user_id: string;
+        first_name: string;
+        last_name: string;
+        score_id: string | null;
+        scores: { component_name: string; score: number }[];
+        total_score: number | null;
+      };
+    }>;
+  }>
+> => {
+  // 1. Validate all incoming IDs
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
+  if (!validateUUID(subject_id)) throw new AppError("Invalid subject ID", 400);
   if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
 
-  const classRecord = await Class.findOne({ where: { class_id, school_id } });
-  if (!classRecord) throw new AppError("Class not found in this school", 404);
+  // 2. Verify that the class exists and belongs to this school
+  const classRecord = await Class.findOne({
+    where: { class_id, school_id },
+  });
+  if (!classRecord) {
+    throw new AppError("Class not found in this school", 404);
+  }
 
-  const teacher = await User.findOne({
+  // 3. Verify that the subject exists, belongs to this class, this teacher, and this school
+  const subjectRecord = await Subject.findOne({
+    where: { subject_id, class_id, teacher_id, school_id },
+    attributes: ["subject_id", "name"],
+  });
+  if (!subjectRecord) {
+    throw new AppError("Subject not found for this class/teacher/school", 404);
+  }
+
+  // 4. Verify teacher is approved and belongs to this school
+  const teacherRecord = await User.findOne({
     where: {
       user_id: teacher_id,
       school_id,
@@ -361,17 +398,23 @@ export const getStudentScores = async (
       is_approved: true,
     },
   });
-  if (!teacher) throw new AppError("Teacher not authorized", 403);
+  if (!teacherRecord) {
+    throw new AppError("Teacher not authorized", 403);
+  }
 
+  // 5. Fetch the grading setting for this class + teacher
   const gradingSetting = await GradingSetting.findOne({
     where: { class_id, teacher_id, school_id },
+    attributes: ["grading_setting_id", "components"],
   });
-  if (!gradingSetting)
+  if (!gradingSetting) {
     throw new AppError(
-      "Grading setting not found for this class and teacher",
+      "Grading setting not found for this class/teacher/school",
       404
     );
+  }
 
+  // 6. Fetch all students enrolled in this class (via ClassStudent → include User)
   const classStudents = await ClassStudent.findAll({
     where: { class_id },
     include: [
@@ -385,17 +428,35 @@ export const getStudentScores = async (
     ],
   });
 
-  const studentIds = classStudents
-    .map((cs) => cs.student?.user_id)
-    .filter((id): id is string => typeof id === "string");
+  // 7. If there are no students, return early
+  if (classStudents.length === 0) {
+    return [
+      {
+        class: {
+          class_id: classRecord.class_id!,
+          name: classRecord.name,
+          grade_level: classRecord.grade_level!,
+        },
+        grading: gradingSetting.components,
+        students: [],
+      },
+    ];
+  }
 
-  const scores = await StudentScore.findAll({
+  // 8. Build a list of all enrolled student IDs
+  const enrolledStudentIds = classStudents
+    .map((cs) => cs.student!.user_id) // `student!` is safe because `required: true`
+    .filter((uid): uid is string => typeof uid === "string");
+
+  // 9. Fetch any existing StudentScore rows for this class/subject/teacher/grading setting
+  const existingScores = await StudentScore.findAll({
     where: {
       class_id,
+      subject_id,
       school_id,
       teacher_id,
       grading_setting_id: gradingSetting.grading_setting_id,
-      user_id: studentIds,
+      user_id: enrolledStudentIds,
     },
     attributes: [
       "user_id",
@@ -407,39 +468,47 @@ export const getStudentScores = async (
     ],
   });
 
-  const scoreMap = new Map<string, StudentScoreInstance>();
-  scores.forEach((score) => {
-    scoreMap.set(score.user_id, score);
+  // 10. Map each StudentScore by user_id for quick lookup
+  const scoreMap = new Map<string, (typeof existingScores)[0]>();
+  existingScores.forEach((sc) => {
+    scoreMap.set(sc.user_id, sc);
   });
 
-  const response = classStudents.map((cs) => {
-    const student = cs.student;
-    if (!student?.user_id) {
-      throw new AppError("Missing student user_id", 500);
-    }
+  // 11. For each enrolled student, pick existing score or default
+  const studentsWithScores = classStudents.map((cs) => {
+    const stu = cs.student!; // forced non-null
+    const existing = scoreMap.get(stu.user_id!) || null;
 
-    const score = scoreMap.get(student.user_id);
+    // Extract fields and assert non-null on user_id / first_name / last_name
+    const userId = stu.user_id!;
+    const firstName = stu.first_name!;
+    const lastName = stu.last_name!;
+
+    // Existing `score_id` may be `undefined`, so convert to `string | null`
+    const scoreId = existing?.score_id ?? null;
+
     return {
       student: {
-        user_id: student.user_id,
-        first_name: student.first_name,
-        last_name: student.last_name,
-        score_id: score?.score_id ?? null,
-        scores: score?.scores ?? [],
-        total_score: score?.total_score ?? null,
+        user_id: userId,
+        first_name: firstName,
+        last_name: lastName,
+        score_id: scoreId,
+        scores: existing ? existing.scores : [],
+        total_score: existing ? existing.total_score : null,
       },
     };
   });
 
+  // 12. Return the singleton-array structure
   return [
     {
       class: {
-        class_id: classRecord.class_id,
+        class_id: classRecord.class_id!,
         name: classRecord.name,
-        grade_level: classRecord.grade_level,
+        grade_level: classRecord.grade_level!,
       },
       grading: gradingSetting.components,
-      students: response,
+      students: studentsWithScores,
     },
   ];
 };
