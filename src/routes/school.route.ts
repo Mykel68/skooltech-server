@@ -1,11 +1,12 @@
-import express from "express";
-import * as schoolController from "../controllers/school.controller";
-import * as classController from "../controllers/class.controller";
+import express from 'express';
+import * as schoolController from '../controllers/school.controller';
+import * as classController from '../controllers/class.controller';
 import {
-  authMiddleware,
-  authorize,
-  restrictToSchool,
-} from "../middlewares/auth.middleware";
+	authMiddleware,
+	authorize,
+	restrictToSchool,
+	verify_X_API_KEY,
+} from '../middlewares/auth.middleware';
 
 const router = express.Router();
 
@@ -111,7 +112,7 @@ const router = express.Router();
  *                 message:
  *                   type: string
  */
-router.post("/register", schoolController.createSchoolController);
+router.post('/register', schoolController.createSchoolController);
 
 /**
  * @swagger
@@ -165,7 +166,11 @@ router.post("/register", schoolController.createSchoolController);
  *                 message:
  *                   type: string
  */
-router.get("/code/:school_code", schoolController.getSchoolByCodeController);
+router.get(
+	'/code/:school_code',
+	verify_X_API_KEY,
+	schoolController.getSchoolByCodeController
+);
 
 /**
  * @swagger
@@ -231,9 +236,9 @@ router.get("/code/:school_code", schoolController.getSchoolByCodeController);
  *                   type: string
  */
 router.get(
-  "/profile/:school_id",
-  authMiddleware,
-  schoolController.getSchoolByIdController
+	'/profile/:school_id',
+	authMiddleware,
+	schoolController.getSchoolByIdController
 );
 
 /**
@@ -331,9 +336,9 @@ router.get(
  *                   type: string
  */
 router.patch(
-  "/profile/:school_id",
-  authMiddleware,
-  schoolController.updateSchoolController
+	'/profile/:school_id',
+	authMiddleware,
+	schoolController.updateSchoolController
 );
 
 /**
@@ -385,11 +390,11 @@ router.patch(
  *         description: School not found
  */
 router.get(
-  "/classes/:school_id",
-  authMiddleware,
-  authorize(["Admin", "Teacher"]),
-  restrictToSchool(),
-  classController.getAllClassesHandler
+	'/classes/:school_id',
+	authMiddleware,
+	authorize(['Admin', 'Teacher']),
+	restrictToSchool(),
+	classController.getAllClassesHandler
 );
 
 /**
@@ -432,5 +437,5 @@ router.get(
  *       404:
  *         description: School not found
  */
-router.get("/classes/:school_id/no-auth", classController.getAllClassesHandler);
+router.get('/classes/:school_id/no-auth', classController.getAllClassesHandler);
 export default router;
