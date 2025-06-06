@@ -132,7 +132,7 @@ export const assignStudentScores = async (
     let total_score = 0;
     for (const comp of gradingSetting.components) {
       const score = scoreMap.get(comp.name) || 0;
-      total_score += (score * comp.weight) / 100;
+      total_score += score;
     }
 
     // Check for existing score
@@ -295,7 +295,7 @@ export const editStudentScores = async (
     let total_score = 0;
     for (const comp of gradingSetting.components) {
       const score = scoreMap.get(comp.name) || 0;
-      total_score += (score * comp.weight) / 100;
+      total_score += score;
     }
 
     // Find existing score
@@ -366,6 +366,7 @@ export const getStudentScores = async (
         score_id: string | null;
         scores: { component_name: string; score: number }[];
         total_score: number | null;
+        average_score: number | null;
       };
     }>;
   }>
@@ -480,14 +481,20 @@ export const getStudentScores = async (
     const firstName = stu.first_name!;
     const lastName = stu.last_name!;
 
+    const scores = existing?.scores ?? [];
+    const total_score = scores.reduce((sum, s) => sum + s.score, 0);
+    const average_score =
+      scores.length > 0 ? total_score / scores.length : null;
+
     return {
       student: {
         user_id: userId,
         first_name: firstName,
         last_name: lastName,
         score_id: existing?.score_id ?? null,
-        scores: existing ? existing.scores : [],
-        total_score: existing ? existing.total_score : null,
+        scores,
+        total_score: scores.length > 0 ? total_score : null,
+        average_score,
       },
     };
   });
