@@ -2,7 +2,9 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/db";
 import User from "./user.model";
 import Class from "./class.model";
-import GradingSetting from "./grading_setting.model";
+import GradingSetting, {
+  GradingSettingInstance,
+} from "./grading_setting.model";
 import School from "./school.model";
 import ClassStudent from "./class_student.model";
 import Subject from "./subject.model";
@@ -24,6 +26,7 @@ interface StudentScoreInstance
   extends Model<StudentScoreAttributes>,
     StudentScoreAttributes {
   subject: SubjectInstance;
+  grading_setting: GradingSettingInstance;
 }
 
 const StudentScore = sequelize.define<StudentScoreInstance>(

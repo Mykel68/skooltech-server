@@ -216,7 +216,7 @@ export const editStudentScores = async (
 
   // Get grading setting
   const gradingSetting = await GradingSetting.findOne({
-    where: { class_id, teacher_id, school_id },
+    where: { class_id, teacher_id, school_id, subject_id },
   });
   console.log("Grading Setting Query for Edit:", {
     class_id,
@@ -671,16 +671,19 @@ export const getStudentOwnScores = async (
   class_id: string,
   student_id: string
 ): Promise<any> => {
+  // 1) Validate all IDs
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
   if (!validateUUID(student_id)) throw new AppError("Invalid student ID", 400);
 
+  // 2) Verify that the class exists
   const classRecord = await Class.findOne({
     where: { class_id, school_id },
   });
   if (!classRecord) throw new AppError("Class not found in this school", 404);
 
-  const scores = await StudentScore.findAll({
+  // 3) Fetch all of this student’s scores in that class
+  const studentScores = await StudentScore.findAll({
     where: {
       class_id,
       school_id,
@@ -712,22 +715,82 @@ export const getStudentOwnScores = async (
     ],
   });
 
+  // 4) Collect all subject IDs that the student has scores for
+  const subjectIds = studentScores
+    .map((s) => s.subject?.subject_id)
+    .filter(Boolean);
+
+  // 5) Fetch every StudentScore for those subjects in this class (to compute class averages)
+  const allScoresForSubjects = await StudentScore.findAll({
+    where: {
+      class_id,
+      school_id,
+      subject_id: {
+        [Op.in]: subjectIds.filter(
+          (id): id is string => typeof id === "string"
+        ),
+      },
+    },
+    attributes: ["subject_id", "total_score"],
+  });
+
+  // 6) Compute class averages per subject
+  const classAveragesMap = new Map<string, number>();
+  const subjectGroups = allScoresForSubjects.reduce((acc, score) => {
+    const subjId = score.subject_id;
+    if (!subjId || score.total_score == null) return acc;
+    if (!acc[subjId]) acc[subjId] = [];
+    acc[subjId].push(score.total_score);
+    return acc;
+  }, {} as Record<string, number[]>);
+
+  for (const [subjectId, scores] of Object.entries(subjectGroups)) {
+    const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+    classAveragesMap.set(subjectId, Number(avg.toFixed(2)));
+  }
+
+  // 7) Build the response
   return {
     class: {
       class_id: classRecord.class_id,
       name: classRecord.name,
       grade_level: classRecord.grade_level,
     },
-    subjectsWithScores: scores.map((s) => ({
-      subject: {
-        subject_id: s.subject?.subject_id,
-        name: s.subject?.name,
-        short: s.subject?.short,
-      },
-      score_id: s.score_id,
-      scores: s.scores,
-      total_score: s.total_score,
-    })),
+    subjectsWithScores: studentScores.map((s) => {
+      const gradingComponents = s.grading_setting?.components || [];
+      const gradingTotal = gradingComponents.reduce(
+        (acc, comp) =>
+          acc + (typeof comp.weight === "number" ? comp.weight : 0),
+        0
+      );
+
+      // For each score entry, look up its component’s max (weight) in gradingComponents
+      const scoresWithComponentTotals = (s.scores || []).map((scoreObj) => {
+        const matchingComp = gradingComponents.find(
+          (comp) => comp.name === scoreObj.component_name
+        );
+        return {
+          component_name: scoreObj.component_name,
+          score: scoreObj.score,
+          component_total: matchingComp ? matchingComp.weight : null,
+        };
+      });
+
+      return {
+        subject: {
+          subject_id: s.subject?.subject_id,
+          name: s.subject?.name,
+          short: s.subject?.short,
+        },
+        score_id: s.score_id,
+        scores: scoresWithComponentTotals,
+        total_score: s.total_score,
+        grading_total: gradingTotal,
+        class_average: s.subject?.subject_id
+          ? classAveragesMap.get(s.subject.subject_id) ?? null
+          : null,
+      };
+    }),
   };
 };
 
