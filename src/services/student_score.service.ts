@@ -341,6 +341,10 @@ export const editStudentScores = async (
   return results;
 };
 
+/**
+ * Fetch all students in a class + their scores for a specific subject,
+ * returning the *subject-specific* grading components.
+ */
 export const getStudentScores = async (
   school_id: string,
   class_id: string,
@@ -353,7 +357,7 @@ export const getStudentScores = async (
       name: string;
       grade_level: string | null;
     };
-    grading: { name: string; weight: number }[];
+    grading: { name: string; weight: number }[]; // subject-specific components
     students: Array<{
       student: {
         user_id: string;
@@ -366,13 +370,13 @@ export const getStudentScores = async (
     }>;
   }>
 > => {
-  // 1. Validate all incoming IDs
+  // 1) Validate all IDs
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
   if (!validateUUID(subject_id)) throw new AppError("Invalid subject ID", 400);
   if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
 
-  // 2. Verify that the class exists and belongs to this school
+  // 2) Verify class belongs to school
   const classRecord = await Class.findOne({
     where: { class_id, school_id },
   });
@@ -380,7 +384,7 @@ export const getStudentScores = async (
     throw new AppError("Class not found in this school", 404);
   }
 
-  // 3. Verify that the subject exists, belongs to this class, this teacher, and this school
+  // 3) Verify subject belongs to class, teacher, and school
   const subjectRecord = await Subject.findOne({
     where: { subject_id, class_id, teacher_id, school_id },
     attributes: ["subject_id", "name"],
@@ -389,7 +393,7 @@ export const getStudentScores = async (
     throw new AppError("Subject not found for this class/teacher/school", 404);
   }
 
-  // 4. Verify teacher is approved and belongs to this school
+  // 4) Verify teacher is approved and belongs to that school
   const teacherRecord = await User.findOne({
     where: {
       user_id: teacher_id,
@@ -402,19 +406,19 @@ export const getStudentScores = async (
     throw new AppError("Teacher not authorized", 403);
   }
 
-  // 5. Fetch the grading setting for this class + teacher
+  // 5) Fetch the grading setting for this exact subject
   const gradingSetting = await GradingSetting.findOne({
-    where: { class_id, teacher_id, school_id },
+    where: { class_id, subject_id, teacher_id, school_id },
     attributes: ["grading_setting_id", "components"],
   });
   if (!gradingSetting) {
     throw new AppError(
-      "Grading setting not found for this class/teacher/school",
+      "Grading setting not found for this class/subject/teacher",
       404
     );
   }
 
-  // 6. Fetch all students enrolled in this class (via ClassStudent → include User)
+  // 6) Get all students in that class
   const classStudents = await ClassStudent.findAll({
     where: { class_id },
     include: [
@@ -428,7 +432,7 @@ export const getStudentScores = async (
     ],
   });
 
-  // 7. If there are no students, return early
+  // 7) If no students, return empty list
   if (classStudents.length === 0) {
     return [
       {
@@ -443,12 +447,12 @@ export const getStudentScores = async (
     ];
   }
 
-  // 8. Build a list of all enrolled student IDs
+  // 8) Map enrolled student IDs
   const enrolledStudentIds = classStudents
-    .map((cs) => cs.student!.user_id) // `student!` is safe because `required: true`
+    .map((cs) => cs.student!.user_id)
     .filter((uid): uid is string => typeof uid === "string");
 
-  // 9. Fetch any existing StudentScore rows for this class/subject/teacher/grading setting
+  // 9) Fetch any existing scores for this subject
   const existingScores = await StudentScore.findAll({
     where: {
       class_id,
@@ -458,48 +462,37 @@ export const getStudentScores = async (
       grading_setting_id: gradingSetting.grading_setting_id,
       user_id: enrolledStudentIds,
     },
-    attributes: [
-      "user_id",
-      "score_id",
-      "scores",
-      "total_score",
-      "created_at",
-      "updated_at",
-    ],
+    attributes: ["user_id", "score_id", "scores", "total_score"],
   });
 
-  // 10. Map each StudentScore by user_id for quick lookup
+  // 10) Build a quick lookup map: user_id → StudentScore row
   const scoreMap = new Map<string, (typeof existingScores)[0]>();
   existingScores.forEach((sc) => {
     scoreMap.set(sc.user_id, sc);
   });
 
-  // 11. For each enrolled student, pick existing score or default
+  // 11) Build the students list, defaulting to empty scores if none exist
   const studentsWithScores = classStudents.map((cs) => {
-    const stu = cs.student!; // forced non-null
+    const stu = cs.student!;
     const existing = scoreMap.get(stu.user_id!) || null;
 
-    // Extract fields and assert non-null on user_id / first_name / last_name
     const userId = stu.user_id!;
     const firstName = stu.first_name!;
     const lastName = stu.last_name!;
-
-    // Existing `score_id` may be `undefined`, so convert to `string | null`
-    const scoreId = existing?.score_id ?? null;
 
     return {
       student: {
         user_id: userId,
         first_name: firstName,
         last_name: lastName,
-        score_id: scoreId,
+        score_id: existing?.score_id ?? null,
         scores: existing ? existing.scores : [],
         total_score: existing ? existing.total_score : null,
       },
     };
   });
 
-  // 12. Return the singleton-array structure
+  // 12) Return the single-element array, now including subject-specific grading components
   return [
     {
       class: {
