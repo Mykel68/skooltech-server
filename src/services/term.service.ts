@@ -7,6 +7,18 @@ import School from "../models/school.model";
 import { TermInstance } from "../types/models.types";
 import Assessment from "../models/assessment.model";
 
+interface UpdateTermInput {
+  school_id: string;
+  session_id: string;
+  term_id: string;
+  updates: {
+    name?: string;
+    start_date?: Date;
+    end_date?: Date;
+    is_active?: boolean;
+  };
+}
+
 export const createTerm = async (
   school_id: string,
   session_id: string,
@@ -60,77 +72,86 @@ export const createTerm = async (
   return term;
 };
 
-export const updateTerm = async (
-  term_id: string,
-  updates: {
-    name?: string;
-    start_date?: Date;
-    end_date?: Date;
-    is_active?: boolean;
+export const updateTerm = async ({
+  school_id,
+  session_id,
+  term_id,
+  updates,
+}: UpdateTermInput): Promise<TermInstance> => {
+  if (!validateUUID(term_id)) {
+    throw new AppError("Invalid term ID", 400);
   }
-): Promise<TermInstance> => {
-  if (!validateUUID(term_id)) throw new AppError("Invalid term ID", 400);
-  if (!Object.keys(updates).length)
+
+  if (!Object.keys(updates).length) {
     throw new AppError("At least one field must be provided", 400);
+  }
 
   const term = await Term.findByPk(term_id);
   if (!term) throw new AppError("Term not found", 404);
 
-  const session = await Session.findByPk(term.session_id);
+  if (term.session_id !== session_id || term.school_id !== school_id) {
+    throw new AppError("Term does not belong to specified school/session", 400);
+  }
+
+  const session = await Session.findByPk(session_id);
   if (!session) throw new AppError("Session not found", 404);
 
   const { name, start_date, end_date, is_active } = updates;
 
-  // Validation
-  if (name !== undefined && name.trim() === "")
+  if (name !== undefined && name.trim() === "") {
     throw new AppError("Term name cannot be empty", 400);
+  }
 
   if (name) {
     const existingTerm = await Term.findOne({
       where: {
-        session_id: term.session_id,
+        session_id,
         name,
         term_id: { [Op.ne]: term_id },
       },
     });
-    if (existingTerm)
+    if (existingTerm) {
       throw new AppError("Term name already exists for this session", 400);
+    }
   }
 
-  if (start_date && isNaN(start_date.getTime()))
+  if (start_date && isNaN(new Date(start_date).getTime())) {
     throw new AppError("Invalid start date", 400);
-  if (end_date && isNaN(end_date.getTime()))
-    throw new AppError("Invalid end date", 400);
+  }
 
-  const effectiveStartDate = start_date || term.start_date;
-  const effectiveEndDate = end_date || term.end_date;
-  if ((start_date || end_date) && effectiveEndDate <= effectiveStartDate)
+  if (end_date && isNaN(new Date(end_date).getTime())) {
+    throw new AppError("Invalid end date", 400);
+  }
+
+  const effectiveStart = start_date || term.start_date;
+  const effectiveEnd = end_date || term.end_date;
+
+  if ((start_date || end_date) && effectiveEnd <= effectiveStart) {
     throw new AppError("End date must be after start date", 400);
+  }
 
   if (
     (start_date && start_date < session.start_date) ||
     (end_date && end_date > session.end_date)
-  )
+  ) {
     throw new AppError("Term dates must be within session dates", 400);
+  }
 
-  // If setting this term as active, deactivate others first
+  // 🔐 If this term is being set active, deactivate others
   if (is_active === true) {
     await Term.update(
       { is_active: false },
       {
         where: {
-          session_id: term.session_id,
-          term_id: { [Op.ne]: term.term_id },
+          session_id,
+          school_id,
+          term_id: { [Op.ne]: term_id },
         },
       }
     );
   }
 
-  // Apply updates
-  await term.update({
-    ...updates,
-  });
-
+  await term.update(updates);
   return term;
 };
 

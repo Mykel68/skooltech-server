@@ -1,10 +1,10 @@
-import express from 'express';
+import express from "express";
 import {
-	authMiddleware,
-	authorize,
-	restrictToSchool,
-} from '../middlewares/auth.middleware';
-import * as termController from '../controllers/term.controller';
+  authMiddleware,
+  authorize,
+  restrictToSchool,
+} from "../middlewares/auth.middleware";
+import * as termController from "../controllers/term.controller";
 
 const router = express.Router();
 
@@ -100,11 +100,11 @@ const router = express.Router();
  *         description: Session not found
  */
 router.post(
-	'/:school_id/:session_id',
-	authMiddleware,
-	authorize(['Admin']),
-	restrictToSchool(),
-	termController.createTerm
+  "/:school_id/:session_id",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  termController.createTerm
 );
 
 /**
@@ -185,14 +185,14 @@ router.post(
  *       404:
  *         description: Term not found
  */
-router.patch(
-	'/:term_id',
-	authMiddleware,
-	authorize(['Admin']),
-	restrictToSchool(),
-	termController.updateTerm
-);
 
+router.patch(
+  "/:school_id/:session_id/:term_id",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  termController.updateSchoolTerm
+);
 /**
  * @swagger
  * /terms/{term_id}:
@@ -222,11 +222,11 @@ router.patch(
  *         description: Term not found
  */
 router.delete(
-	'/:term_id',
-	authMiddleware,
-	authorize(['Admin']),
-	restrictToSchool(),
-	termController.deleteTerm
+  "/:term_id",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  termController.deleteTerm
 );
 
 /**
@@ -290,11 +290,11 @@ router.delete(
  *         description: Session not found
  */
 router.get(
-	'/:session_id',
-	authMiddleware,
-	authorize(['Admin', 'Teacher', 'Student']),
-	restrictToSchool(),
-	termController.getTerms
+  "/:session_id",
+  authMiddleware,
+  authorize(["Admin", "Teacher", "Student"]),
+  restrictToSchool(),
+  termController.getTerms
 );
 
 /**
@@ -352,11 +352,11 @@ router.get(
  */
 
 router.get(
-	'/school/:school_id',
-	authMiddleware,
-	authorize(['Admin', 'Teacher', 'Student']),
-	restrictToSchool(),
-	termController.getSessions
+  "/school/:school_id",
+  authMiddleware,
+  authorize(["Admin", "Teacher", "Student"]),
+  restrictToSchool(),
+  termController.getSessions
 );
 
 export default router;

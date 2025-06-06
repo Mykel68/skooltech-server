@@ -4,6 +4,7 @@ import * as termService from "../services/term.service";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { validateUUID } from "../utils/validation.util";
 
 // Schema for creating a term
 const createTermSchema = Joi.object({
@@ -62,39 +63,62 @@ export const createTerm = async (
   }
 };
 
-export const updateTerm = async (
+export const updateSchoolTerm = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    if (!req.user || req.user.role !== "Admin") {
+    const { school_id, session_id, term_id } = req.params;
+
+    if (req.user?.role !== "Admin") {
       throw new AppError("Only admins can update terms", 403);
     }
 
-    const { term_id } = req.params;
-    const { name, start_date, end_date } = req.body;
+    if (
+      !validateUUID(school_id) ||
+      !validateUUID(session_id) ||
+      !validateUUID(term_id)
+    ) {
+      throw new AppError("Invalid school, session, or term ID", 400);
+    }
 
-    const { error, value } = updateTermSchema.validate({
-      name,
-      start_date,
-      end_date,
-    });
-    if (error) throw new AppError(error.details[0].message, 400);
+    // Only pick the keys that exist in body
+    const updates: any = {};
+    const allowedFields = ["name", "start_date", "end_date", "is_active"];
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates[field] =
+          field.endsWith("_date") && req.body[field]
+            ? new Date(req.body[field])
+            : req.body[field];
+      }
+    }
 
-    const term = await termService.updateTerm(term_id, {
-      name: value.name,
-      start_date: value.start_date ? new Date(value.start_date) : undefined,
-      end_date: value.end_date ? new Date(value.end_date) : undefined,
+    // Validate using Joi schema (with partials allowed)
+    const { error, value } = updateTermSchema.validate(updates);
+    if (error) {
+      throw new AppError(error.details[0].message, 400);
+    }
+
+    const term = await termService.updateTerm({
+      school_id,
+      session_id,
+      term_id,
+      updates: value,
     });
 
     sendResponse(res, 200, {
-      term_id: term.term_id,
-      school_id: term.school_id,
-      session_id: term.session_id,
-      name: term.name,
-      start_date: term.start_date,
-      end_date: term.end_date,
+      message: "Term updated successfully",
+      term: {
+        term_id: term.term_id,
+        name: term.name,
+        session_id: term.session_id,
+        school_id: term.school_id,
+        start_date: term.start_date,
+        end_date: term.end_date,
+        is_active: term.is_active,
+      },
     });
   } catch (error: any) {
     sendResponse(res, error.statusCode || 500, {
