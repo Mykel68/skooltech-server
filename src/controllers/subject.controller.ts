@@ -5,29 +5,33 @@ import { AppError } from "../utils/error.util";
 import { AuthRequest } from "../middlewares/auth.middleware";
 
 /**
- * Handle subject creation request
+ * Create a new subject with session/term handling
  */
 export const createSubjectHandler = async (
   req: AuthRequest,
   res: Response
 ): Promise<void> => {
   const { class_id } = req.params;
-  const teacher_id = req.user!.user_id;
+  const teacher_id = req.user?.user_id;
 
-  // 1) First, pull overrides from body
-  const { name, short, session_id: SessionId, term_id: TermId } = req.body;
+  const {
+    name,
+    short,
+    session_id: bodySessionId,
+    term_id: bodyTermId,
+  } = req.body;
 
-  // 2) Then fall back to the attached “current” ones
-  const session_id = SessionId || req.session_id;
-  const term_id = TermId || req.term_id;
+  const session_id = bodySessionId || req.session_id;
+  const term_id = bodyTermId || req.term_id;
 
   try {
     if (!class_id || !name) {
-      throw new AppError("Class ID and name are required", 400);
+      throw new AppError("Class ID and subject name are required", 400);
     }
+
     if (!session_id || !term_id) {
       throw new AppError(
-        "Session and Term must be provided or there must be an active one",
+        "Session and Term are required or must be active",
         400
       );
     }
@@ -41,28 +45,17 @@ export const createSubjectHandler = async (
       term_id
     );
 
-    sendResponse(res, 201, {
-      subject_id: subject.subject_id,
-      school_id: subject.school_id,
-      class_id: subject.class_id,
-      teacher_id: subject.teacher_id,
-      name: subject.name,
-      is_approved: subject.is_approved,
-      session_id: subject.session_id,
-      term_id: subject.term_id,
-    });
+    sendResponse(res, 201, subject);
   } catch (error: any) {
-    sendResponse(res, error.statusCode || 500, {
-      message: error.message || "Internal server error",
-    });
+    sendResponse(res, error.statusCode || 500, { message: error.message });
   }
 };
 
 /**
- * Handle subject approval request
+ * Approve a subject
  */
 export const approveSubjectHandler = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   const { subject_id } = req.params;
@@ -73,67 +66,130 @@ export const approveSubjectHandler = async (
     }
 
     const subject = await subjectService.approveSubject(subject_id);
-
-    sendResponse(res, 200, {
-      subject_id: subject.subject_id,
-      school_id: subject.school_id,
-      class_id: subject.class_id,
-      teacher_id: subject.teacher_id,
-      name: subject.name,
-      is_approved: subject.is_approved,
-    });
+    sendResponse(res, 200, subject);
   } catch (error: any) {
-    sendResponse(res, error.statusCode || 500, {
-      message: error.message || "Internal server error",
-    });
+    sendResponse(res, error.statusCode || 500, { message: error.message });
   }
 };
 
 /**
- * Handle fetching approved subjects by class
+ * Get subjects for a class (session + term sensitive)
  */
 export const getSubjectsByClassHandler = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   const { class_id } = req.params;
-  const school_id = (req as any).user?.school_id;
+  const school_id = req.user?.school_id;
+  const session_id = req.session_id;
+  const term_id = req.term_id;
 
   try {
     if (!class_id) {
       throw new AppError("Class ID is required", 400);
     }
+    if (!session_id || !term_id) {
+      throw new AppError("Missing session or term", 400);
+    }
 
     const subjects = await subjectService.getSubjectsByClass(
-      class_id,
-      school_id!
+      school_id!,
+      session_id,
+      term_id,
+      class_id
     );
 
-    sendResponse(
-      res,
-      200,
-      subjects.map((subject) => ({
-        subject_id: subject.subject_id,
-        school_id: subject.school_id,
-        class_id: subject.class_id,
-        teacher_id: subject.teacher_id,
-        name: subject.name,
-        is_approved: subject.is_approved,
-      }))
-    );
+    sendResponse(res, 200, subjects);
   } catch (error: any) {
-    sendResponse(res, error.statusCode || 500, {
-      message: error.message || "Internal server error",
-    });
+    sendResponse(res, error.statusCode || 500, { message: error.message });
   }
 };
 
-export const getSubjectByIdHandler = async (
+/**
+ * Get all subjects for a school (current session + term)
+ */
+export const getSubjectsOfaSchool = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  const school_id = req.user?.school_id;
+  const session_id = req.session_id;
+  const term_id = req.term_id;
+
+  try {
+    const subjects = await subjectService.getSubjectsOfSchool(
+      school_id!,
+      session_id!,
+      term_id!
+    );
+
+    sendResponse(res, 200, subjects);
+  } catch (error: any) {
+    sendResponse(res, error.statusCode || 500, { message: error.message });
+  }
+};
+
+/**
+ * Get all subjects of a specific class (student perspective)
+ */
+export const getSubjectByaStudent = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  const { class_id } = req.params;
+  const school_id = req.user?.school_id;
+  const session_id = req.session_id;
+  const term_id = req.term_id;
+
+  try {
+    const subjects = await subjectService.getSubjectsOfClassByStudent(
+      school_id!,
+      session_id!,
+      term_id!,
+      class_id
+    );
+
+    sendResponse(res, 200, subjects);
+  } catch (error: any) {
+    sendResponse(res, error.statusCode || 500, { message: error.message });
+  }
+};
+
+/**
+ * Get all subjects of a class for a teacher (session/term scoped)
+ */
+export const getSubjectsOfaTeacher = async (
   req: Request,
   res: Response
 ): Promise<void> => {
+  const teacher_id = req.user?.user_id;
+  const school_id = req.user?.school_id;
+  const session_id = req.session_id;
+  const term_id = req.term_id;
+
+  try {
+    const subjects = await subjectService.getSubjectsOfTeacherFromSchool(
+      school_id!,
+      session_id!,
+      term_id!,
+      teacher_id!
+    );
+
+    sendResponse(res, 200, subjects);
+  } catch (error: any) {
+    sendResponse(res, error.statusCode || 500, { message: error.message });
+  }
+};
+
+/**
+ * Get a single subject by ID
+ */
+export const getSubjectByIdHandler = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   const { subject_id } = req.params;
-  const school_id = (req as any).user?.school_id;
+  const school_id = req.user?.school_id;
 
   try {
     if (!subject_id) {
@@ -141,170 +197,25 @@ export const getSubjectByIdHandler = async (
     }
 
     const subject = await subjectService.getSubjectById(subject_id, school_id!);
-
     sendResponse(res, 200, subject);
   } catch (error: any) {
-    sendResponse(res, error.statusCode || 500, {
-      message: error.message || "Internal server error",
-    });
+    sendResponse(res, error.statusCode || 500, { message: error.message });
   }
 };
 
-export const getSubjectsOfaSchool = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const school_id = (req as any).user?.school_id;
-  const subjects = await subjectService.getSubjectsOfSchool(school_id!);
-
-  try {
-    sendResponse(
-      res,
-      200,
-      subjects.map((subject: any) => ({
-        subject_id: subject.subject_id,
-        school_id: subject.school_id,
-        // class_id: subject.class_id,
-        class_name: subject.class?.name, // <-- class name
-        grade_level: subject.class?.grade_level,
-        // teacher_id: subject.teacher_id,
-        teacher_name: subject.teacher?.username, // <-- teacher name
-        teacher_email: subject.teacher?.email,
-        name: subject.name,
-        is_approved: subject.is_approved,
-      }))
-    );
-  } catch (error: any) {
-    sendResponse(res, error.statusCode || 500, {
-      message: error.message || "Internal server error",
-    });
-  }
-};
-
-export const getSubjectsOfaClass = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const class_id = (req as any).user?.class_id;
-  const subjects = await subjectService.getSubjectsOfClass(class_id!);
-
-  // sendResponse(
-  //   res,
-  //   200,
-  //   subjects.map((subject) => ({
-  //     subject_id: subject.subject_id,
-  //     school_id: subject.school_id,
-  //     class_id: subject.class_id,
-  //     teacher_id: subject.teacher_id,
-  //     name: subject.name,
-  //     is_approved: subject.is_approved,
-  //   }))
-  // );
-  try {
-    sendResponse(
-      res,
-      200,
-      subjects.map((subject) => ({
-        subject_id: subject.subject_id,
-        school_id: subject.school_id,
-        class_id: subject.class_id,
-        teacher_id: subject.teacher_id,
-        name: subject.name,
-        is_approved: subject.is_approved,
-      }))
-    );
-  } catch (error: any) {
-    sendResponse(res, error.statusCode || 500, {
-      message: error.message || "Internal server error",
-    });
-  }
-};
-
-export const getSubjectsOfaTeacher = async (
-  req: AuthRequest,
-  res: Response
-): Promise<void> => {
-  const teacher_id = (req as any).user?.user_id;
-  const school_id = (req as any).user?.school_id;
-  const subjects = await subjectService.getSubjectsOfTeacherFromSchool(
-    teacher_id!,
-    school_id!
-  );
-
-  try {
-    sendResponse(
-      res,
-      200,
-      subjects.map((subject: any) => ({
-        subject_id: subject.subject_id,
-        // school_id: subject.school_id,
-        class_id: subject.class_id,
-        class_name: subject.class?.name, // <-- class name
-        grade_level: subject.class?.grade_level,
-        // teacher_id: subject.teacher_id,
-        // teacher_name: subject.teacher?.username, // <-- teacher name
-        // teacher_email: subject.teacher?.email,
-        name: subject.name,
-        is_approved: subject.is_approved,
-      }))
-    );
-  } catch (error: any) {
-    sendResponse(res, error.statusCode || 500, {
-      message: error.message || "Internal server error",
-    });
-  }
-};
-
-export const getSubjectByaStudent = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { class_id } = req.params;
-  const school_id = (req as any).user?.school_id;
-
-  try {
-    const subjects = await subjectService.getSubjectsOfClassByStudent(
-      school_id!,
-      class_id
-    );
-
-    sendResponse(
-      res,
-      200,
-      subjects.map((subject) => ({
-        subject_id: subject.subject_id,
-        class_id: subject.class_id,
-        name: subject.name,
-        short: subject.short,
-        teacher: subject.teacher
-          ? {
-              user_id: subject.teacher.user_id,
-              username: subject.teacher.username,
-              email: subject.teacher.email,
-            }
-          : null,
-      }))
-    );
-  } catch (error: any) {
-    sendResponse(res, error.statusCode || 500, {
-      message: error.message || "Internal server error",
-    });
-  }
-};
-
+/**
+ * Update a subject
+ */
 export const updateSubjectHandler = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   const { subject_id, school_id } = req.params;
   const updates = req.body;
 
   try {
-    if (!subject_id) {
-      throw new AppError("Subject ID is required", 400);
-    }
-    if (!school_id) {
-      throw new AppError("School ID is required", 400);
+    if (!subject_id || !school_id) {
+      throw new AppError("Subject ID and School ID are required", 400);
     }
 
     const subject = await subjectService.updateSubject(
@@ -318,41 +229,31 @@ export const updateSubjectHandler = async (
       subject,
     });
   } catch (error: any) {
-    sendResponse(res, error.statusCode || 500, {
-      message: error.message || "Internal server error",
-    });
+    sendResponse(res, error.statusCode || 500, { message: error.message });
   }
 };
 
+/**
+ * Delete a subject
+ */
 export const deleteSubjectHandler = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   const { subject_id, school_id: paramSchoolId } = req.params;
-  const userSchoolId = (req as any).user?.school_id;
+  const userSchoolId = req.user?.school_id;
 
   try {
     if (!subject_id) {
       throw new AppError("Subject ID is required", 400);
     }
-    if (!paramSchoolId) {
-      throw new AppError("School ID is required in the route", 400);
-    }
-    if (!userSchoolId) {
-      throw new AppError("School ID missing from authenticated user", 401);
-    }
-    if (paramSchoolId !== userSchoolId) {
-      throw new AppError("You are not authorized to access this school", 403);
+    if (!paramSchoolId || !userSchoolId || paramSchoolId !== userSchoolId) {
+      throw new AppError("Invalid or unauthorized school ID", 403);
     }
 
-    await subjectService.deleteSubject(userSchoolId, subject_id);
-
-    sendResponse(res, 200, {
-      message: "Subject deleted successfully",
-    });
+    await subjectService.deleteSubject(paramSchoolId, subject_id);
+    sendResponse(res, 200, { message: "Subject deleted successfully" });
   } catch (error: any) {
-    sendResponse(res, error.statusCode || 500, {
-      message: error.message || "Internal server error",
-    });
+    sendResponse(res, error.statusCode || 500, { message: error.message });
   }
 };
