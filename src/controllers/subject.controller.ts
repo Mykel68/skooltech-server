@@ -21,8 +21,9 @@ export const createSubjectHandler = async (
 		term_id: bodyTermId,
 	} = req.body;
 
-	const session_id = bodySessionId || req.session_id;
-	const term_id = bodyTermId || req.term_id;
+	const session_id =
+		bodySessionId || (req.query.session_id as string) || req.session_id;
+	const term_id = bodyTermId || (req.query.term_id as string) || req.term_id;
 
 	try {
 		if (!class_id || !name) {
@@ -81,8 +82,9 @@ export const getSubjectsByClassHandler = async (
 ): Promise<void> => {
 	const { class_id } = req.params;
 	const school_id = req.user?.school_id;
-	const session_id = req.session_id;
-	const term_id = req.term_id;
+
+	const session_id = (req.query.session_id as string) || req.session_id;
+	const term_id = (req.query.term_id as string) || req.term_id;
 
 	try {
 		if (!class_id) {
@@ -113,14 +115,19 @@ export const getSubjectsOfaSchool = async (
 	res: Response
 ): Promise<void> => {
 	const school_id = req.user?.school_id;
-	const session_id = req.session_id;
-	const term_id = req.term_id;
+
+	const session_id = (req.query.session_id as string) || req.session_id;
+	const term_id = (req.query.term_id as string) || req.term_id;
 
 	try {
+		if (!session_id || !term_id) {
+			throw new AppError('Missing session or term', 400);
+		}
+
 		const subjects = await subjectService.getSubjectsOfSchool(
 			school_id!,
-			session_id!,
-			term_id!
+			session_id,
+			term_id
 		);
 
 		sendResponse(res, 200, subjects);
@@ -138,14 +145,19 @@ export const getSubjectByaStudent = async (
 ): Promise<void> => {
 	const { class_id } = req.params;
 	const school_id = req.user?.school_id;
-	const session_id = req.session_id;
-	const term_id = req.term_id;
+
+	const session_id = (req.query.session_id as string) || req.session_id;
+	const term_id = (req.query.term_id as string) || req.term_id;
 
 	try {
+		if (!session_id || !term_id) {
+			throw new AppError('Missing session or term', 400);
+		}
+
 		const subjects = await subjectService.getSubjectsOfClassByStudent(
 			school_id!,
-			session_id!,
-			term_id!,
+			session_id,
+			term_id,
 			class_id
 		);
 
@@ -165,15 +177,18 @@ export const getSubjectsOfaTeacher = async (
 	const { teacher_id } = req.params;
 	const school_id = req.user?.school_id;
 
-	// Use query params if provided, else fallback to req object
 	const session_id = (req.query.session_id as string) || req.session_id;
 	const term_id = (req.query.term_id as string) || req.term_id;
 
 	try {
+		if (!session_id || !term_id) {
+			throw new AppError('Missing session or term', 400);
+		}
+
 		const subjects = await subjectService.getSubjectsOfTeacherFromSchool(
 			school_id!,
-			session_id!,
-			term_id!,
+			session_id,
+			term_id,
 			teacher_id!
 		);
 
