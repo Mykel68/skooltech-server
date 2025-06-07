@@ -79,6 +79,8 @@ export interface SubjectAttributes {
   school_id: string;
   class_id: string;
   teacher_id: string;
+  term_id: string;
+  session_id: string;
   is_approved?: boolean;
   name: string;
   short?: string;

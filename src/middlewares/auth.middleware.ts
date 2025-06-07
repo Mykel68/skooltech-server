@@ -2,9 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
-import Session from "../models/session.model";
-import { validateUUID } from "../utils/validation.util";
-import { Op } from "sequelize";
 
 export interface AuthRequest extends Request {
   user?: {
@@ -15,7 +12,8 @@ export interface AuthRequest extends Request {
     school_image: string | null;
     role: string;
   };
-  session_id?: any;
+  session_id?: string;
+  term_id?: string;
 }
 
 export const authMiddleware = (

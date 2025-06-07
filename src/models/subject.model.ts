@@ -4,6 +4,8 @@ import School from "./school.model";
 import Class from "./class.model";
 import User from "./user.model";
 import { SubjectInstance } from "../types/models.types";
+import { Term } from "./term.model";
+import Session from "./session.model";
 
 const Subject = sequelize.define<SubjectInstance>(
   "Subject",
@@ -28,6 +30,16 @@ const Subject = sequelize.define<SubjectInstance>(
       allowNull: false,
       references: { model: User, key: "user_id" },
     },
+    term_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: Term, key: "term_id" },
+    },
+    session_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: Session, key: "session_id" },
+    },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -51,6 +63,8 @@ const Subject = sequelize.define<SubjectInstance>(
 Subject.belongsTo(School, { foreignKey: "school_id" });
 School.hasMany(Subject, { foreignKey: "school_id" });
 Subject.belongsTo(Class, { foreignKey: "class_id", as: "class" });
+Subject.belongsTo(Session, { foreignKey: "session_id", as: "session" });
+Subject.belongsTo(Term, { foreignKey: "term_id", as: "term" });
 Class.hasMany(Subject, { foreignKey: "class_id", as: "subjects" });
 Subject.belongsTo(User, { foreignKey: "teacher_id", as: "teacher" });
 User.hasMany(Subject, { foreignKey: "teacher_id", as: "subjects" });
