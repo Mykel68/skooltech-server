@@ -242,10 +242,10 @@ export const getSubjectsOfClassByStudent = async (
  * Get subjects of a teacher from a school
  */
 export const getSubjectsOfTeacherFromSchool = async (
-	teacher_id: string,
+	school_id: string,
 	session_id: string,
 	term_id: string,
-	school_id: string
+	teacher_id: string
 ): Promise<SubjectInstance[]> => {
 	if (!validateUUID(teacher_id))
 		throw new AppError('Invalid teacher ID', 400);
