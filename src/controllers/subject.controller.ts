@@ -221,7 +221,7 @@ export const getSubjectsOfaClass = async (
 };
 
 export const getSubjectsOfaTeacher = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   const teacher_id = (req as any).user?.user_id;
