@@ -18,6 +18,7 @@ const updateTermSchema = Joi.object({
   name: Joi.string().allow("").optional(),
   start_date: Joi.date().iso().optional(),
   end_date: Joi.date().iso().optional(),
+  is_active: Joi.boolean().optional(),
 }).min(1);
 
 export const createTerm = async (
