@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
+import { Session, Term } from "../models/term.model";
 
 export interface AuthRequest extends Request {
   user?: {
@@ -111,6 +112,27 @@ export const verify_X_API_KEY = async (
     throw new AppError(error.message, 401);
   }
 };
+
+export async function attachCurrentSessionTerm(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) {
+  const school_id = req.user?.school_id;
+  if (!school_id) return next(); // or error
+
+  const session = await Session.findOne({
+    where: { school_id, is_active: true },
+  });
+  if (session) req.session_id = session.session_id;
+
+  const term = await Term.findOne({
+    where: { session_id: session?.session_id, is_active: true },
+  });
+  if (term) req.term_id = term.term_id;
+
+  return next();
+}
 
 // export const restrictToSession = () => {
 //   return async (req: AuthRequest, res: Response, next: NextFunction) => {

@@ -1,10 +1,11 @@
-import express from 'express';
+import express from "express";
 import {
-	authMiddleware,
-	authorize,
-	restrictToSchool,
-} from '../middlewares/auth.middleware';
-import * as subjectController from '../controllers/subject.controller';
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize,
+  restrictToSchool,
+} from "../middlewares/auth.middleware";
+import * as subjectController from "../controllers/subject.controller";
 
 const router = express.Router();
 
@@ -76,11 +77,12 @@ const router = express.Router();
  *         description: Class or teacher not found
  */
 router.post(
-	'/:class_id',
-	authMiddleware,
-	authorize(['Teacher']),
-	restrictToSchool(),
-	subjectController.createSubjectHandler
+  "/:class_id",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize(["Teacher"]),
+  restrictToSchool(),
+  subjectController.createSubjectHandler
 );
 
 /**
@@ -133,11 +135,12 @@ router.post(
  *         description: Subject not found
  */
 router.patch(
-	'/:subject_id/approve',
-	authMiddleware,
-	authorize(['Admin']),
-	restrictToSchool(),
-	subjectController.approveSubjectHandler
+  "/:subject_id/approve",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  subjectController.approveSubjectHandler
 );
 
 /**
@@ -190,11 +193,12 @@ router.patch(
  *         description: Forbidden
  */
 router.get(
-	'/:class_id',
-	authMiddleware,
-	authorize(['Admin', 'Teacher']),
-	restrictToSchool(),
-	subjectController.getSubjectsByClassHandler
+  "/:class_id",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.getSubjectsByClassHandler
 );
 
 /**
@@ -247,11 +251,12 @@ router.get(
  *         description: Subject not found
  */
 router.get(
-	'/details/:subject_id',
-	authMiddleware,
-	authorize(['Admin', 'Teacher']),
-	restrictToSchool(),
-	subjectController.getSubjectByIdHandler
+  "/details/:subject_id",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.getSubjectByIdHandler
 );
 
 /**
@@ -306,11 +311,12 @@ router.get(
  *         description: School not found
  */
 router.get(
-	'/school/:school_id',
-	authMiddleware,
-	authorize(['Admin', 'Teacher']),
-	restrictToSchool(),
-	subjectController.getSubjectsOfaSchool
+  "/school/:school_id",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.getSubjectsOfaSchool
 );
 
 /**
@@ -365,11 +371,12 @@ router.get(
  *         description: Class not found
  */
 router.get(
-	'/class/:class_id',
-	authMiddleware,
-	authorize(['Admin', 'Teacher']),
-	restrictToSchool(),
-	subjectController.getSubjectsOfaClass
+  "/class/:class_id",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.getSubjectsOfaClass
 );
 
 /**
@@ -424,11 +431,12 @@ router.get(
  */
 
 router.get(
-	'/teacher-subject/:class_id',
-	authMiddleware,
-	authorize(['Student']),
-	restrictToSchool(),
-	subjectController.getSubjectByaStudent
+  "/teacher-subject/:class_id",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize(["Student"]),
+  restrictToSchool(),
+  subjectController.getSubjectByaStudent
 );
 
 /**
@@ -483,19 +491,21 @@ router.get(
  *         description: Teacher not found
  */
 router.get(
-	'/teacher/:teacher_id',
-	authMiddleware,
-	authorize(['Admin', 'Teacher']),
-	restrictToSchool(),
-	subjectController.getSubjectsOfaTeacher
+  "/teacher/:teacher_id",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.getSubjectsOfaTeacher
 );
 
 router.patch(
-	'/:school_id/:subject_id',
-	authMiddleware,
-	authorize(['Admin', 'Teacher']),
-	restrictToSchool(),
-	subjectController.updateSubjectHandler
+  "/:school_id/:subject_id",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.updateSubjectHandler
 );
 
 /**
@@ -553,11 +563,12 @@ router.patch(
  *        description: Subject not found
  */
 router.delete(
-	'/school_id/:subject_id',
-	authMiddleware,
-	authorize(['Admin', 'Teacher']),
-	restrictToSchool(),
-	subjectController.deleteSubjectHandler
+  "/school_id/:subject_id",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  subjectController.deleteSubjectHandler
 );
 
 export default router;

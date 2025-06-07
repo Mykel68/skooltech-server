@@ -2,22 +2,34 @@ import { Request, Response } from "express";
 import * as subjectService from "../services/subject.service";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
+import { AuthRequest } from "../middlewares/auth.middleware";
 
 /**
  * Handle subject creation request
  */
 export const createSubjectHandler = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   const { class_id } = req.params;
-  console.log("body", req.body);
-  const { name, short, session_id, term_id } = req.body;
-  const teacher_id = (req as any).user?.user_id;
+  const teacher_id = req.user!.user_id;
+
+  // 1) First, pull overrides from body
+  const { name, short, session_id: SessionId, term_id: TermId } = req.body;
+
+  // 2) Then fall back to the attached “current” ones
+  const session_id = SessionId || req.session_id;
+  const term_id = TermId || req.term_id;
 
   try {
     if (!class_id || !name) {
       throw new AppError("Class ID and name are required", 400);
+    }
+    if (!session_id || !term_id) {
+      throw new AppError(
+        "Session and Term must be provided or there must be an active one",
+        400
+      );
     }
 
     const subject = await subjectService.createSubject(
@@ -36,6 +48,8 @@ export const createSubjectHandler = async (
       teacher_id: subject.teacher_id,
       name: subject.name,
       is_approved: subject.is_approved,
+      session_id: subject.session_id,
+      term_id: subject.term_id,
     });
   } catch (error: any) {
     sendResponse(res, error.statusCode || 500, {
