@@ -17,7 +17,6 @@ export const createSubject = async (
   session_id: string,
   term_id: string
 ): Promise<SubjectInstance> => {
-  console.log("short", short);
   if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
   if (!validateUUID(teacher_id)) throw new AppError("Invalid teacher ID", 400);
   if (!name) throw new AppError("Subject name is required", 400);
