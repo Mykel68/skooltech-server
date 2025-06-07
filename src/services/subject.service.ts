@@ -274,6 +274,7 @@ export const getSubjectsOfTeacherFromSchool = async (
 		subject_id: s.subject_id,
 		name: s.name,
 		short: s.short,
+		is_approved: s.is_approved,
 		school_id: s.school_id,
 		session_id: s.session_id,
 		term_id: s.term_id,
