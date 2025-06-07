@@ -1,6 +1,7 @@
 import express from 'express';
 import {
 	authMiddleware,
+	verify_X_API_KEY,
 	attachCurrentSessionTerm,
 	authorize,
 	restrictToSchool,
@@ -78,6 +79,7 @@ const router = express.Router();
  */
 router.post(
 	'/:class_id',
+	verify_X_API_KEY,
 	authMiddleware,
 	attachCurrentSessionTerm,
 	authorize(['Teacher']),
@@ -136,6 +138,7 @@ router.post(
  */
 router.patch(
 	'/:subject_id/approve',
+	verify_X_API_KEY,
 	authMiddleware,
 	attachCurrentSessionTerm,
 	authorize(['Admin']),
@@ -194,6 +197,7 @@ router.patch(
  */
 router.get(
 	'/:class_id',
+	verify_X_API_KEY,
 	authMiddleware,
 	attachCurrentSessionTerm,
 	authorize(['Admin', 'Teacher']),
@@ -252,6 +256,7 @@ router.get(
  */
 router.get(
 	'/details/:subject_id',
+	verify_X_API_KEY,
 	authMiddleware,
 	attachCurrentSessionTerm,
 	authorize(['Admin', 'Teacher']),
@@ -312,6 +317,7 @@ router.get(
  */
 router.get(
 	'/school/:school_id',
+	verify_X_API_KEY,
 	authMiddleware,
 	attachCurrentSessionTerm,
 	authorize(['Admin', 'Teacher']),
@@ -432,6 +438,7 @@ router.get(
 
 router.get(
 	'/teacher-subject/:class_id',
+	verify_X_API_KEY,
 	authMiddleware,
 	attachCurrentSessionTerm,
 	authorize(['Student']),
@@ -492,6 +499,7 @@ router.get(
  */
 router.get(
 	'/teacher/:teacher_id',
+	verify_X_API_KEY,
 	authMiddleware,
 	attachCurrentSessionTerm,
 	authorize(['Admin', 'Teacher']),
@@ -501,6 +509,7 @@ router.get(
 
 router.patch(
 	'/:school_id/:subject_id',
+	verify_X_API_KEY,
 	authMiddleware,
 	attachCurrentSessionTerm,
 	authorize(['Admin', 'Teacher']),
@@ -564,6 +573,7 @@ router.patch(
  */
 router.delete(
 	'/school_id/:subject_id',
+	verify_X_API_KEY,
 	authMiddleware,
 	attachCurrentSessionTerm,
 	authorize(['Admin', 'Teacher']),
