@@ -246,7 +246,7 @@ export const getSubjectsOfTeacherFromSchool = async (
 	session_id: string,
 	term_id: string,
 	teacher_id: string
-): Promise<any[]> => {
+): Promise<{ subjects: SubjectInstance[] }> => {
 	if (!validateUUID(teacher_id))
 		throw new AppError('Invalid teacher ID', 400);
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
@@ -265,26 +265,9 @@ export const getSubjectsOfTeacherFromSchool = async (
 				attributes: ['username', 'email'],
 			},
 		],
-		raw: true,
-		nest: true,
 	});
 
-	// Flatten the response to a single object per subject
-	const flattened = subjects.map((s) => ({
-		subject_id: s.subject_id,
-		name: s.name,
-		short: s.short,
-		is_approved: s.is_approved,
-		school_id: s.school_id,
-		session_id: s.session_id,
-		term_id: s.term_id,
-		class_name: s.class?.name,
-		grade_level: s.class?.grade_level,
-		teacher_username: s.teacher?.username,
-		teacher_email: s.teacher?.email,
-	}));
-
-	return flattened;
+	return { subjects };
 };
 
 export const deleteSubject = async (
