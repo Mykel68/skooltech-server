@@ -164,8 +164,10 @@ export const getSubjectsOfaTeacher = async (
 ): Promise<void> => {
 	const { teacher_id } = req.params;
 	const school_id = req.user?.school_id;
-	const session_id = req.session_id;
-	const term_id = req.term_id;
+
+	// Use query params if provided, else fallback to req object
+	const session_id = (req.query.session_id as string) || req.session_id;
+	const term_id = (req.query.term_id as string) || req.term_id;
 
 	try {
 		const subjects = await subjectService.getSubjectsOfTeacherFromSchool(
