@@ -159,7 +159,7 @@ export const getSubjectByaStudent = async (
  * Get all subjects of a class for a teacher (session/term scoped)
  */
 export const getSubjectsOfaTeacher = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   const teacher_id = req.user?.user_id;
