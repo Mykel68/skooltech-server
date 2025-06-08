@@ -195,21 +195,31 @@ export const registerTeacherStudent = async (
 	}
 };
 
-export const forgotPasswordController = async (req: Request, res: Response) => {
+export const forgotPasswordController = async (
+	req: Request,
+	res: Response
+): Promise<void> => {
 	try {
 		const { email } = req.body;
-		await authService.requestForgotPassword(email);
-		res.json({ message: 'OTP sent to email' });
+		await authService.requestPasswordReset(email);
+		sendResponse(res, 200, {
+			message: 'Password reset email sent',
+		});
 	} catch (err: any) {
 		res.status(400).json({ message: err.message });
 	}
 };
 
-export const resetPasswordController = async (req: Request, res: Response) => {
+export const resetPasswordController = async (
+	req: Request,
+	res: Response
+): Promise<void> => {
 	try {
-		const { email, otp, newPassword } = req.body;
-		await authService.resetPasswordWithOtp(email, otp, newPassword);
-		res.json({ message: 'Password reset successful' });
+		const { token, newPassword } = req.body;
+		await authService.resetPassword(token, newPassword);
+		sendResponse(res, 200, {
+			message: 'Password has been reset',
+		});
 	} catch (err: any) {
 		res.status(400).json({ message: err.message });
 	}

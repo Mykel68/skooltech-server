@@ -14,9 +14,9 @@ import ClassStudent from '../models/class_student.model';
 import { validateUUID } from '../utils/validation.util';
 import Class from '../models/class.model';
 import { v4 as uuidv4 } from 'uuid';
-import ClassTeacher from '../models/class_teacher.model';
-import { sendOtpEmail } from '../utils/email.service.util';
-import { createOrReplaceOtp, verifyOtp } from './otp.service';
+import PasswordToken from '../models/passwordResetToken';
+import { sendResetEmail } from '../utils/email.service.util';
+import { addMinutes } from '../utils/date.util';
 
 export const login = async (
 	username: string,
@@ -269,25 +269,38 @@ export const registerTeacherStudent = async (
 // 	if (!username) throw new AppError('No username', 404);
 // };
 
-export const requestForgotPassword = async (email: string): Promise<void> => {
+export const requestPasswordReset = async (email: string): Promise<void> => {
 	const user = await User.findOne({ where: { email } });
 	if (!user) throw new Error('User not found');
 
-	const otp = await createOrReplaceOtp(user.user_id!);
-	await sendOtpEmail(user.email, otp);
+	// remove any existing tokens
+	await PasswordToken.destroy({ where: { user_id: user.user_id } });
+
+	// create new token
+	const token = uuidv4();
+	const expires_at = addMinutes(new Date(), 15);
+
+	await PasswordToken.create({ user_id: user.user_id!, token, expires_at });
+
+	const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+	await sendResetEmail(user.email, resetUrl);
 };
 
-export const resetPasswordWithOtp = async (
-	email: string,
-	otp: string,
+export const resetPassword = async (
+	token: string,
 	newPassword: string
 ): Promise<void> => {
-	const user = await User.findOne({ where: { email } });
-	if (!user) throw new Error('User not found');
+	const record = await PasswordToken.findOne({ where: { token } });
+	if (!record || record.expires_at < new Date()) {
+		throw new Error('Token is invalid or expired');
+	}
 
-	const valid = await verifyOtp(user.user_id!, otp);
-	if (!valid) throw new Error('Invalid or expired OTP');
+	const user = await User.findByPk(record.user_id);
+	if (!user) throw new Error('User not found');
 
 	const hashed = await bcrypt.hash(newPassword, 10);
 	await user.update({ password_hash: hashed });
+
+	// clean up token
+	await record.destroy();
 };
