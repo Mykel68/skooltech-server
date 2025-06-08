@@ -1,7 +1,10 @@
 import express from 'express';
 import * as authController from '../controllers/auth.controller';
 import * as userController from '../controllers/user.controller';
-import { verify_X_API_KEY } from '../middlewares/auth.middleware';
+import {
+	authMiddleware,
+	verify_X_API_KEY,
+} from '../middlewares/auth.middleware';
 const router = express.Router();
 
 /**
