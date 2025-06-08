@@ -313,4 +313,15 @@ router.post(
 	authController.registerTeacherStudent
 );
 
+router.post(
+	'/forgot-password',
+	verify_X_API_KEY,
+	authController.forgotPasswordController
+);
+router.post(
+	'/reset-password',
+	verify_X_API_KEY,
+	authController.resetPasswordController
+);
+
 export default router;

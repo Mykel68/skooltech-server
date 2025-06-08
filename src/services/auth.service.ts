@@ -15,6 +15,8 @@ import { validateUUID } from '../utils/validation.util';
 import Class from '../models/class.model';
 import { v4 as uuidv4 } from 'uuid';
 import ClassTeacher from '../models/class_teacher.model';
+import { sendOtpEmail } from '../utils/email.service.util';
+import { createOrReplaceOtp, verifyOtp } from './otp.service';
 
 export const login = async (
 	username: string,
@@ -266,3 +268,26 @@ export const registerTeacherStudent = async (
 // export const verifyUsername = async (username: string): Promise<string> => {
 // 	if (!username) throw new AppError('No username', 404);
 // };
+
+export const requestForgotPassword = async (email: string): Promise<void> => {
+	const user = await User.findOne({ where: { email } });
+	if (!user) throw new Error('User not found');
+
+	const otp = await createOrReplaceOtp(user.user_id!);
+	await sendOtpEmail(user.email, otp);
+};
+
+export const resetPasswordWithOtp = async (
+	email: string,
+	otp: string,
+	newPassword: string
+): Promise<void> => {
+	const user = await User.findOne({ where: { email } });
+	if (!user) throw new Error('User not found');
+
+	const valid = await verifyOtp(user.user_id!, otp);
+	if (!valid) throw new Error('Invalid or expired OTP');
+
+	const hashed = await bcrypt.hash(newPassword, 10);
+	await user.update({ password_hash: hashed });
+};
