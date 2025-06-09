@@ -238,3 +238,34 @@ export const resetPasswordController = async (
 		res.status(400).json({ message: err.message });
 	}
 };
+
+export const checkUsernameAvailability = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { username, school_id } = req.query;
+
+		if (!username || typeof username !== 'string') {
+			throw new AppError('Username is required', 400);
+		}
+
+		if (!school_id || typeof school_id !== 'string') {
+			throw new AppError('School ID is required', 400);
+		}
+
+		const isAvailable = await authService.checkUsernameAvailabilityService(
+			username,
+			school_id
+		);
+
+		return sendResponse(res, 200, {
+			username,
+			is_available: isAvailable,
+			school_id,
+		});
+	} catch (error: any) {
+		next(new AppError(error.message, error.statusCode || 500));
+	}
+};

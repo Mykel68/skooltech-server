@@ -304,3 +304,18 @@ export const resetPassword = async (
 	// clean up token
 	await record.destroy();
 };
+
+export const checkUsernameAvailabilityService = async (
+	username: string,
+	school_id: string
+) => {
+	if (!validateUUID(school_id)) {
+		throw new AppError('Invalid school ID', 400);
+	}
+
+	const user = await User.findOne({
+		where: { username, school_id },
+	});
+
+	return !user; // true if available
+};

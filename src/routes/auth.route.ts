@@ -1,11 +1,7 @@
 import express from 'express';
 import * as authController from '../controllers/auth.controller';
 import * as userController from '../controllers/user.controller';
-import {
-	attachCurrentSessionTerm,
-	authMiddleware,
-	verify_X_API_KEY,
-} from '../middlewares/auth.middleware';
+import { verify_X_API_KEY } from '../middlewares/auth.middleware';
 const router = express.Router();
 
 /**
@@ -326,6 +322,12 @@ router.post(
 	'/reset-password',
 	verify_X_API_KEY,
 	authController.resetPasswordController
+);
+
+router.get(
+	'/check-username',
+	verify_X_API_KEY,
+	authController.checkUsernameAvailability
 );
 
 export default router;
