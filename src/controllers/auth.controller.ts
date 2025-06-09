@@ -269,3 +269,22 @@ export const checkUsernameAvailability = async (
 		next(new AppError(error.message, error.statusCode || 500));
 	}
 };
+
+export const checkEmailAvailaility = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { email } = req.query;
+		if (!email || typeof email !== 'string') {
+			throw new AppError('Email is required', 400);
+		}
+		const isAvailable = await authService.checkEmailAvailabilityService(
+			email
+		);
+		return sendResponse(res, 200, { email, is_available: isAvailable });
+	} catch (error: any) {
+		next(new AppError(error.message, error.statusCode || 500));
+	}
+};

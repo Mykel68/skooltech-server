@@ -330,4 +330,10 @@ router.get(
 	authController.checkUsernameAvailability
 );
 
+router.get(
+	'/check-email',
+	verify_X_API_KEY,
+	authController.checkEmailAvailaility
+);
+
 export default router;

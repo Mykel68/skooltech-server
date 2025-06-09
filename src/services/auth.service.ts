@@ -319,3 +319,8 @@ export const checkUsernameAvailabilityService = async (
 
 	return !user; // true if available
 };
+
+export const checkEmailAvailabilityService = async (email: string) => {
+	const user = await User.findOne({ where: { email } });
+	return !user; // true if available
+};
