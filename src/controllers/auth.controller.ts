@@ -5,6 +5,7 @@ import { sendResponse } from '../utils/response.util';
 import { AppError } from '../utils/error.util';
 import { UserRegistrationData } from '../types/models.types';
 import Joi from 'joi';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 const loginSchema = Joi.object({
 	username: Joi.string().required(),
@@ -158,11 +159,13 @@ export const registerTeacherStudentController = async (
 
 // Register teacher or student controller
 export const registerTeacherStudent = async (
-	req: Request,
+	req: AuthRequest,
 	res: Response,
 	next: NextFunction
 ) => {
 	try {
+		const session_id = req.query.session_id as string;
+		const term_id = req.query.term_id as string;
 		const { school_id } = req.params;
 		if (!school_id) {
 			throw new AppError('School ID is required', 400);
@@ -177,6 +180,8 @@ export const registerTeacherStudent = async (
 		const user = await authService.registerTeacherStudent({
 			...value,
 			school_id,
+			session_id,
+			term_id,
 		});
 
 		sendResponse(res, 201, {

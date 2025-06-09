@@ -1,11 +1,16 @@
-import express from "express";
-import { authMiddleware, authorize } from "../middlewares/auth.middleware";
+import express from 'express';
 import {
-  createSession,
-  editSession,
-  getSessionByIdController,
-  getSessions,
-} from "../controllers/session.controller";
+	authMiddleware,
+	authorize,
+	verify_X_API_KEY,
+} from '../middlewares/auth.middleware';
+import {
+	createSession,
+	editSession,
+	getSessionByIdController,
+	getSessions,
+	getUserSessionsTerms,
+} from '../controllers/session.controller';
 
 const router = express.Router();
 
@@ -88,7 +93,7 @@ const router = express.Router();
  *       404:
  *         description: School not found
  */
-router.post("/:school_id", authMiddleware, authorize(["Admin"]), createSession);
+router.post('/:school_id', authMiddleware, authorize(['Admin']), createSession);
 
 /**
  * @swagger
@@ -177,10 +182,10 @@ router.post("/:school_id", authMiddleware, authorize(["Admin"]), createSession);
  *         description: School or session not found
  */
 router.patch(
-  "/:school_id/:session_id",
-  authMiddleware,
-  authorize(["Admin"]),
-  editSession
+	'/:school_id/:session_id',
+	authMiddleware,
+	authorize(['Admin']),
+	editSession
 );
 
 /**
@@ -239,7 +244,7 @@ router.patch(
  *       403:
  *         description: Forbidden
  */
-router.get("/:school_id", authMiddleware, getSessions);
+router.get('/:school_id', authMiddleware, getSessions);
 
 /**
  * @swagger
@@ -319,9 +324,16 @@ router.get("/:school_id", authMiddleware, getSessions);
  */
 
 router.get(
-  "/id/:school_id/:session_id",
-  authMiddleware,
-  getSessionByIdController
+	'/id/:school_id/:session_id',
+	authMiddleware,
+	getSessionByIdController
 );
 
+router.get(
+	'/:school_id/user-sessions',
+	authMiddleware,
+	verify_X_API_KEY,
+	authorize(['Student', 'Teacher']),
+	getUserSessionsTerms
+);
 export default router;

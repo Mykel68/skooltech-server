@@ -2,6 +2,7 @@ import express from 'express';
 import * as authController from '../controllers/auth.controller';
 import * as userController from '../controllers/user.controller';
 import {
+	attachCurrentSessionTerm,
 	authMiddleware,
 	verify_X_API_KEY,
 } from '../middlewares/auth.middleware';
@@ -313,6 +314,7 @@ router.delete('/user/:user_id', userController.deleteUserController);
  */
 router.post(
 	'/register-teacher-student/:school_id',
+	attachCurrentSessionTerm,
 	authController.registerTeacherStudent
 );
 

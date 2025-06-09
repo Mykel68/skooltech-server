@@ -4,6 +4,9 @@ import { validateUUID } from '../utils/validation.util';
 import Session from '../models/session.model';
 import School from '../models/school.model';
 import { SessionInstance } from '../types/models.types';
+import { Term } from '../models/term.model';
+import ClassStudent from '../models/class_student.model';
+import Subject from '../models/subject.model';
 
 export const createSession = async (
 	school_id: string,
@@ -187,4 +190,137 @@ export const getSchoolSessions = async (school_id: string): Promise<any> => {
 		],
 	});
 	return sessions;
+};
+
+export const getUserSessionsAndTerms = async (
+	user_id: string,
+	role: string,
+	school_id: string
+) => {
+	if (role === 'Student') {
+		const records = await ClassStudent.findAll({
+			where: { student_id: user_id },
+			attributes: ['session_id', 'term_id'],
+			include: [
+				{
+					model: Session,
+					where: { school_id },
+					attributes: [],
+				},
+			],
+			raw: true,
+		});
+
+		if (!records.length) return [];
+
+		const sessionMap: Record<string, Set<string>> = {};
+		for (const { session_id, term_id } of records) {
+			if (!sessionMap[session_id]) sessionMap[session_id] = new Set();
+			sessionMap[session_id].add(term_id);
+		}
+
+		const sessions = await Session.findAll({
+			where: {
+				session_id: Object.keys(sessionMap),
+				school_id,
+			},
+			raw: true,
+		});
+
+		const terms = await Term.findAll({
+			where: {
+				term_id: {
+					[Op.in]: [...new Set(records.map((r) => r.term_id))],
+				},
+			},
+			raw: true,
+		});
+
+		return sessions.map((session) => ({
+			session_id: session.session_id,
+			session_name: session.name,
+			terms: terms
+				.filter((term) =>
+					sessionMap[session.session_id].has(term.term_id)
+				)
+				.map((term) => ({
+					term_id: term.term_id,
+					name: term.name,
+				})),
+		}));
+	}
+
+	if (role === 'Teacher') {
+		const subjects = await Subject.findAll({
+			where: {
+				teacher_id: user_id,
+				school_id,
+			},
+			attributes: ['session_id', 'term_id'],
+			raw: true,
+		});
+
+		if (!subjects.length) {
+			const session = await Session.findOne({
+				where: { is_active: true, school_id },
+				raw: true,
+			});
+
+			const term = await Term.findOne({
+				where: { is_active: true, school_id },
+				raw: true,
+			});
+
+			if (!session || !term) return [];
+
+			return [
+				{
+					session_id: session.session_id,
+					session_name: session.name,
+					terms: [{ term_id: term.term_id, name: term.name }],
+				},
+			];
+		}
+
+		const sessionMap: Record<string, Set<string>> = {};
+		for (const { session_id, term_id } of subjects) {
+			if (!sessionMap[session_id]) sessionMap[session_id] = new Set();
+			sessionMap[session_id].add(term_id);
+		}
+
+		const sessions = await Session.findAll({
+			where: {
+				session_id: Object.keys(sessionMap),
+				school_id,
+			},
+			raw: true,
+		});
+
+		const terms = await Term.findAll({
+			where: {
+				term_id: {
+					[Op.in]: [...new Set(subjects.map((s) => s.term_id))],
+				},
+			},
+			raw: true,
+		});
+
+		return sessions.map((session) => ({
+			session_id: session.session_id,
+			session_name: session.name,
+			terms: terms
+				.filter((term) =>
+					sessionMap[session.session_id].has(term.term_id)
+				)
+				.map((term) => ({
+					term_id: term.term_id,
+					name: term.name,
+				})),
+		}));
+	}
+
+	throw new AppError(
+		'Only students or teachers can access session-terms',
+		403
+	);
 };

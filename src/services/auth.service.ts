@@ -197,6 +197,8 @@ export const registerTeacherStudent = async (
 		last_name,
 		school_id,
 		class_id,
+		session_id,
+		term_id,
 	} = userData;
 
 	// Validate inputs
@@ -258,6 +260,8 @@ export const registerTeacherStudent = async (
 		await ClassStudent.create({
 			class_id,
 			student_id: user_id,
+			session_id: session_id!,
+			term_id: term_id!,
 			created_at: new Date(),
 		});
 	}

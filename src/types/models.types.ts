@@ -23,6 +23,8 @@ export interface StudentTeacherRegistrationData {
 	last_name?: string;
 	school_id: string;
 	class_id?: string;
+	session_id?: string;
+	term_id?: string;
 }
 
 export interface UserRegistrationData {
@@ -157,6 +159,8 @@ export interface ClassInstance
 export interface ClassStudentAttributes {
 	class_id: string;
 	student_id: string;
+	session_id: string;
+	term_id: string;
 	created_at?: Date;
 }
 
