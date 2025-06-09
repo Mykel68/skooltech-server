@@ -314,7 +314,6 @@ router.delete('/user/:user_id', userController.deleteUserController);
  */
 router.post(
 	'/register-teacher-student/:school_id',
-	attachCurrentSessionTerm,
 	authController.registerTeacherStudent
 );
 

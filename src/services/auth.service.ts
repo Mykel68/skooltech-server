@@ -17,6 +17,7 @@ import { v4 as uuidv4 } from 'uuid';
 import PasswordToken from '../models/passwordResetToken';
 import { sendResetEmail } from '../utils/email.service.util';
 import { addMinutes } from '../utils/date.util';
+import { Term } from '../models/term.model';
 
 export const login = async (
 	username: string,
@@ -201,27 +202,31 @@ export const registerTeacherStudent = async (
 		term_id,
 	} = userData;
 
-	// Validate inputs
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
-	if (role === 'Student' && !class_id)
-		throw new AppError('Class ID is required for students', 400);
-	if (role !== 'Student' && class_id)
-		throw new AppError('Class ID is only allowed for students', 400);
-	if (class_id && !validateUUID(class_id))
-		throw new AppError('Invalid class ID', 400);
 
-	// Verify school exists
+	if (!['Student', 'Teacher'].includes(role)) {
+		throw new AppError('Only Student or Teacher roles are allowed', 400);
+	}
+
+	if (role === 'Student') {
+		if (!class_id)
+			throw new AppError('Class ID is required for students', 400);
+		if (!validateUUID(class_id))
+			throw new AppError('Invalid class ID', 400);
+	} else if (role === 'Teacher' && class_id) {
+		throw new AppError('Class ID is not allowed for teachers', 400);
+	}
+
 	const school = await School.findByPk(school_id);
 	if (!school) throw new AppError('School not found', 404);
 
-	// Verify username and email uniqueness
-	const existingUser = await User.findOne({ where: { username } });
+	const [existingUser, existingEmail] = await Promise.all([
+		User.findOne({ where: { username } }),
+		User.findOne({ where: { email } }),
+	]);
 	if (existingUser) throw new AppError('Username already taken', 400);
-
-	const existingEmail = await User.findOne({ where: { email } });
 	if (existingEmail) throw new AppError('Email already registered', 400);
 
-	// Validate class_id for students
 	if (role === 'Student' && class_id) {
 		const classInstance = await Class.findByPk(class_id);
 		if (!classInstance) throw new AppError('Class not found', 404);
@@ -230,18 +235,9 @@ export const registerTeacherStudent = async (
 		}
 	}
 
-	// Validate role
-	if (!['Admin', 'Teacher', 'Student', 'Parent'].includes(role)) {
-		throw new AppError('Invalid role', 400);
-	}
-
-	// Hash password
-	const salt = await bcrypt.genSalt(10);
-	const password_hash = await bcrypt.hash(password, salt);
-
+	const password_hash = await bcrypt.hash(password, await bcrypt.genSalt(10));
 	const user_id = uuidv4();
 
-	// Create user
 	const newUser = await User.create({
 		user_id,
 		username,
@@ -255,13 +251,12 @@ export const registerTeacherStudent = async (
 		is_active: true,
 	});
 
-	// Assign student to class via ClassStudent
-	if (role === 'Student' && class_id) {
+	if (role === 'Student' && class_id && session_id && term_id) {
 		await ClassStudent.create({
 			class_id,
 			student_id: user_id,
-			session_id: session_id!,
-			term_id: term_id!,
+			session_id,
+			term_id,
 			created_at: new Date(),
 		});
 	}

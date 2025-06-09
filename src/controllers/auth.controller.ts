@@ -6,6 +6,8 @@ import { AppError } from '../utils/error.util';
 import { UserRegistrationData } from '../types/models.types';
 import Joi from 'joi';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { Term } from '../models/term.model';
+import Session from '../models/session.model';
 
 const loginSchema = Joi.object({
 	username: Joi.string().required(),
@@ -164,9 +166,8 @@ export const registerTeacherStudent = async (
 	next: NextFunction
 ) => {
 	try {
-		const session_id = req.query.session_id as string;
-		const term_id = req.query.term_id as string;
 		const { school_id } = req.params;
+
 		if (!school_id) {
 			throw new AppError('School ID is required', 400);
 		}
@@ -176,12 +177,20 @@ export const registerTeacherStudent = async (
 		);
 		if (error) throw new AppError(error.details[0].message, 400);
 
-		// Merge school_id into the validated data
+		// Get active session and term for the school
+		const [activeSession, activeTerm] = await Promise.all([
+			Session.findOne({ where: { school_id, is_active: true } }),
+			Term.findOne({ where: { school_id, is_active: true } }),
+		]);
+
+		if (!activeSession) throw new AppError('Active session not found', 404);
+		if (!activeTerm) throw new AppError('Active term not found', 404);
+
 		const user = await authService.registerTeacherStudent({
 			...value,
 			school_id,
-			session_id,
-			term_id,
+			session_id: activeSession.session_id,
+			term_id: activeTerm.term_id,
 		});
 
 		sendResponse(res, 201, {
