@@ -282,7 +282,8 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
 
 	await PasswordToken.create({ user_id: user.user_id!, token, expires_at });
 
-	const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+	const resetUrl = `${process.env.FRONTEND_URL}/reset-password?email=${user.email}&token=${token}`;
+
 	await sendResetEmail(user.email, resetUrl);
 };
 
