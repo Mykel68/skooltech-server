@@ -33,6 +33,7 @@ const schoolUpdateSchema = Joi.object({
 		.regex(/^[a-zA-Z0-9-]+$/)
 		.allow(null, '')
 		.optional(),
+	motto: Joi.string().optional(),
 });
 
 export const createSchoolController = async (
