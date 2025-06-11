@@ -70,6 +70,7 @@ export interface SchoolAttributes {
 	phone_number?: string | null;
 	school_code?: string | null;
 	is_active?: boolean; // providing school code will activate  the school
+	motto?: string;
 }
 
 export interface SchoolInstance
