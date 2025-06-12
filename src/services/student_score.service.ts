@@ -9,6 +9,8 @@ import Class from '../models/class.model';
 import User from '../models/user.model';
 import ClassStudent from '../models/class_student.model';
 import Subject from '../models/subject.model';
+import Session from '../models/session.model';
+import { Term } from '../models/term.model';
 
 interface ScoreInput {
 	user_id: string;
@@ -987,6 +989,14 @@ export const getStudentsWithResults = async (
 					class_id,
 				},
 				include: [
+					{
+						model: Session,
+						attributes: ['session_id', 'name'], // session name
+					},
+					{
+						model: Term,
+						attributes: ['term_id', 'name'], // term name
+					},
 					{
 						model: Class,
 						attributes: ['name', 'class_id'],
