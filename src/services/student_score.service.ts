@@ -990,8 +990,8 @@ export const getStudentsWithResults = async (
 				model: ClassStudent,
 				as: 'class_students',
 				where: {
-					session_id,
-					term_id,
+					// session_id,
+					// term_id,
 					class_id,
 				},
 				include: [
