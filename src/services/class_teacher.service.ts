@@ -10,13 +10,25 @@ interface AssignDTO {
 	term_id: string;
 }
 
-export const createClassTeacher = async (data: AssignDTO) => {
-	const { school_id, class_id, teacher_id, session_id, term_id } = data;
-
+export const createClassTeacher = async (
+	school_id: string,
+	session_id: string,
+	term_id: string,
+	teacher_id: string,
+	class_id: string
+) => {
 	// Validate UUIDs
-	[schema_id, class_id, teacher_id, session_id, term_id].forEach((id) => {
-		if (!validateUUID(id)) throw new AppError('Invalid ID provided', 400);
-	});
+
+	if (!validateUUID(school_id))
+		throw new AppError('Invalid school ID provided', 400);
+	if (!validateUUID(session_id))
+		throw new AppError('Invalid session ID provided', 400);
+	if (!validateUUID(term_id))
+		throw new AppError('Invalid term ID provided', 400);
+	if (!validateUUID(teacher_id))
+		throw new AppError('Invalid teacher ID provided', 400);
+	if (!validateUUID(class_id))
+		throw new AppError('Invalid class ID provided', 400);
 
 	// Prevent duplicate
 	const exists = await ClassTeacher.findOne({
