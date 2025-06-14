@@ -13,7 +13,7 @@ import {
 const router = express.Router();
 
 router.post(
-	'/assign/teacher',
+	'/:school_id/assign/teacher',
 	authMiddleware,
 	authorize(['Admin']),
 	restrictToSchool(),
