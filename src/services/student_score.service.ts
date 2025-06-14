@@ -712,13 +712,18 @@ export const editBulkStudentScores = async (
 export const getStudentOwnScores = async (
 	school_id: string,
 	class_id: string,
-	student_id: string
+	student_id: string,
+	session_id: string,
+	term_id: string
 ): Promise<any> => {
 	// 1) Validate all IDs
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
 	if (!validateUUID(class_id)) throw new AppError('Invalid class ID', 400);
 	if (!validateUUID(student_id))
 		throw new AppError('Invalid student ID', 400);
+	if (!validateUUID(session_id))
+		throw new AppError('Invalid session ID', 400);
+	if (!validateUUID(term_id)) throw new AppError('Invalid term ID', 400);
 
 	// 2) Verify that the class exists
 	const classRecord = await Class.findOne({
@@ -746,6 +751,7 @@ export const getStudentOwnScores = async (
 			},
 			{
 				model: Subject,
+				where: { session_id, term_id },
 				as: 'subject',
 				attributes: ['subject_id', 'name', 'short'],
 			},

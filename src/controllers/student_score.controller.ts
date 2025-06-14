@@ -238,6 +238,14 @@ export const getOwnScores = async (
 
 		const { school_id, class_id } = req.params;
 		const student_id = req.user.user_id;
+		const { session_id, term_id } = req.query;
+
+		if (!school_id || !student_id || !session_id || !term_id || !class_id) {
+			throw new AppError(
+				'school_id, session_id, student_id, term_id, and class_id are required',
+				400
+			);
+		}
 
 		console.log('Get Own Scores Request:', {
 			school_id,
@@ -248,7 +256,9 @@ export const getOwnScores = async (
 		const studentScores = await getStudentOwnScores(
 			school_id,
 			class_id,
-			student_id
+			student_id,
+			session_id as string,
+			term_id as string
 		);
 
 		sendResponse(res, 200, {
