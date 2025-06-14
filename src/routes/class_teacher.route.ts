@@ -25,7 +25,7 @@ router.post(
 ); // Assign a teacher
 
 router.get(
-	'/',
+	'/:school_id/',
 	authMiddleware,
 	attachCurrentSessionTerm,
 	verify_X_API_KEY,

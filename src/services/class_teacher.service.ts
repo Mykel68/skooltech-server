@@ -55,11 +55,13 @@ export const listClassTeachers = async (
 				association: 'teacher',
 				attributes: ['user_id', 'first_name', 'last_name'],
 			},
-			{ association: 'class', attributes: ['class_id', 'name'] },
+			{
+				association: 'class',
+				attributes: ['class_id', 'grade_level', 'name'],
+			},
 			{ association: 'session', attributes: ['session_id', 'name'] },
 			{ association: 'term', attributes: ['term_id', 'name'] },
 		],
-		order: [['createdAt', 'DESC']],
 	});
 };
 
