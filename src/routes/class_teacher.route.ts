@@ -22,7 +22,8 @@ router.post(
 	authorize(['Admin']),
 	restrictToSchool(),
 	assignClassTeacher
-); // Assign a teacher
+);
+// Assign a teacher
 
 router.get(
 	'/:school_id/',
@@ -32,7 +33,19 @@ router.get(
 	authorize(['Admin']),
 	restrictToSchool(),
 	getClassTeachers
-); // List assigned class teachers
-router.delete('/:id', removeClassTeacher); // Remove an assignment
+);
+// List assigned class teachers
+
+router.delete(
+	'/:class_teacher_id',
+	authMiddleware,
+	attachCurrentSessionTerm,
+	verify_X_API_KEY,
+	authorize(['Admin']),
+	restrictToSchool(),
+	getClassTeachers,
+	removeClassTeacher
+);
+// Remove an assignment
 
 export default router;
