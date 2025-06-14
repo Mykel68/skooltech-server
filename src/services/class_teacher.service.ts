@@ -65,19 +65,9 @@ export const listClassTeachers = async (
 	});
 };
 
-export const deleteClassTeacher = async (
-	school_id: string,
-	session_id: string,
-	term_id: string,
-	class_teacher_id: string
-) => {
+export const deleteClassTeacher = async (class_teacher_id: string) => {
 	if (!validateUUID(class_teacher_id))
 		throw new AppError('Invalid class teacher ID', 400);
-	if (!validateUUID(session_id))
-		throw new AppError('Invalid session  ID', 400);
-	if (!validateUUID(term_id)) throw new AppError('Invalid term ID', 400);
-	if (!validateUUID(school_id)) throw new AppError('Invalid school  ID', 400);
-
 	const record = await ClassTeacher.findByPk(class_teacher_id);
 	if (!record) throw new AppError('Class Teacher not found', 404);
 	await record.destroy();

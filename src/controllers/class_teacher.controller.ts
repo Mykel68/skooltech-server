@@ -75,21 +75,9 @@ export const removeClassTeacher = async (
 	next: NextFunction
 ) => {
 	try {
-		const { school_id, class_teacher_id } = req.params;
-		const { session_id, term_id } = req.query;
-
-		if (!school_id || !session_id || !term_id) {
-			throw new AppError(
-				'school_id, session_id,teacher_id, term_id are required',
-				400
-			);
-		}
-		await deleteClassTeacher(
-			school_id,
-			session_id as string,
-			term_id as string,
-			class_teacher_id
-		);
+		console.log('Hellomm');
+		const { class_teacher_id } = req.params;
+		await deleteClassTeacher(class_teacher_id);
 		sendResponse(res, 200, {
 			message: 'Class teacher removed successfully',
 		});

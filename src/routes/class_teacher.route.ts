@@ -37,13 +37,11 @@ router.get(
 // List assigned class teachers
 
 router.delete(
-	'/:class_teacher_id',
+	'/remove/:class_teacher_id',
 	authMiddleware,
-	attachCurrentSessionTerm,
 	verify_X_API_KEY,
 	authorize(['Admin']),
 	restrictToSchool(),
-	getClassTeachers,
 	removeClassTeacher
 );
 // Remove an assignment
