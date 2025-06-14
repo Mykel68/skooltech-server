@@ -149,3 +149,5 @@ export const getStudentClass = async (
 
 	return classData as ClassInstance & { student_count: number };
 };
+
+// export const createClassTeacher = async()
