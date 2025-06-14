@@ -6,6 +6,7 @@ import {
 } from '../services/class_teacher.service';
 import { AppError } from '../utils/error.util';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { sendResponse } from '../utils/response.util';
 
 export const assignClassTeacher = async (
 	req: AuthRequest,
@@ -30,7 +31,7 @@ export const assignClassTeacher = async (
 			teacher_id,
 			class_id
 		);
-		res.status(201).json({
+		sendResponse(res, 201, {
 			message: 'Class teacher assigned successfully',
 			data,
 		});
@@ -45,8 +46,24 @@ export const getClassTeachers = async (
 	next: NextFunction
 ) => {
 	try {
-		const data = await listClassTeachers(req.query);
-		res.status(200).json({ data });
+		const { school_id } = req.params;
+		const { session_id, term_id } = req.query;
+
+		if (!school_id || !session_id || !term_id) {
+			throw new AppError(
+				'school_id, session_id, term_id are required',
+				400
+			);
+		}
+		const data = await listClassTeachers(
+			school_id,
+			session_id as string,
+			term_id as string
+		);
+		sendResponse(res, 200, {
+			message: 'Class teacher assigned successfully',
+			data,
+		});
 	} catch (err) {
 		next(err);
 	}
@@ -59,7 +76,9 @@ export const removeClassTeacher = async (
 ) => {
 	try {
 		await deleteClassTeacher(req.params.id);
-		res.status(200).json({ message: 'Class teacher removed successfully' });
+		sendResponse(res, 200, {
+			message: 'Class teacher removed successfully',
+		});
 	} catch (err) {
 		next(err);
 	}

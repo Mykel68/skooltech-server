@@ -1,14 +1,7 @@
+import { string } from 'joi';
 import ClassTeacher from '../models/class_teacher.model';
 import { AppError } from '../utils/error.util';
 import { validateUUID } from '../utils/validation.util';
-
-interface AssignDTO {
-	school_id: string;
-	class_id: string;
-	teacher_id: string;
-	session_id: string;
-	term_id: string;
-}
 
 export const createClassTeacher = async (
 	school_id: string,
@@ -50,9 +43,13 @@ export const createClassTeacher = async (
 	return assignment;
 };
 
-export const listClassTeachers = async (filters: any) => {
+export const listClassTeachers = async (
+	school_id: string,
+	session_id: string,
+	term_id: string
+) => {
 	return await ClassTeacher.findAll({
-		where: filters,
+		where: { session_id, school_id, term_id },
 		include: [
 			{
 				association: 'teacher',
