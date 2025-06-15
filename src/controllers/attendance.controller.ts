@@ -57,15 +57,24 @@ export const getStudentAttendance = async (
 	}
 };
 
-// controllers/attendance.controller.ts
 export const recordClassAttendance = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
 	try {
-		const { school_id, class_id, session_id, term_id } = req.params;
+		const { school_id, class_id } = req.params;
+		const session_id = (req.query.session_id ||
+			(req as any).session_id) as string;
+		const term_id = (req.query.term_id || (req as any).term_id) as string;
 		const { attendances } = req.body;
+
+		if (!school_id || !class_id || !session_id || !term_id) {
+			throw new AppError(
+				'school_id, session_id, term_id, and class_id are required',
+				400
+			);
+		}
 
 		const result = await recordBulkAttendance({
 			school_id,
