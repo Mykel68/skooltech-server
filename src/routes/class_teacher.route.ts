@@ -2,6 +2,7 @@ import express from 'express';
 import {
 	assignClassTeacher,
 	getClassTeachers,
+	handleVerifyClassTeacher,
 	removeClassTeacher,
 } from '../controllers/class_teacher.controller';
 import {
@@ -44,6 +45,16 @@ router.delete(
 	restrictToSchool(),
 	removeClassTeacher
 );
-// Remove an assignment
+// Remove an class teachers
+
+router.get(
+	'/verify/:school_id/:teacher_id',
+	authMiddleware,
+	attachCurrentSessionTerm,
+	verify_X_API_KEY,
+	authorize(['Admin', 'Teacher']),
+	restrictToSchool(),
+	handleVerifyClassTeacher
+);
 
 export default router;

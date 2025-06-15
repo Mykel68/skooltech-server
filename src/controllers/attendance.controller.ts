@@ -88,18 +88,19 @@ export const fetchClassAttendance = async (
 	next: NextFunction
 ) => {
 	try {
-		const { school_id, class_id, session_id, term_id } = req.params;
+		const { school_id, class_id } = req.params;
+		const { session_id, term_id } = req.query;
 
 		// Ideally calculate total school days from session/term config
 		const total_school_days = await calculateTotalSchoolDaysFromTerm(
-			term_id
+			term_id as string
 		); // <-- implement this logic based on term start/end
 
 		const result = await getClassAttendance(
 			school_id,
 			class_id,
-			session_id,
-			term_id,
+			session_id as string,
+			term_id as string,
 			total_school_days
 		);
 

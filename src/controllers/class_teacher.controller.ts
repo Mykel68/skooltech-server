@@ -77,9 +77,13 @@ export const handleVerifyClassTeacher = async (
 ) => {
 	try {
 		const { school_id, teacher_id } = req.params;
-		const { session_id, term_id } = req.query;
 
-		if (!school_id || !session_id || !term_id || !teacher_id) {
+		// Try to get session_id and term_id from either req.query or req directly
+		const session_id = (req.query.session_id ||
+			(req as any).session_id) as string;
+		const term_id = (req.query.term_id || (req as any).term_id) as string;
+
+		if (!school_id || !teacher_id || !session_id || !term_id) {
 			throw new AppError(
 				'school_id, session_id, term_id, and teacher_id are required',
 				400
@@ -88,8 +92,8 @@ export const handleVerifyClassTeacher = async (
 
 		const data = await getTeacherClassStudents(
 			school_id,
-			session_id as string,
-			term_id as string,
+			session_id,
+			term_id,
 			teacher_id
 		);
 
@@ -101,6 +105,7 @@ export const handleVerifyClassTeacher = async (
 		next(err);
 	}
 };
+
 export const removeClassTeacher = async (
 	req: Request,
 	res: Response,

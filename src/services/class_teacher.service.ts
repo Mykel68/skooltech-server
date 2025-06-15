@@ -4,6 +4,7 @@ import { AppError } from '../utils/error.util';
 import { validateUUID } from '../utils/validation.util';
 import ClassStudent from '../models/class_student.model';
 import User from '../models/user.model';
+import Class from '../models/class.model';
 
 export const createClassTeacher = async (
 	school_id: string,
@@ -73,7 +74,7 @@ export const getTeacherClassStudents = async (
 	term_id: string,
 	teacher_id: string
 ) => {
-	const classAssignment = await ClassTeacher.findOne({
+	const classDetails = await ClassTeacher.findOne({
 		where: {
 			school_id,
 			teacher_id,
@@ -81,15 +82,23 @@ export const getTeacherClassStudents = async (
 			term_id,
 		},
 		attributes: ['class_id', 'session_id', 'term_id'],
+		include: [
+			{
+				model: Class,
+				as: 'class',
+				attributes: ['name', 'class_id'],
+			},
+		],
 	});
 
-	if (!classAssignment) {
+	if (!classDetails) {
 		throw new AppError(
 			'Teacher is not assigned to any class in this session and term',
 			404
 		);
 	}
 
+	// Get students without including class_students
 	const assignedStudents = await User.findAll({
 		where: {
 			school_id,
@@ -100,19 +109,18 @@ export const getTeacherClassStudents = async (
 				model: ClassStudent,
 				as: 'class_students',
 				where: {
-					class_id: classAssignment.class_id,
-					session_id: classAssignment.session_id,
-					term_id: classAssignment.term_id,
+					class_id: classDetails.class_id,
+					session_id: classDetails.session_id,
+					term_id: classDetails.term_id,
 				},
+				attributes: [], // exclude from output
 			},
 		],
 		attributes: ['user_id', 'first_name', 'last_name', 'email'],
 	});
 
 	return {
-		class_id: classAssignment.class_id,
-		session_id: classAssignment.session_id,
-		term_id: classAssignment.term_id,
+		classDetails,
 		students: assignedStudents,
 	};
 };

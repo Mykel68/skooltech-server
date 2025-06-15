@@ -26,18 +26,26 @@ router.get(
 	'/:school_id/:student_id',
 	authMiddleware,
 	verify_X_API_KEY,
-	authorize(['Admin', 'Teacher']),
+	authorize(['Admin', 'Teacher', 'Student']),
 	restrictToSchool(),
 	getStudentAttendance
 );
 
 router.post(
 	'/:school_id/:class_id/:session_id/:term_id/record',
+	authMiddleware,
+	verify_X_API_KEY,
+	authorize(['Admin', 'Teacher']),
+	restrictToSchool(),
 	recordClassAttendance
 );
 
 router.get(
 	'/:school_id/:class_id/:session_id/:term_id/fetch',
+	authMiddleware,
+	verify_X_API_KEY,
+	authorize(['Admin', 'Teacher']),
+	restrictToSchool(),
 	fetchClassAttendance
 );
 
