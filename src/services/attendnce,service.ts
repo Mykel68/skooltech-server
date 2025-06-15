@@ -7,6 +7,7 @@ import User from '../models/user.model';
 import { calculateSchoolDays } from '../utils/date.util';
 import { AppError } from '../utils/error.util';
 import { countWeekdays } from '../utils/getWeekdays';
+import { sendResponse } from '../utils/response.util';
 
 export const recordAttendance = async (
 	school_id: string,
@@ -141,10 +142,7 @@ export const getTeacherClassStudentsAttendanceReport = async (
 	});
 
 	if (!classDetails) {
-		throw new AppError(
-			'Teacher is not assigned to any class in this session and term',
-			404
-		);
+		return 'Teacher is not assigned to any class in this session and term';
 	}
 
 	// Get the term for start and end date
