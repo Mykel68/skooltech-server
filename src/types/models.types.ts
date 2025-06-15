@@ -1,5 +1,6 @@
 import { Model, Optional } from 'sequelize';
 import { StudentScoreInstance } from '../models/student_score.model';
+import { AttendanceInstance } from '../models/attendance.model';
 
 export interface SchoolRegistrationData {
 	name: string;
@@ -60,7 +61,9 @@ export interface UserAttributes {
 	is_active?: boolean;
 }
 
-export interface UserInstance extends Model<UserAttributes>, UserAttributes {}
+export interface UserInstance extends Model<UserAttributes>, UserAttributes {
+	attendances?: AttendanceInstance[];
+}
 
 export interface SchoolAttributes {
 	school_id?: string;

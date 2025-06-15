@@ -201,7 +201,7 @@ export const getTeacherClassStudentsAttendanceReport = async (
 			first_name: s.first_name,
 			last_name: s.last_name,
 			email: s.email,
-			// present_days: s.attendances?.[0]?.days_present ?? 0,
+			present_days: s.attendances?.[0]?.days_present ?? 0,
 		})),
 	};
 };
