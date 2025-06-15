@@ -63,6 +63,8 @@ export interface UserAttributes {
 
 export interface UserInstance extends Model<UserAttributes>, UserAttributes {
 	attendances?: AttendanceInstance[];
+	student_scores?: ScoreInstance;
+	class_students?: ClassInstance[];
 }
 
 export interface SchoolAttributes {

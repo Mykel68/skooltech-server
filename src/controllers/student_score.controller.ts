@@ -353,7 +353,7 @@ export const getStudentsWithResultsHandler = async (
 		sendResponse(res, 200, {
 			message: 'Student subjects and scores retrieved successfully',
 			data: students,
-			count: students.length,
+			count: students.students.length,
 		});
 	} catch (error: any) {
 		console.error('getStudentsWithResults error:', error);
