@@ -997,15 +997,15 @@ export const getStudentsWithResults = async (
 				include: [
 					{
 						model: Session,
-						attributes: ['session_id', 'name'], // session name
+						attributes: ['name'], // session name
 					},
 					{
 						model: Term,
-						attributes: ['term_id', 'name'], // term name
+						attributes: ['name'], // term name
 					},
 					{
 						model: Class,
-						attributes: ['name', 'class_id'],
+						attributes: ['name', 'grade_level'],
 					},
 				],
 			},
