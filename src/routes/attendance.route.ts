@@ -42,7 +42,7 @@ router.get(
 );
 
 router.post(
-	'/:school_id/:class_id/:session_id/:term_id/record',
+	'/:school_id/:class_id/record',
 	authMiddleware,
 	verify_X_API_KEY,
 	authorize(['Admin', 'Teacher']),
