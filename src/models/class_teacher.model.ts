@@ -5,6 +5,7 @@ import User from './user.model';
 import { SubjectInstance, UserInstance } from '../types/models.types';
 import Session from './session.model';
 import { Term } from './term.model';
+import ClassStudent from './class_student.model';
 
 interface ClassTeacherAttributes {
 	class_teacher_id?: string;

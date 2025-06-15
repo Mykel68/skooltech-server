@@ -2,6 +2,8 @@ import { string } from 'joi';
 import ClassTeacher from '../models/class_teacher.model';
 import { AppError } from '../utils/error.util';
 import { validateUUID } from '../utils/validation.util';
+import ClassStudent from '../models/class_student.model';
+import User from '../models/user.model';
 
 export const createClassTeacher = async (
 	school_id: string,
@@ -63,6 +65,56 @@ export const listClassTeachers = async (
 			{ association: 'term', attributes: ['term_id', 'name'] },
 		],
 	});
+};
+
+export const getTeacherClassStudents = async (
+	school_id: string,
+	session_id: string,
+	term_id: string,
+	teacher_id: string
+) => {
+	const classAssignment = await ClassTeacher.findOne({
+		where: {
+			school_id,
+			teacher_id,
+			session_id,
+			term_id,
+		},
+		attributes: ['class_id', 'session_id', 'term_id'],
+	});
+
+	if (!classAssignment) {
+		throw new AppError(
+			'Teacher is not assigned to any class in this session and term',
+			404
+		);
+	}
+
+	const assignedStudents = await User.findAll({
+		where: {
+			school_id,
+			role: 'Student',
+		},
+		include: [
+			{
+				model: ClassStudent,
+				as: 'class_students',
+				where: {
+					class_id: classAssignment.class_id,
+					session_id: classAssignment.session_id,
+					term_id: classAssignment.term_id,
+				},
+			},
+		],
+		attributes: ['user_id', 'first_name', 'last_name', 'email'],
+	});
+
+	return {
+		class_id: classAssignment.class_id,
+		session_id: classAssignment.session_id,
+		term_id: classAssignment.term_id,
+		students: assignedStudents,
+	};
 };
 
 export const deleteClassTeacher = async (class_teacher_id: string) => {

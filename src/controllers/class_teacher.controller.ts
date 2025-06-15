@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import {
 	createClassTeacher,
 	deleteClassTeacher,
+	getTeacherClassStudents,
 	listClassTeachers,
 } from '../services/class_teacher.service';
 import { AppError } from '../utils/error.util';
@@ -69,13 +70,43 @@ export const getClassTeachers = async (
 	}
 };
 
+export const handleVerifyClassTeacher = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { school_id, teacher_id } = req.params;
+		const { session_id, term_id } = req.query;
+
+		if (!school_id || !session_id || !term_id || !teacher_id) {
+			throw new AppError(
+				'school_id, session_id, term_id, and teacher_id are required',
+				400
+			);
+		}
+
+		const data = await getTeacherClassStudents(
+			school_id,
+			session_id as string,
+			term_id as string,
+			teacher_id
+		);
+
+		sendResponse(res, 200, {
+			message: 'Class teacher verified successfully',
+			data,
+		});
+	} catch (err) {
+		next(err);
+	}
+};
 export const removeClassTeacher = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
 	try {
-		console.log('Hellomm');
 		const { class_teacher_id } = req.params;
 		await deleteClassTeacher(class_teacher_id);
 		sendResponse(res, 200, {
