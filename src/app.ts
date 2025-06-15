@@ -14,7 +14,10 @@ import gradingSettingRoutes from './routes/grading_setting.route';
 import studentScoreRoutes from './routes/student_score.route';
 import resultRoutes from './routes/result.route';
 import classTeacherRoutes from './routes/class_teacher.route';
+import attendanceRoutes from './routes/attendance.route';
 import { errorMiddleware } from './middlewares/error.middleware';
+import User from './models/user.model';
+import Attendance from './models/attendance.model';
 
 const app = express();
 
@@ -46,6 +49,7 @@ app.use('/api/grading-settings', gradingSettingRoutes);
 app.use('/api/student-scores', studentScoreRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/class-teachers', classTeacherRoutes);
+app.use('/api/attendance', attendanceRoutes);
 app.use(errorMiddleware);
 
 // welcome api route
@@ -65,5 +69,8 @@ app.use((error: any, req: any, res: any, next: any) => {
 	console.error(error);
 	res.status(500).json({ message: 'Internal Server Error' });
 });
+
+User.hasMany(Attendance, { foreignKey: 'student_id', as: 'attendances' });
+Attendance.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
 
 export default app;

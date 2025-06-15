@@ -1,6 +1,10 @@
 import Attendance from '../models/attendance.model';
+import Class from '../models/class.model';
+import ClassStudent from '../models/class_student.model';
+import ClassTeacher from '../models/class_teacher.model';
 import { Term } from '../models/term.model';
 import User from '../models/user.model';
+import { calculateSchoolDays } from '../utils/date.util';
 import { AppError } from '../utils/error.util';
 import { countWeekdays } from '../utils/getWeekdays';
 
@@ -116,4 +120,88 @@ export const getClassAttendance = async (
 		days_present: r.days_present,
 		total_days: total_school_days,
 	}));
+};
+
+export const getTeacherClassStudentsAttendanceReport = async (
+	school_id: string,
+	session_id: string,
+	term_id: string,
+	teacher_id: string
+) => {
+	const classDetails = await ClassTeacher.findOne({
+		where: { school_id, teacher_id, session_id, term_id },
+		attributes: ['class_id', 'session_id', 'term_id'],
+		include: [
+			{
+				model: Class,
+				as: 'class',
+				attributes: ['name', 'class_id'],
+			},
+		],
+	});
+
+	if (!classDetails) {
+		throw new AppError(
+			'Teacher is not assigned to any class in this session and term',
+			404
+		);
+	}
+
+	// Get the term for start and end date
+	const term = await Term.findOne({
+		where: { term_id },
+		attributes: ['start_date', 'end_date'],
+	});
+
+	if (!term || !term.start_date || !term.end_date) {
+		throw new AppError('Invalid term or term dates not set', 400);
+	}
+
+	const total_school_days = calculateSchoolDays(
+		term.start_date,
+		term.end_date
+	);
+
+	const students = await User.findAll({
+		where: {
+			school_id,
+			role: 'Student',
+		},
+		include: [
+			{
+				model: ClassStudent,
+				as: 'class_students',
+				where: {
+					class_id: classDetails.class_id,
+					session_id: classDetails.session_id,
+					term_id: classDetails.term_id,
+				},
+				attributes: [],
+			},
+			{
+				model: Attendance,
+				as: 'attendances',
+				where: {
+					class_id: classDetails.class_id,
+					session_id,
+					term_id,
+				},
+				required: false,
+				attributes: ['days_present'],
+			},
+		],
+		attributes: ['user_id', 'first_name', 'last_name', 'email'],
+	});
+
+	return {
+		classDetails,
+		total_school_days,
+		students: students.map((s) => ({
+			user_id: s.user_id,
+			first_name: s.first_name,
+			last_name: s.last_name,
+			email: s.email,
+			// present_days: s.attendances?.[0]?.days_present ?? 0,
+		})),
+	};
 };

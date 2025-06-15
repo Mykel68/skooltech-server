@@ -2,11 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import {
 	getAttendance,
 	getClassAttendance,
+	getTeacherClassStudentsAttendanceReport,
 	recordAttendance,
 	recordBulkAttendance,
 } from '../services/attendnce,service';
 import { sendResponse } from '../utils/response.util';
-import { calculateTotalSchoolDaysFromTerm } from '../utils/date.utils';
+import { AppError } from '../utils/error.util';
+import { calculateTotalSchoolDaysFromTerm } from '../utils/date.util';
 
 export const recordStudentAttendance = async (
 	req: Request,
@@ -105,6 +107,41 @@ export const fetchClassAttendance = async (
 		);
 
 		sendResponse(res, 200, { message: 'Attendance fetched', data: result });
+	} catch (err) {
+		next(err);
+	}
+};
+
+export const handleVerifyClassTeacher = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { school_id, teacher_id } = req.params;
+
+		const session_id = (req.query.session_id ||
+			(req as any).session_id) as string;
+		const term_id = (req.query.term_id || (req as any).term_id) as string;
+
+		if (!school_id || !teacher_id || !session_id || !term_id) {
+			throw new AppError(
+				'school_id, session_id, term_id, and teacher_id are required',
+				400
+			);
+		}
+
+		const data = await getTeacherClassStudentsAttendanceReport(
+			school_id,
+			session_id,
+			term_id,
+			teacher_id
+		);
+
+		sendResponse(res, 200, {
+			message: 'Attendance report fetched successfully',
+			data,
+		});
 	} catch (err) {
 		next(err);
 	}

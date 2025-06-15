@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
 	fetchClassAttendance,
 	getStudentAttendance,
+	handleVerifyClassTeacher,
 	recordClassAttendance,
 	recordStudentAttendance,
 } from '../controllers/attendance.controller';
@@ -13,6 +14,15 @@ import {
 } from '../middlewares/auth.middleware';
 
 const router = Router();
+
+router.get(
+	'/:school_id/:teacher_id/fetch',
+	authMiddleware,
+	verify_X_API_KEY,
+	authorize(['Admin', 'Teacher']),
+	restrictToSchool(),
+	handleVerifyClassTeacher
+);
 
 router.post(
 	'/:school_id',
