@@ -23,6 +23,7 @@ const userUpdateSchema = Joi.object({
 	email: Joi.string().email().optional(),
 	first_name: Joi.string().max(50).optional(),
 	last_name: Joi.string().max(50).optional(),
+	gender: Joi.string().valid('Male', 'Female').optional(),
 });
 
 const teacherVerifySchema = Joi.object({
@@ -95,6 +96,7 @@ export const updateUserController = async (
 			first_name: updatedUser.first_name,
 			last_name: updatedUser.last_name,
 			role: updatedUser.role,
+			gender: updatedUser.gender,
 			school_id: updatedUser.school_id,
 			is_approved: updatedUser.is_approved,
 		});

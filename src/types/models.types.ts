@@ -57,6 +57,7 @@ export interface UserAttributes {
 	email: string;
 	first_name?: string;
 	last_name?: string;
+	gender?: 'Male' | 'Female';
 	is_approved?: boolean;
 	is_active?: boolean;
 }

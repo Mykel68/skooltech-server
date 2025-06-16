@@ -42,6 +42,11 @@ const User = sequelize.define<UserInstance>(
 			type: DataTypes.STRING,
 			allowNull: true,
 		},
+		gender: {
+			type: DataTypes.ENUM('Male', 'Female'),
+			allowNull: true,
+			defaultValue: null,
+		},
 		is_approved: {
 			type: DataTypes.BOOLEAN,
 			defaultValue: false,
