@@ -1,6 +1,7 @@
 import express from 'express';
 import * as userController from '../controllers/user.controller';
 import {
+	attachCurrentSessionTerm,
 	authMiddleware,
 	authorize,
 	restrictToSchool,
@@ -523,6 +524,7 @@ router.get(
 router.get(
 	'/:school_id/students',
 	authMiddleware,
+	attachCurrentSessionTerm,
 	authorize(['Admin']),
 	restrictToSchool(),
 	userController.getStudentsBySchoolController

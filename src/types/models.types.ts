@@ -60,6 +60,7 @@ export interface UserAttributes {
 	gender?: 'Male' | 'Female';
 	is_approved?: boolean;
 	is_active?: boolean;
+	created_at?: string;
 }
 
 export interface UserInstance extends Model<UserAttributes>, UserAttributes {
@@ -159,9 +160,9 @@ export interface ClassAttributes {
 	student?: UserInstance;
 }
 
-export interface ClassInstance
-	extends Model<ClassAttributes>,
-		ClassAttributes {}
+export interface ClassInstance extends Model<ClassAttributes>, ClassAttributes {
+	Class?: ClassInstance;
+}
 
 export interface ClassStudentAttributes {
 	class_id: string;
