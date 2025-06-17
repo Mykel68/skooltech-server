@@ -122,23 +122,23 @@ export const getAllClassesHandler = async (
 	res: Response
 ): Promise<void> => {
 	const { school_id } = req.params;
+	const { session_id, term_id } = req.query;
 
 	try {
-		if (!school_id) {
-			throw new AppError('School ID is required', 400);
+		if (!school_id || !session_id || !term_id) {
+			throw new AppError(
+				'school_id, session_id and term_id are required',
+				400
+			);
 		}
 
-		const classes = await classService.getAllClassesOfSchool(school_id);
+		const classes = await classService.getAllClassesOfSchool(
+			school_id,
+			String(session_id),
+			String(term_id)
+		);
 
-		sendResponse(res, 200, {
-			classes: classes.map((c) => ({
-				class_id: c.class_id,
-				school_id: c.school_id,
-				name: c.name,
-				grade_level: c.grade_level,
-				short: c.short,
-			})),
-		});
+		sendResponse(res, 200, { classes });
 	} catch (error: any) {
 		sendResponse(res, error.statusCode || 500, {
 			message: error.message || 'Internal server error',

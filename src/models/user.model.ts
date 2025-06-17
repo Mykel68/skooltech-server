@@ -2,6 +2,7 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/db';
 import School from './school.model';
 import { UserInstance } from '../types/models.types';
+import Class from './class.model';
 
 const User = sequelize.define<UserInstance>(
 	'User',
@@ -65,5 +66,6 @@ const User = sequelize.define<UserInstance>(
 
 User.belongsTo(School, { foreignKey: 'school_id' });
 School.hasMany(User, { foreignKey: 'school_id' });
+User.hasMany(Class, { foreignKey: 'teacher_id', as: 'taught_classes' });
 
 export default User;

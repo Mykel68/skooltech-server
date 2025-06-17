@@ -18,6 +18,10 @@ import attendanceRoutes from './routes/attendance.route';
 import { errorMiddleware } from './middlewares/error.middleware';
 import User from './models/user.model';
 import Attendance from './models/attendance.model';
+import ClassStudent from './models/class_student.model';
+import Class from './models/class.model';
+import { Term } from './models/term.model';
+import Session from './models/session.model';
 
 const app = express();
 
@@ -69,8 +73,5 @@ app.use((error: any, req: any, res: any, next: any) => {
 	console.error(error);
 	res.status(500).json({ message: 'Internal Server Error' });
 });
-
-User.hasMany(Attendance, { foreignKey: 'student_id', as: 'attendances' });
-Attendance.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
 
 export default app;

@@ -1,6 +1,7 @@
 import { Model, Optional } from 'sequelize';
 import { StudentScoreInstance } from '../models/student_score.model';
 import { AttendanceInstance } from '../models/attendance.model';
+import { ClassTeacherInstance } from '../models/class_teacher.model';
 
 export interface SchoolRegistrationData {
 	name: string;
@@ -158,10 +159,14 @@ export interface ClassAttributes {
 	grade_level?: string;
 	short?: string;
 	student?: UserInstance;
+	created_at?: Date;
 }
 
 export interface ClassInstance extends Model<ClassAttributes>, ClassAttributes {
 	Class?: ClassInstance;
+	class_students?: ClassStudentInstance[]; // <-- fix: make this an array
+	subjects?: SubjectInstance[]; // <-- already correct
+	class_teachers?: ClassTeacherInstance[];
 }
 
 export interface ClassStudentAttributes {

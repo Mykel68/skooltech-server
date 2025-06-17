@@ -12,20 +12,24 @@ const ClassStudent = sequelize.define<ClassStudentInstance>(
 		class_id: {
 			type: DataTypes.UUID,
 			primaryKey: true,
-			references: { model: Class, key: 'class_id' },
+			allowNull: false,
+			references: { model: 'classes', key: 'class_id' }, // <-- use string to avoid circular import
 		},
 		student_id: {
 			type: DataTypes.UUID,
 			primaryKey: true,
-			references: { model: User, key: 'user_id' },
+			allowNull: false,
+			references: { model: 'users', key: 'user_id' }, // <-- use string
 		},
 		session_id: {
 			type: DataTypes.UUID,
-			references: { model: Session, key: 'session_id' },
+			allowNull: false,
+			references: { model: 'sessions', key: 'session_id' },
 		},
 		term_id: {
 			type: DataTypes.UUID,
-			references: { model: Term, key: 'term_id' },
+			allowNull: false,
+			references: { model: 'terms', key: 'term_id' },
 		},
 		created_at: {
 			type: DataTypes.DATE,
