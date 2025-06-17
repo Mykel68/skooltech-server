@@ -1,10 +1,10 @@
-import express from "express";
+import express from 'express';
 import {
-  authMiddleware,
-  authorize,
-  restrictToSchool,
-} from "../middlewares/auth.middleware";
-import * as termController from "../controllers/term.controller";
+	authMiddleware,
+	authorize,
+	restrictToSchool,
+} from '../middlewares/auth.middleware';
+import * as termController from '../controllers/term.controller';
 
 const router = express.Router();
 
@@ -100,11 +100,11 @@ const router = express.Router();
  *         description: Session not found
  */
 router.post(
-  "/:school_id/:session_id",
-  authMiddleware,
-  authorize(["Admin"]),
-  restrictToSchool(),
-  termController.createTerm
+	'/:school_id/:session_id',
+	authMiddleware,
+	authorize(['Admin']),
+	restrictToSchool(),
+	termController.createTerm
 );
 
 /**
@@ -187,46 +187,11 @@ router.post(
  */
 
 router.patch(
-  "/:school_id/:session_id/:term_id",
-  authMiddleware,
-  authorize(["Admin"]),
-  restrictToSchool(),
-  termController.updateSchoolTerm
-);
-/**
- * @swagger
- * /terms/{term_id}:
- *   delete:
- *     summary: Delete an academic term
- *     tags: [Terms]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: term_id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: UUID of the term
- *     responses:
- *       204:
- *         description: Term deleted successfully
- *       400:
- *         description: Invalid input
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden
- *       404:
- *         description: Term not found
- */
-router.delete(
-  "/:term_id",
-  authMiddleware,
-  authorize(["Admin"]),
-  restrictToSchool(),
-  termController.deleteTerm
+	'/:school_id/:session_id/:term_id',
+	authMiddleware,
+	authorize(['Admin']),
+	restrictToSchool(),
+	termController.updateSchoolTerm
 );
 
 /**
@@ -290,11 +255,11 @@ router.delete(
  *         description: Session not found
  */
 router.get(
-  "/:session_id",
-  authMiddleware,
-  authorize(["Admin", "Teacher", "Student"]),
-  restrictToSchool(),
-  termController.getTerms
+	'/:session_id',
+	authMiddleware,
+	authorize(['Admin', 'Teacher', 'Student']),
+	restrictToSchool(),
+	termController.getTerms
 );
 
 /**
@@ -352,11 +317,11 @@ router.get(
  */
 
 router.get(
-  "/school/:school_id",
-  authMiddleware,
-  authorize(["Admin", "Teacher", "Student"]),
-  restrictToSchool(),
-  termController.getSessions
+	'/school/:school_id',
+	authMiddleware,
+	authorize(['Admin', 'Teacher', 'Student']),
+	restrictToSchool(),
+	termController.getSessions
 );
 
 export default router;

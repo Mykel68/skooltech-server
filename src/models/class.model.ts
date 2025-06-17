@@ -1,11 +1,30 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
-import School from './school.model';
-import { ClassInstance } from '../types/models.types';
-import ClassStudent from './class_student.model';
-import User from './user.model';
-import Subject from './subject.model';
-import ClassTeacher from './class_teacher.model';
+import { ClassStudentInstance } from '../types/models.types';
+import { SubjectInstance } from './subject.model';
+import { ClassTeacherInstance } from './class_teacher.model';
+
+/**
+ * Class attributes
+ */
+interface ClassAttributes {
+	class_id?: string;
+	school_id: string;
+	name: string;
+	short: string;
+	grade_level: string;
+	created_at?: string;
+}
+
+/**
+ * ClassInstance type declaration
+ */
+interface ClassInstance extends Model<ClassAttributes>, ClassAttributes {
+	Class?: ClassInstance;
+	class_students?: ClassStudentInstance[];
+	subjects?: SubjectInstance[];
+	class_teachers?: ClassTeacherInstance[];
+}
 
 const Class = sequelize.define<ClassInstance>(
 	'Class',
@@ -18,7 +37,6 @@ const Class = sequelize.define<ClassInstance>(
 		school_id: {
 			type: DataTypes.UUID,
 			allowNull: false,
-			references: { model: School, key: 'school_id' },
 		},
 		name: {
 			type: DataTypes.STRING,
@@ -40,23 +58,5 @@ const Class = sequelize.define<ClassInstance>(
 	}
 );
 
-Class.belongsTo(School, { foreignKey: 'school_id' });
-School.hasMany(Class, { foreignKey: 'school_id' });
-Class.hasMany(ClassStudent, {
-	as: 'class_students',
-	foreignKey: 'class_id',
-});
-
-Class.belongsTo(User, {
-	as: 'class_teacher',
-	foreignKey: 'teacher_id',
-});
-
-Class.hasMany(Subject, {
-	as: 'subjects',
-	foreignKey: 'class_id',
-});
-
-Class.hasMany(ClassTeacher, { foreignKey: 'class_id', as: 'class_teachers' });
-
 export default Class;
+export { ClassInstance };

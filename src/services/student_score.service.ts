@@ -10,7 +10,7 @@ import User from '../models/user.model';
 import ClassStudent from '../models/class_student.model';
 import Subject from '../models/subject.model';
 import Session from '../models/session.model';
-import { Term } from '../models/term.model';
+import Term from '../models/term.model';
 import Attendance from '../models/attendance.model';
 import { calculateSchoolDays } from '../utils/date.util';
 

@@ -6,9 +6,9 @@ import { ClassTeacherInstance } from '../models/class_teacher.model';
 export interface SchoolRegistrationData {
 	name: string;
 	address?: string;
-	school_image?: string | null;
-	phone_number?: string | null;
-	school_code?: string | null;
+	school_image?: string;
+	phone_number?: string;
+	school_code?: string;
 	admin_username: string;
 	admin_password: string;
 	admin_email: string;

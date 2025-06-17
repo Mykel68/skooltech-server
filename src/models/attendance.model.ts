@@ -1,9 +1,7 @@
+// models/attendance.model.ts
+
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
-import Class from './class.model';
-import Session from './session.model';
-import { Term } from './term.model';
-import User from './user.model';
 
 interface AttendanceAttributes {
 	attendance_id?: string;
@@ -11,8 +9,8 @@ interface AttendanceAttributes {
 	class_id: string;
 	session_id: string;
 	term_id: string;
-	days_present: number;
 	school_id: string;
+	days_present: number;
 }
 
 export interface AttendanceInstance
@@ -58,10 +56,5 @@ const Attendance = sequelize.define<AttendanceInstance>(
 		underscored: true,
 	}
 );
-
-Attendance.belongsTo(Class, { foreignKey: 'class_id' });
-Attendance.belongsTo(Session, { foreignKey: 'session_id' });
-Attendance.belongsTo(Term, { foreignKey: 'term_id' });
-// Attendance.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
 
 export default Attendance;

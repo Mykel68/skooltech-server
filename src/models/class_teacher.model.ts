@@ -1,11 +1,8 @@
+// models/class_teacher.model.ts
+
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
-import Class from './class.model';
-import User from './user.model';
 import { SubjectInstance, UserInstance } from '../types/models.types';
-import Session from './session.model';
-import { Term } from './term.model';
-import ClassStudent from './class_student.model';
 
 interface ClassTeacherAttributes {
 	class_teacher_id?: string;
@@ -39,22 +36,22 @@ const ClassTeacher = sequelize.define<ClassTeacherInstance>(
 		class_id: {
 			type: DataTypes.UUID,
 			allowNull: false,
-			references: { model: Class, key: 'class_id' },
+			references: { model: 'classes', key: 'class_id' },
 		},
 		teacher_id: {
 			type: DataTypes.UUID,
 			allowNull: false,
-			references: { model: User, key: 'user_id' },
+			references: { model: 'users', key: 'user_id' },
 		},
 		session_id: {
 			type: DataTypes.UUID,
 			allowNull: false,
-			references: { model: Session, key: 'session_id' },
+			references: { model: 'sessions', key: 'session_id' },
 		},
 		term_id: {
 			type: DataTypes.UUID,
 			allowNull: false,
-			references: { model: Term, key: 'term_id' },
+			references: { model: 'terms', key: 'term_id' },
 		},
 	},
 	{
@@ -69,13 +66,6 @@ const ClassTeacher = sequelize.define<ClassTeacherInstance>(
 		],
 	}
 );
-
-ClassTeacher.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
-ClassTeacher.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
-Class.hasMany(ClassTeacher, { foreignKey: 'class_id', as: 'class_teachers' });
-User.hasMany(ClassTeacher, { foreignKey: 'teacher_id', as: 'class_teachers' });
-ClassTeacher.belongsTo(Session, { as: 'session', foreignKey: 'session_id' });
-ClassTeacher.belongsTo(Term, { as: 'term', foreignKey: 'term_id' });
 
 export default ClassTeacher;
 export { ClassTeacherInstance };

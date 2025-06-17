@@ -1,9 +1,12 @@
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
+import morgan from 'morgan';
+import path from 'path';
+
 import authRoutes from './routes/auth.route';
 import userRoutes from './routes/user.route';
-import gradeRoutes from './routes/grade.route';
+// import gradeRoutes from './routes/grade.route';
 import schoolRoutes from './routes/school.route';
 import classRoutes from './routes/class.route';
 import subjectRoutes from './routes/subject.route';
@@ -15,34 +18,44 @@ import studentScoreRoutes from './routes/student_score.route';
 import resultRoutes from './routes/result.route';
 import classTeacherRoutes from './routes/class_teacher.route';
 import attendanceRoutes from './routes/attendance.route';
+
 import { errorMiddleware } from './middlewares/error.middleware';
-import User from './models/user.model';
-import Attendance from './models/attendance.model';
-import ClassStudent from './models/class_student.model';
-import Class from './models/class.model';
-import { Term } from './models/term.model';
-import Session from './models/session.model';
+import { applyAssociations } from './models/associations';
+
+// Apply Sequelize associations
+applyAssociations();
 
 const app = express();
 
+// Swagger setup
 const swaggerOptions = {
 	swaggerDefinition: {
 		openapi: '3.0.0',
 		info: {
 			title: 'Hello API',
 			version: '1.0.0',
+			description: 'API documentation for the Hello school system',
 		},
+		servers: [
+			{
+				url: 'http://localhost:5000',
+			},
+		],
 	},
-	apis: ['./src/routes/*.ts'],
+	apis: [path.join(__dirname, './routes/*.ts')],
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
+
+// Middlewares
+app.use(morgan('dev'));
+app.use(express.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-app.use(express.json());
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/grades', gradeRoutes);
+// app.use('/api/grades', gradeRoutes);
 app.use('/api/schools', schoolRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/subjects', subjectRoutes);
@@ -54,24 +67,20 @@ app.use('/api/student-scores', studentScoreRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/class-teachers', classTeacherRoutes);
 app.use('/api/attendance', attendanceRoutes);
-app.use(errorMiddleware);
 
-// welcome api route
+// Welcome Route
 app.get('/', (req, res) => {
 	res.send('Welcome to Hello API!');
 });
 
-// Catch-All Middleware for 404 Route
-app.use((req, res, next) => {
+// 404 Catch-All Middleware
+app.use((req, res) => {
 	res.status(404).json({
 		message: `The API endpoint ${req.originalUrl} does not exist on this server.`,
 	});
 });
 
 // Error Handling Middleware
-app.use((error: any, req: any, res: any, next: any) => {
-	console.error(error);
-	res.status(500).json({ message: 'Internal Server Error' });
-});
+app.use(errorMiddleware);
 
 export default app;

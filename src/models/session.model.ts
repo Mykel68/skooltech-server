@@ -1,8 +1,20 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
 import School from './school.model';
-import { SessionInstance } from '../types/models.types';
-import { Term } from './term.model';
+import { TermInstance } from './term.model';
+
+interface SessionAttributes {
+	session_id?: string;
+	school_id: string;
+	name: string;
+	is_active?: boolean;
+	start_date: Date;
+	end_date: Date;
+}
+
+interface SessionInstance extends Model<SessionAttributes>, SessionAttributes {
+	terms: TermInstance[];
+}
 
 const Session = sequelize.define<SessionInstance>(
 	'Session',
@@ -47,9 +59,5 @@ const Session = sequelize.define<SessionInstance>(
 	}
 );
 
-Session.belongsTo(School, { foreignKey: 'school_id' });
-School.hasMany(Session, { foreignKey: 'school_id' });
-// Session.hasMany(Term, { foreignKey: 'session_id', as: 'terms' });
-// Term.belongsTo(Session, { foreignKey: 'session_id' });
-
 export default Session;
+export { SessionAttributes, SessionInstance };

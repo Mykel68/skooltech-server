@@ -2,7 +2,7 @@ import Attendance from '../models/attendance.model';
 import Class from '../models/class.model';
 import ClassStudent from '../models/class_student.model';
 import ClassTeacher from '../models/class_teacher.model';
-import { Term } from '../models/term.model';
+import Term from '../models/term.model';
 import User from '../models/user.model';
 import { calculateSchoolDays } from '../utils/date.util';
 import { AppError } from '../utils/error.util';

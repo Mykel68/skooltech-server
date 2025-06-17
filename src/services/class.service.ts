@@ -1,8 +1,7 @@
 import { AppError } from '../utils/error.util';
 import { validateUUID } from '../utils/validation.util';
-import Class from '../models/class.model';
+import Class, { ClassInstance } from '../models/class.model';
 import School from '../models/school.model';
-import { ClassInstance } from '../types/models.types';
 import ClassStudent from '../models/class_student.model';
 import sequelize from '../config/db';
 import User from '../models/user.model';
@@ -16,8 +15,8 @@ import ClassTeacher from '../models/class_teacher.model';
 export const createClass = async (
 	school_id: string,
 	name: string,
-	grade_level?: string,
-	short?: string
+	grade_level: string,
+	short: string
 ): Promise<ClassInstance> => {
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
 	if (!name) throw new AppError('Class name is required', 400);

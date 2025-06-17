@@ -1,4 +1,4 @@
-import { Term } from '../models/term.model';
+import Term from '../models/term.model';
 
 export const addMinutes = (date: Date, mins: number): Date =>
 	new Date(date.getTime() + mins * 60_000);

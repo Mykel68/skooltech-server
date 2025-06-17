@@ -1,15 +1,11 @@
-import Assessment from '../models/assessment.model';
+import { School } from '../models';
 import Class from '../models/class.model';
 import ClassStudent from '../models/class_student.model';
-import GradeScale from '../models/gradeScale.model';
-import GradingConfig from '../models/gradingConfig.model';
-import Score from '../models/score.model';
 import Student from '../models/student.model';
 import StudentScore, {
 	StudentScoreInstance,
 } from '../models/student_score.model';
 import Subject from '../models/subject.model';
-import { School, Term } from '../models/term.model';
 import User from '../models/user.model';
 import { ClassStudentInstance } from '../types/models.types';
 import { AppError } from '../utils/error.util';

@@ -6,7 +6,7 @@ import { AppError } from '../utils/error.util';
 import { UserRegistrationData } from '../types/models.types';
 import Joi from 'joi';
 import { AuthRequest } from '../middlewares/auth.middleware';
-import { Term } from '../models/term.model';
+import Term from '../models/term.model';
 import Session from '../models/session.model';
 
 const loginSchema = Joi.object({

@@ -1,10 +1,9 @@
 import { Op } from 'sequelize';
 import { AppError } from '../utils/error.util';
 import { validateUUID } from '../utils/validation.util';
-import Session from '../models/session.model';
+import Session, { SessionInstance } from '../models/session.model';
 import School from '../models/school.model';
-import { SessionInstance } from '../types/models.types';
-import { Term } from '../models/term.model';
+import Term from '../models/term.model';
 import ClassStudent from '../models/class_student.model';
 import Subject from '../models/subject.model';
 
@@ -241,7 +240,7 @@ export const getUserSessionsAndTerms = async (
 			session_name: session.name,
 			terms: terms
 				.filter((term) =>
-					sessionMap[session.session_id].has(term.term_id)
+					sessionMap[session.session_id!].has(term.term_id)
 				)
 				.map((term) => ({
 					term_id: term.term_id,
@@ -310,7 +309,7 @@ export const getUserSessionsAndTerms = async (
 			session_name: session.name,
 			terms: terms
 				.filter((term) =>
-					sessionMap[session.session_id].has(term.term_id)
+					sessionMap[session.session_id!].has(term.term_id)
 				)
 				.map((term) => ({
 					term_id: term.term_id,

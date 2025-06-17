@@ -1,11 +1,24 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
 import School from './school.model';
 import Class from './class.model';
 import User from './user.model';
-import { SubjectInstance } from '../types/models.types';
-import { Term } from './term.model';
 import Session from './session.model';
+import Term from './term.model';
+
+interface SubjectAttributes {
+	subject_id?: string;
+	school_id: string;
+	class_id: string;
+	teacher_id: string;
+	term_id: string;
+	session_id: string;
+	name: string;
+	short?: string;
+	is_approved?: boolean;
+}
+
+interface SubjectInstance extends Model<SubjectAttributes>, SubjectAttributes {}
 
 const Subject = sequelize.define<SubjectInstance>(
 	'Subject',
@@ -60,14 +73,7 @@ const Subject = sequelize.define<SubjectInstance>(
 	}
 );
 
-Subject.belongsTo(School, { foreignKey: 'school_id' });
-School.hasMany(Subject, { foreignKey: 'school_id' });
-Subject.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
-Subject.belongsTo(Session, { foreignKey: 'session_id', as: 'session' });
-Subject.belongsTo(Term, { foreignKey: 'term_id', as: 'term' });
-Class.hasMany(Subject, { foreignKey: 'class_id', as: 'subjects' });
-Subject.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
-User.hasMany(Subject, { foreignKey: 'teacher_id', as: 'subjects' });
+// Associations
 
-Class.hasMany(Subject, { as: 'subjects', foreignKey: 'class_id' });
 export default Subject;
+export { SubjectAttributes, SubjectInstance };

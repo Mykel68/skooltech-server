@@ -1,9 +1,8 @@
 import bcrypt from 'bcrypt';
-import User from '../models/user.model';
+import User, { UserAttributes } from '../models/user.model';
 import School from '../models/school.model';
 import {
 	UserRegistrationData,
-	UserAttributes,
 	UserInstance,
 	ClassStudentInstance,
 } from '../types/models.types';
