@@ -1,8 +1,28 @@
 // models/class_student.model.ts
 
-import { DataTypes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
-import { ClassStudentInstance } from '../types/models.types';
+import { UserInstance } from './user.model';
+import { StudentScoreInstance } from './student_score.model';
+import { ClassInstance } from './class.model';
+
+export interface ClassStudentAttributes {
+	class_id: string;
+	student_id: string;
+	session_id: string;
+	term_id: string;
+	created_at?: Date;
+}
+
+export interface ClassStudentInstance
+	extends Model<ClassStudentAttributes>,
+		ClassStudentAttributes {
+	student?: UserInstance;
+	StudentScores?: StudentScoreInstance[];
+
+	// Add this line to fix the TS error:
+	Class?: ClassInstance;
+}
 
 const ClassStudent = sequelize.define<ClassStudentInstance>(
 	'ClassStudent',

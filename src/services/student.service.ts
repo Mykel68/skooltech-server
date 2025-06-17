@@ -7,7 +7,6 @@ import StudentScore, {
 } from '../models/student_score.model';
 import Subject from '../models/subject.model';
 import User from '../models/user.model';
-import { ClassStudentInstance } from '../types/models.types';
 import { AppError } from '../utils/error.util';
 import { validateUUID } from '../utils/validation.util';
 

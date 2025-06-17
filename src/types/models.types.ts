@@ -64,12 +64,6 @@ export interface UserAttributes {
 	created_at?: string;
 }
 
-export interface UserInstance extends Model<UserAttributes>, UserAttributes {
-	attendances?: AttendanceInstance[];
-	student_scores?: ScoreInstance;
-	class_students?: ClassInstance[];
-}
-
 export interface SchoolAttributes {
 	school_id?: string;
 	name: string;
@@ -97,12 +91,6 @@ export interface SubjectAttributes {
 	short?: string;
 }
 
-export interface SubjectInstance
-	extends Model<SubjectAttributes>,
-		SubjectAttributes {
-	teacher?: UserInstance;
-	class?: ClassInstance;
-}
 export interface AssessmentAttributes {
 	assessment_id?: string;
 	term_id: string;
@@ -152,40 +140,6 @@ export interface GradeScaleInstance
 	extends Model<GradeScaleAttributes>,
 		GradeScaleAttributes {}
 
-export interface ClassAttributes {
-	class_id?: string;
-	school_id: string;
-	name: string;
-	grade_level?: string;
-	short?: string;
-	student?: UserInstance;
-	created_at?: Date;
-}
-
-export interface ClassInstance extends Model<ClassAttributes>, ClassAttributes {
-	Class?: ClassInstance;
-	class_students?: ClassStudentInstance[]; // <-- fix: make this an array
-	subjects?: SubjectInstance[]; // <-- already correct
-	class_teachers?: ClassTeacherInstance[];
-}
-
-export interface ClassStudentAttributes {
-	class_id: string;
-	student_id: string;
-	session_id: string;
-	term_id: string;
-	created_at?: Date;
-}
-
-export interface ClassStudentInstance
-	extends Model<ClassStudentAttributes>,
-		ClassStudentAttributes {
-	student?: UserInstance;
-	StudentScores?: StudentScoreInstance[];
-
-	// Add this line to fix the TS error:
-	Class?: ClassInstance;
-}
 interface SessionAttributes {
 	session_id: string;
 	school_id: string;

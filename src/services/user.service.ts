@@ -1,14 +1,9 @@
 import bcrypt from 'bcrypt';
-import User, { UserAttributes } from '../models/user.model';
+import User, { UserAttributes, UserInstance } from '../models/user.model';
 import School from '../models/school.model';
-import {
-	UserRegistrationData,
-	UserInstance,
-	ClassStudentInstance,
-} from '../types/models.types';
+import { UserRegistrationData } from '../types/models.types';
 import { AppError } from '../utils/error.util';
 import { validateUUID } from '../utils/validation.util';
-import Student from '../models/student.model';
 import Class from '../models/class.model';
 import ClassStudent from '../models/class_student.model';
 

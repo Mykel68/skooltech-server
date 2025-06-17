@@ -2,7 +2,8 @@
 
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
-import { SubjectInstance, UserInstance } from '../types/models.types';
+import { UserInstance } from './user.model';
+import { SubjectInstance } from './subject.model';
 
 interface ClassTeacherAttributes {
 	class_teacher_id?: string;

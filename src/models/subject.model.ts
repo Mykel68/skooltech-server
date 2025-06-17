@@ -1,8 +1,8 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
 import School from './school.model';
-import Class from './class.model';
-import User from './user.model';
+import Class, { ClassInstance } from './class.model';
+import User, { UserInstance } from './user.model';
 import Session from './session.model';
 import Term from './term.model';
 
@@ -18,7 +18,12 @@ interface SubjectAttributes {
 	is_approved?: boolean;
 }
 
-interface SubjectInstance extends Model<SubjectAttributes>, SubjectAttributes {}
+interface SubjectInstance extends Model<SubjectAttributes>, SubjectAttributes {
+	class?: ClassInstance;
+	teacher?: UserInstance;
+	created_at?: Date;
+	subject?: SubjectInstance;
+}
 
 const Subject = sequelize.define<SubjectInstance>(
 	'Subject',

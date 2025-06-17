@@ -1,8 +1,9 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
-import { ClassStudentInstance } from '../types/models.types';
 import { SubjectInstance } from './subject.model';
 import { ClassTeacherInstance } from './class_teacher.model';
+import { ClassStudentInstance } from './class_student.model';
+import { UserInstance } from './user.model';
 
 /**
  * Class attributes
@@ -24,6 +25,7 @@ interface ClassInstance extends Model<ClassAttributes>, ClassAttributes {
 	class_students?: ClassStudentInstance[];
 	subjects?: SubjectInstance[];
 	class_teachers?: ClassTeacherInstance[];
+	student?: UserInstance;
 }
 
 const Class = sequelize.define<ClassInstance>(
