@@ -74,6 +74,27 @@ export const approveSubjectHandler = async (
 };
 
 /**
+ * Dispprove a subject
+ */
+export const disapproveSubjectHandler = async (
+	req: AuthRequest,
+	res: Response
+): Promise<void> => {
+	const { subject_id } = req.params;
+
+	try {
+		if (!subject_id) {
+			throw new AppError('Subject ID is required', 400);
+		}
+
+		const subject = await subjectService.disapproveSubject(subject_id);
+		sendResponse(res, 200, subject);
+	} catch (error: any) {
+		sendResponse(res, error.statusCode || 500, { message: error.message });
+	}
+};
+
+/**
  * Get subjects for a class (session + term sensitive)
  */
 export const getSubjectsByClassHandler = async (

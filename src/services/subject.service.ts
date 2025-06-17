@@ -62,6 +62,24 @@ export const approveSubject = async (
 };
 
 /**
+ * Disapprove a subject
+ */
+export const disapproveSubject = async (
+	subject_id: string
+): Promise<SubjectInstance> => {
+	if (!validateUUID(subject_id))
+		throw new AppError('Invalid subject ID', 400);
+
+	const subject = await Subject.findByPk(subject_id);
+	if (!subject) throw new AppError('Subject not found', 404);
+	if (!subject.is_approved)
+		throw new AppError('Subject already dispproved', 400);
+
+	await subject.update({ is_approved: false });
+	return subject;
+};
+
+/**
  * update a subject
  */
 export const updateSubject = async (
