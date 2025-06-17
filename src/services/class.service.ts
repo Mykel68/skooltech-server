@@ -114,21 +114,31 @@ export const getAllClassesOfSchool = async (
 			{
 				model: ClassStudent,
 				as: 'class_students',
+				required: false,
+				where: {
+					session_id,
+					term_id,
+				},
 				attributes: ['student_id'],
 			},
 			{
 				model: Subject,
 				as: 'subjects',
+				required: false,
+				where: {
+					session_id,
+					term_id,
+				},
 				attributes: ['name'],
 			},
 			{
 				model: ClassTeacher,
 				as: 'class_teachers',
+				required: false,
 				where: {
 					session_id,
 					term_id,
 				},
-				required: false,
 				include: [
 					{
 						model: User,
