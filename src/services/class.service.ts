@@ -119,7 +119,7 @@ export const getAllClassesOfSchool = async (
 			{
 				model: Subject,
 				as: 'subjects',
-				attributes: ['subject_id', 'name'],
+				attributes: ['name'],
 			},
 			{
 				model: ClassTeacher,
@@ -133,7 +133,7 @@ export const getAllClassesOfSchool = async (
 					{
 						model: User,
 						as: 'teacher',
-						attributes: ['user_id', 'first_name', 'last_name'],
+						attributes: ['first_name', 'last_name'],
 					},
 				],
 			},
@@ -149,17 +149,10 @@ export const getAllClassesOfSchool = async (
 		short: c.short,
 		created_at: c.created_at,
 		student_count: c.class_students?.length || 0,
-		class_teacher: c.class_teachers?.[0]?.teacher
-			? {
-					user_id: c.class_teachers[0].teacher.user_id,
-					name: `${c.class_teachers[0].teacher.first_name} ${c.class_teachers[0].teacher.last_name}`,
-			  }
+		teacher: c.class_teachers?.[0]?.teacher
+			? `${c.class_teachers[0].teacher.first_name} ${c.class_teachers[0].teacher.last_name}`
 			: null,
-		subjects:
-			c.subjects?.map((s) => ({
-				subject_id: s.subject_id,
-				name: s.name,
-			})) || [],
+		subjects: c.subjects?.map((s) => s.name) || [],
 	}));
 };
 
