@@ -23,6 +23,7 @@ const userUpdateSchema = Joi.object({
 	email: Joi.string().email().optional(),
 	first_name: Joi.string().max(50).optional(),
 	last_name: Joi.string().max(50).optional(),
+	gender: Joi.string().valid('Male', 'Female').optional(),
 });
 
 const teacherVerifySchema = Joi.object({
@@ -95,6 +96,7 @@ export const updateUserController = async (
 			first_name: updatedUser.first_name,
 			last_name: updatedUser.last_name,
 			role: updatedUser.role,
+			gender: updatedUser.gender,
 			school_id: updatedUser.school_id,
 			is_approved: updatedUser.is_approved,
 		});
@@ -228,19 +230,39 @@ export const getStudentsBySchoolController = async (
 	next: NextFunction
 ): Promise<void> => {
 	const { school_id } = req.params;
+	const session_id = (req.query.session_id as string) || req.session_id;
+	const term_id = (req.query.term_id as string) || req.term_id;
 
 	try {
-		const students = await userService.getStudentsBySchool(school_id);
-		const responseData = students.map((student) => ({
-			user_id: student.user_id,
-			username: student.username,
-			email: student.email,
-			first_name: student.first_name,
-			last_name: student.last_name,
-			role: student.role,
-			school_id: student.school_id,
-			is_approved: student.is_approved,
-		}));
+		const students = await userService.getStudentsBySchool(
+			school_id,
+			session_id!,
+			term_id!
+		);
+
+		const responseData = students.map((student) => {
+			const classInfo = student.class_students?.[0].Class;
+
+			return {
+				user_id: student.user_id,
+				email: student.email,
+				first_name: student.first_name,
+				last_name: student.last_name,
+				gender: student.gender,
+				is_approved: student.is_approved,
+				enrollment_date: new Date(
+					student.created_at!
+				).toLocaleDateString('en-GB', {
+					day: 'numeric',
+					month: 'long',
+					year: 'numeric',
+				}),
+				class: classInfo?.name,
+				grade_level: classInfo?.grade_level,
+				class_id: classInfo?.class_id,
+			};
+		});
+
 		sendResponse(res, 200, responseData);
 	} catch (error: any) {
 		next(new AppError(error.message, error.statusCode || 400));

@@ -1,10 +1,12 @@
 import { AppError } from '../utils/error.util';
 import { validateUUID } from '../utils/validation.util';
-import Class from '../models/class.model';
+import Class, { ClassInstance } from '../models/class.model';
 import School from '../models/school.model';
-import { ClassInstance } from '../types/models.types';
 import ClassStudent from '../models/class_student.model';
 import sequelize from '../config/db';
+import User from '../models/user.model';
+import Subject from '../models/subject.model';
+import ClassTeacher from '../models/class_teacher.model';
 
 /**
  * Create a new class in a school
@@ -13,8 +15,8 @@ import sequelize from '../config/db';
 export const createClass = async (
 	school_id: string,
 	name: string,
-	grade_level?: string,
-	short?: string
+	grade_level: string,
+	short: string
 ): Promise<ClassInstance> => {
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
 	if (!name) throw new AppError('Class name is required', 400);
@@ -92,17 +94,76 @@ export const deleteClass = async (
 };
 
 export const getAllClassesOfSchool = async (
-	school_id: string
-): Promise<ClassInstance[]> => {
+	school_id: string,
+	session_id: string,
+	term_id: string
+): Promise<any[]> => {
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
 
 	const classes = await Class.findAll({
 		where: { school_id },
-		include: [School],
+		attributes: [
+			'class_id',
+			'school_id',
+			'name',
+			'grade_level',
+			'short',
+			'created_at',
+		],
+		include: [
+			{
+				model: ClassStudent,
+				as: 'class_students',
+				required: false,
+				where: {
+					session_id,
+					term_id,
+				},
+				attributes: ['student_id'],
+			},
+			{
+				model: Subject,
+				as: 'subjects',
+				required: false,
+				where: {
+					session_id,
+					term_id,
+				},
+				attributes: ['name'],
+			},
+			{
+				model: ClassTeacher,
+				as: 'class_teachers',
+				required: false,
+				where: {
+					session_id,
+					term_id,
+				},
+				include: [
+					{
+						model: User,
+						as: 'teacher',
+						attributes: ['first_name', 'last_name'],
+					},
+				],
+			},
+		],
 		order: [['name', 'ASC']],
 	});
 
-	return classes;
+	return classes.map((c) => ({
+		class_id: c.class_id,
+		school_id: c.school_id,
+		name: c.name,
+		grade_level: c.grade_level,
+		short: c.short,
+		created_at: c.created_at,
+		student_count: c.class_students?.length || 0,
+		teacher: c.class_teachers?.[0]?.teacher
+			? `${c.class_teachers[0].teacher.first_name} ${c.class_teachers[0].teacher.last_name}`
+			: null,
+		subjects: c.subjects?.map((s) => s.name) || [],
+	}));
 };
 
 export const getStudentClass = async (
@@ -149,3 +210,5 @@ export const getStudentClass = async (
 
 	return classData as ClassInstance & { student_count: number };
 };
+
+// export const createClassTeacher = async()

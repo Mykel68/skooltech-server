@@ -1,10 +1,10 @@
 import { Op } from 'sequelize';
 import { AppError } from '../utils/error.util';
 import { validateUUID } from '../utils/validation.util';
-import Subject from '../models/subject.model';
+import Subject, { SubjectInstance } from '../models/subject.model';
 import Class from '../models/class.model';
 import User from '../models/user.model';
-import { SubjectInstance } from '../types/models.types';
+import { ClassStudent } from '../models';
 
 /**
  * Create a new subject under a class by a teacher
@@ -58,6 +58,24 @@ export const approveSubject = async (
 		throw new AppError('Subject already approved', 400);
 
 	await subject.update({ is_approved: true });
+	return subject;
+};
+
+/**
+ * Disapprove a subject
+ */
+export const disapproveSubject = async (
+	subject_id: string
+): Promise<SubjectInstance> => {
+	if (!validateUUID(subject_id))
+		throw new AppError('Invalid subject ID', 400);
+
+	const subject = await Subject.findByPk(subject_id);
+	if (!subject) throw new AppError('Subject not found', 404);
+	if (!subject.is_approved)
+		throw new AppError('Subject already dispproved', 400);
+
+	await subject.update({ is_approved: false });
 	return subject;
 };
 
@@ -158,7 +176,7 @@ export const getSubjectsOfSchool = async (
 	school_id: string,
 	session_id: string,
 	term_id: string
-): Promise<SubjectInstance[]> => {
+): Promise<any[]> => {
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
 
 	const subjects = await Subject.findAll({
@@ -167,17 +185,52 @@ export const getSubjectsOfSchool = async (
 			{
 				model: Class,
 				as: 'class',
-				attributes: ['name', 'grade_level'],
+				attributes: ['class_id', 'name', 'grade_level'],
 			},
 			{
 				model: User,
 				as: 'teacher',
-				attributes: ['username', 'email'],
+				attributes: ['user_id', 'first_name', 'last_name', 'email'],
 			},
 		],
 	});
 
-	return subjects;
+	const results = await Promise.all(
+		subjects.map(async (subject) => {
+			const student_count = await ClassStudent.count({
+				where: {
+					class_id: subject.class_id,
+					session_id,
+					term_id,
+				},
+			});
+
+			return {
+				subject_id: subject.subject_id,
+				name: subject.name,
+				short: subject.short,
+				is_approved: subject.is_approved,
+				class: subject.class
+					? {
+							class_id: subject.class.class_id,
+							name: subject.class.name,
+							grade_level: subject.class.grade_level,
+					  }
+					: null,
+				teacher: subject.teacher
+					? {
+							teacher_id: subject.teacher.user_id,
+							name: `${subject.teacher.first_name} ${subject.teacher.last_name}`,
+							email: subject.teacher.email,
+					  }
+					: null,
+				student_count,
+				created_at: subject.created_at,
+			};
+		})
+	);
+
+	return results;
 };
 
 /**

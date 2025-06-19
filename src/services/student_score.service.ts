@@ -10,7 +10,9 @@ import User from '../models/user.model';
 import ClassStudent from '../models/class_student.model';
 import Subject from '../models/subject.model';
 import Session from '../models/session.model';
-import { Term } from '../models/term.model';
+import Term from '../models/term.model';
+import Attendance from '../models/attendance.model';
+import { calculateSchoolDays } from '../utils/date.util';
 
 interface ScoreInput {
 	user_id: string;
@@ -712,13 +714,18 @@ export const editBulkStudentScores = async (
 export const getStudentOwnScores = async (
 	school_id: string,
 	class_id: string,
-	student_id: string
+	student_id: string,
+	session_id: string,
+	term_id: string
 ): Promise<any> => {
 	// 1) Validate all IDs
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
 	if (!validateUUID(class_id)) throw new AppError('Invalid class ID', 400);
 	if (!validateUUID(student_id))
 		throw new AppError('Invalid student ID', 400);
+	if (!validateUUID(session_id))
+		throw new AppError('Invalid session ID', 400);
+	if (!validateUUID(term_id)) throw new AppError('Invalid term ID', 400);
 
 	// 2) Verify that the class exists
 	const classRecord = await Class.findOne({
@@ -746,6 +753,7 @@ export const getStudentOwnScores = async (
 			},
 			{
 				model: Subject,
+				where: { session_id, term_id },
 				as: 'subject',
 				attributes: ['subject_id', 'name', 'short'],
 			},
@@ -983,24 +991,14 @@ export const getStudentsWithResults = async (
 			{
 				model: ClassStudent,
 				as: 'class_students',
-				where: {
-					session_id,
-					term_id,
-					class_id,
-				},
+				where: { class_id },
 				include: [
-					{
-						model: Session,
-						attributes: ['session_id', 'name'], // session name
-					},
+					{ model: Session, attributes: ['name'] },
 					{
 						model: Term,
-						attributes: ['term_id', 'name'], // term name
+						attributes: ['name', 'start_date', 'end_date'],
 					},
-					{
-						model: Class,
-						attributes: ['name', 'class_id'],
-					},
+					{ model: Class, attributes: ['name', 'grade_level'] },
 				],
 			},
 			{
@@ -1021,10 +1019,46 @@ export const getStudentsWithResults = async (
 					},
 				],
 			},
+			{
+				model: Attendance,
+				as: 'attendances',
+				where: {
+					session_id,
+					term_id,
+					class_id,
+				},
+				required: false,
+				attributes: ['days_present'],
+			},
 		],
 		attributes: ['user_id', 'first_name', 'last_name'],
 		order: [['first_name', 'ASC']],
 	});
 
-	return students;
+	// Get current term
+	const currentTerm = await Term.findOne({
+		where: { term_id },
+		attributes: ['start_date', 'end_date'],
+	});
+
+	const total_school_days =
+		currentTerm?.start_date && currentTerm?.end_date
+			? calculateSchoolDays(currentTerm.start_date, currentTerm.end_date)
+			: 0;
+
+	// Get next term
+	const nextTerm = await Term.findOne({
+		where: {
+			school_id,
+			start_date: { [Op.gt]: currentTerm?.end_date },
+		},
+		order: [['start_date', 'ASC']],
+		attributes: ['name', 'start_date'],
+	});
+
+	return {
+		students,
+		next_term_starts_on: nextTerm?.start_date ?? null,
+		total_school_days,
+	};
 };

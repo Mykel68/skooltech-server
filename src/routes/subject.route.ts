@@ -146,6 +146,16 @@ router.patch(
 	subjectController.approveSubjectHandler
 );
 
+router.patch(
+	'/:subject_id/dispprove',
+	verify_X_API_KEY,
+	authMiddleware,
+	attachCurrentSessionTerm,
+	authorize(['Admin']),
+	restrictToSchool(),
+	subjectController.disapproveSubjectHandler
+);
+
 /**
  * @swagger
  * /subjects/{class_id}:

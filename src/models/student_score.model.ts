@@ -2,23 +2,25 @@ import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
 import User from './user.model';
 import Class from './class.model';
+import School from './school.model';
 import GradingSetting, {
 	GradingSettingInstance,
 } from './grading_setting.model';
-import School from './school.model';
 import ClassStudent from './class_student.model';
-import Subject from './subject.model';
-import { SubjectInstance } from '../types/models.types';
+import Subject, { SubjectInstance } from './subject.model';
 
 interface StudentScoreAttributes {
 	score_id?: string;
-	subject_id?: string;
+	subject_id: string;
 	grading_setting_id: string;
 	user_id: string;
 	class_id: string;
 	teacher_id: string;
 	school_id: string;
-	scores: { component_name: string; score: number }[];
+	scores: {
+		component_name: string;
+		score: number;
+	}[];
 	total_score: number;
 }
 
@@ -40,9 +42,8 @@ const StudentScore = sequelize.define<StudentScoreInstance>(
 		subject_id: {
 			type: DataTypes.UUID,
 			allowNull: false,
-			references: { model: Subject, key: 'subject_id' }, // Assuming you have a Subject model/table
+			references: { model: Subject, key: 'subject_id' },
 		},
-
 		grading_setting_id: {
 			type: DataTypes.UUID,
 			allowNull: false,
@@ -126,28 +127,5 @@ const StudentScore = sequelize.define<StudentScoreInstance>(
 
 // Associations
 
-StudentScore.belongsTo(User, { foreignKey: 'user_id', as: 'student' });
-StudentScore.belongsTo(User, { foreignKey: 'teacher_id', as: 'teacher' });
-StudentScore.belongsTo(Class, { foreignKey: 'class_id', as: 'class' });
-StudentScore.belongsTo(School, { foreignKey: 'school_id', as: 'school' });
-StudentScore.belongsTo(GradingSetting, {
-	foreignKey: 'grading_setting_id',
-	as: 'grading_setting',
-});
-StudentScore.belongsTo(ClassStudent, {
-	foreignKey: 'class_id',
-	as: 'class_student',
-});
-
-StudentScore.belongsTo(Subject, {
-	foreignKey: 'subject_id',
-	as: 'subject', // <- ✅ add this
-});
-
-User.hasMany(StudentScore, {
-	foreignKey: 'user_id',
-	as: 'student_scores', // pick any alias you like
-});
-
 export default StudentScore;
-export { StudentScoreInstance };
+export { StudentScoreAttributes, StudentScoreInstance };

@@ -1,12 +1,14 @@
 import { Model, Optional } from 'sequelize';
 import { StudentScoreInstance } from '../models/student_score.model';
+import { AttendanceInstance } from '../models/attendance.model';
+import { ClassTeacherInstance } from '../models/class_teacher.model';
 
 export interface SchoolRegistrationData {
 	name: string;
 	address?: string;
-	school_image?: string | null;
-	phone_number?: string | null;
-	school_code?: string | null;
+	school_image?: string;
+	phone_number?: string;
+	school_code?: string;
 	admin_username: string;
 	admin_password: string;
 	admin_email: string;
@@ -56,11 +58,11 @@ export interface UserAttributes {
 	email: string;
 	first_name?: string;
 	last_name?: string;
+	gender?: 'Male' | 'Female';
 	is_approved?: boolean;
 	is_active?: boolean;
+	created_at?: string;
 }
-
-export interface UserInstance extends Model<UserAttributes>, UserAttributes {}
 
 export interface SchoolAttributes {
 	school_id?: string;
@@ -89,12 +91,6 @@ export interface SubjectAttributes {
 	short?: string;
 }
 
-export interface SubjectInstance
-	extends Model<SubjectAttributes>,
-		SubjectAttributes {
-	teacher?: UserInstance;
-	class?: ClassInstance;
-}
 export interface AssessmentAttributes {
 	assessment_id?: string;
 	term_id: string;
@@ -144,36 +140,6 @@ export interface GradeScaleInstance
 	extends Model<GradeScaleAttributes>,
 		GradeScaleAttributes {}
 
-export interface ClassAttributes {
-	class_id?: string;
-	school_id: string;
-	name: string;
-	grade_level?: string;
-	short?: string;
-	student?: UserInstance;
-}
-
-export interface ClassInstance
-	extends Model<ClassAttributes>,
-		ClassAttributes {}
-
-export interface ClassStudentAttributes {
-	class_id: string;
-	student_id: string;
-	session_id: string;
-	term_id: string;
-	created_at?: Date;
-}
-
-export interface ClassStudentInstance
-	extends Model<ClassStudentAttributes>,
-		ClassStudentAttributes {
-	student?: UserInstance;
-	StudentScores?: StudentScoreInstance[];
-
-	// Add this line to fix the TS error:
-	Class?: ClassInstance;
-}
 interface SessionAttributes {
 	session_id: string;
 	school_id: string;

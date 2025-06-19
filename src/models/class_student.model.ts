@@ -1,10 +1,28 @@
-import { DataTypes } from 'sequelize';
+// models/class_student.model.ts
+
+import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
-import Class from './class.model';
-import User from './user.model';
-import { ClassStudentInstance } from '../types/models.types';
-import { Term } from './term.model';
-import Session from './session.model';
+import { UserInstance } from './user.model';
+import { StudentScoreInstance } from './student_score.model';
+import { ClassInstance } from './class.model';
+
+export interface ClassStudentAttributes {
+	class_id: string;
+	student_id: string;
+	session_id: string;
+	term_id: string;
+	created_at?: Date;
+}
+
+export interface ClassStudentInstance
+	extends Model<ClassStudentAttributes>,
+		ClassStudentAttributes {
+	student?: UserInstance;
+	StudentScores?: StudentScoreInstance[];
+
+	// Add this line to fix the TS error:
+	Class?: ClassInstance;
+}
 
 const ClassStudent = sequelize.define<ClassStudentInstance>(
 	'ClassStudent',
@@ -12,20 +30,24 @@ const ClassStudent = sequelize.define<ClassStudentInstance>(
 		class_id: {
 			type: DataTypes.UUID,
 			primaryKey: true,
-			references: { model: Class, key: 'class_id' },
+			allowNull: false,
+			references: { model: 'classes', key: 'class_id' },
 		},
 		student_id: {
 			type: DataTypes.UUID,
 			primaryKey: true,
-			references: { model: User, key: 'user_id' },
+			allowNull: false,
+			references: { model: 'users', key: 'user_id' },
 		},
 		session_id: {
 			type: DataTypes.UUID,
-			references: { model: Session, key: 'session_id' },
+			allowNull: false,
+			references: { model: 'sessions', key: 'session_id' },
 		},
 		term_id: {
 			type: DataTypes.UUID,
-			references: { model: Term, key: 'term_id' },
+			allowNull: false,
+			references: { model: 'terms', key: 'term_id' },
 		},
 		created_at: {
 			type: DataTypes.DATE,
@@ -38,12 +60,5 @@ const ClassStudent = sequelize.define<ClassStudentInstance>(
 		underscored: true,
 	}
 );
-
-ClassStudent.belongsTo(Class, { foreignKey: 'class_id' });
-Class.hasMany(ClassStudent, { foreignKey: 'class_id' });
-ClassStudent.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
-User.hasMany(ClassStudent, { foreignKey: 'student_id', as: 'class_students' });
-ClassStudent.belongsTo(Session, { foreignKey: 'session_id' });
-ClassStudent.belongsTo(Term, { foreignKey: 'term_id' });
 
 export default ClassStudent;

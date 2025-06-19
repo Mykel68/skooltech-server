@@ -2,6 +2,7 @@ import express from 'express';
 import * as schoolController from '../controllers/school.controller';
 import * as classController from '../controllers/class.controller';
 import {
+	attachCurrentSessionTerm,
 	authMiddleware,
 	authorize,
 	restrictToSchool,
@@ -392,6 +393,7 @@ router.patch(
 router.get(
 	'/classes/:school_id',
 	authMiddleware,
+	attachCurrentSessionTerm,
 	authorize(['Admin', 'Teacher']),
 	restrictToSchool(),
 	classController.getAllClassesHandler

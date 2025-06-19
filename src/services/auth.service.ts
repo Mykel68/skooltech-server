@@ -1,15 +1,11 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { DataTypes, Op } from 'sequelize';
-import User from '../models/user.model';
+import User, { UserInstance } from '../models/user.model';
 import School from '../models/school.model';
 import Session from '../models/session.model';
 import { AppError } from '../utils/error.util';
-import {
-	StudentTeacherRegistrationData,
-	UserInstance,
-	UserRegistrationData,
-} from '../types/models.types';
+
 import ClassStudent from '../models/class_student.model';
 import { validateUUID } from '../utils/validation.util';
 import Class from '../models/class.model';
@@ -17,7 +13,11 @@ import { v4 as uuidv4 } from 'uuid';
 import PasswordToken from '../models/passwordResetToken';
 import { sendResetEmail } from '../utils/email.service.util';
 import { addMinutes } from '../utils/date.util';
-import { Term } from '../models/term.model';
+import Term from '../models/term.model';
+import {
+	StudentTeacherRegistrationData,
+	UserRegistrationData,
+} from '../types/models.types';
 
 export const login = async (
 	username: string,

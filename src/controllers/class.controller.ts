@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import * as classService from '../services/class.service';
 import { sendResponse } from '../utils/response.util';
 import { AppError } from '../utils/error.util';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 /**
  * Handle class creation request
@@ -118,27 +119,28 @@ export const getClassHandler = async (
  * Handle fetching all classes of a school
  */
 export const getAllClassesHandler = async (
-	req: Request,
+	req: AuthRequest,
 	res: Response
 ): Promise<void> => {
 	const { school_id } = req.params;
+	const session_id = (req.query.session_id as string) || req.session_id;
+	const term_id = (req.query.term_id as string) || req.term_id;
 
 	try {
-		if (!school_id) {
-			throw new AppError('School ID is required', 400);
+		if (!school_id || !session_id || !term_id) {
+			throw new AppError(
+				'school_id, session_id and term_id are required',
+				400
+			);
 		}
 
-		const classes = await classService.getAllClassesOfSchool(school_id);
+		const classes = await classService.getAllClassesOfSchool(
+			school_id,
+			String(session_id),
+			String(term_id)
+		);
 
-		sendResponse(res, 200, {
-			classes: classes.map((c) => ({
-				class_id: c.class_id,
-				school_id: c.school_id,
-				name: c.name,
-				grade_level: c.grade_level,
-				short: c.short,
-			})),
-		});
+		sendResponse(res, 200, { classes });
 	} catch (error: any) {
 		sendResponse(res, error.statusCode || 500, {
 			message: error.message || 'Internal server error',

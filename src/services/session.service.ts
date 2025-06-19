@@ -1,10 +1,9 @@
 import { Op } from 'sequelize';
 import { AppError } from '../utils/error.util';
 import { validateUUID } from '../utils/validation.util';
-import Session from '../models/session.model';
+import Session, { SessionInstance } from '../models/session.model';
 import School from '../models/school.model';
-import { SessionInstance } from '../types/models.types';
-import { Term } from '../models/term.model';
+import Term from '../models/term.model';
 import ClassStudent from '../models/class_student.model';
 import Subject from '../models/subject.model';
 
@@ -144,17 +143,79 @@ export const editSession = async (
 
 export const getSessions = async (
 	school_id: string
-): Promise<SessionInstance[]> => {
+): Promise<
+	{
+		session_id: string;
+		name: string;
+		start_date: Date;
+		end_date: Date;
+		is_active: boolean;
+		terms_count: number;
+		students_count: number;
+		terms: {
+			term_id: string;
+			name: string;
+			start_date: Date;
+			end_date: Date;
+			is_active: boolean;
+		}[];
+	}[]
+> => {
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
 
 	const sessions = await Session.findAll({
 		where: { school_id },
 		order: [
-			['is_active', 'DESC'], // Active sessions first
-			['start_date', 'DESC'], // Then by start_date descending
+			['is_active', 'DESC'],
+			['start_date', 'DESC'],
 		],
 	});
-	return sessions;
+
+	const results = await Promise.all(
+		sessions.map(async (session) => {
+			const session_id = session.session_id!;
+
+			// Fetch terms with relevant info
+			const terms = await Term.findAll({
+				where: { session_id },
+				attributes: [
+					'term_id',
+					'name',
+					'start_date',
+					'end_date',
+					'is_active',
+				],
+				order: [['start_date', 'ASC']],
+			});
+
+			const terms_count = terms.length;
+
+			const students_count = await ClassStudent.count({
+				where: { session_id },
+				distinct: true,
+				col: 'student_id',
+			});
+
+			return {
+				session_id,
+				name: session.name,
+				start_date: session.start_date,
+				end_date: session.end_date,
+				is_active: session.is_active!,
+				terms_count,
+				students_count,
+				terms: terms.map((term) => ({
+					term_id: term.term_id!,
+					name: term.name,
+					start_date: term.start_date,
+					end_date: term.end_date,
+					is_active: term.is_active!,
+				})),
+			};
+		})
+	);
+
+	return results;
 };
 
 export const getSessionById = async (
@@ -241,7 +302,7 @@ export const getUserSessionsAndTerms = async (
 			session_name: session.name,
 			terms: terms
 				.filter((term) =>
-					sessionMap[session.session_id].has(term.term_id)
+					sessionMap[session.session_id!].has(term.term_id)
 				)
 				.map((term) => ({
 					term_id: term.term_id,
@@ -310,7 +371,7 @@ export const getUserSessionsAndTerms = async (
 			session_name: session.name,
 			terms: terms
 				.filter((term) =>
-					sessionMap[session.session_id].has(term.term_id)
+					sessionMap[session.session_id!].has(term.term_id)
 				)
 				.map((term) => ({
 					term_id: term.term_id,

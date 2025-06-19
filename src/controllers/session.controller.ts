@@ -133,7 +133,7 @@ export const getSessions = async (
 		}
 
 		const sessions = await sessionService.getSessions(school_id);
-		sendResponse(res, 200, sessions);
+		sendResponse(res, 200, { sessions }); // <- Wrap in an object
 	} catch (error: any) {
 		next(new AppError(error.message, error.statusCode || 500));
 	}
