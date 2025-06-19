@@ -203,3 +203,61 @@ export const getTeacherClassStudentsAttendanceReport = async (
 		})),
 	};
 };
+
+export const getAttendanceSummary = async (
+	school_id: string,
+	class_id: string,
+	session_id: string,
+	term_id: string
+) => {
+	// Get term to calculate total school days
+	const term = await Term.findOne({
+		where: { term_id, school_id },
+		attributes: ['start_date', 'end_date'],
+	});
+
+	if (!term) throw new AppError('Term not found', 404);
+
+	const totalDays = calculateSchoolDays(term.start_date, term.end_date);
+
+	// Get attendance records
+	const records = await Attendance.findAll({
+		where: { school_id, class_id, session_id, term_id },
+		include: [
+			{
+				model: User,
+				as: 'student',
+				attributes: ['user_id', 'first_name', 'last_name'],
+			},
+			{
+				model: Class,
+				attributes: ['name', 'grade_level'],
+			},
+		],
+	});
+
+	const attendanceData = records.map((record) => {
+		const presentDays = record.days_present;
+		const absentDays = totalDays - presentDays;
+		const attendancePercentage = +((presentDays / totalDays) * 100).toFixed(
+			1
+		);
+
+		return {
+			attendance_id: record.attendance_id,
+			studentId: record.student?.user_id,
+			studentName: `${record.student?.first_name} ${record.student?.last_name}`,
+			classId: record.class_id,
+			className: record.Class?.name,
+			grade_level: record.Class?.grade_level,
+			presentDays,
+			absentDays,
+			attendancePercentage,
+		};
+	});
+
+	return {
+		totalDays,
+		attendanceData,
+	};
+};

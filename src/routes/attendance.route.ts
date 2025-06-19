@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import {
 	fetchClassAttendance,
+	getAttendanceSummaryHandler,
 	getStudentAttendance,
 	handleVerifyClassTeacher,
 	recordClassAttendance,
 	recordStudentAttendance,
 } from '../controllers/attendance.controller';
 import {
+	attachCurrentSessionTerm,
 	authMiddleware,
 	authorize,
 	restrictToSchool,
@@ -57,6 +59,16 @@ router.get(
 	authorize(['Admin', 'Teacher']),
 	restrictToSchool(),
 	fetchClassAttendance
+);
+
+router.get(
+	'/summary/:school_id/:class_id',
+	authMiddleware,
+	attachCurrentSessionTerm,
+	verify_X_API_KEY,
+	authorize(['Admin']),
+	restrictToSchool(),
+	getAttendanceSummaryHandler
 );
 
 export default router;

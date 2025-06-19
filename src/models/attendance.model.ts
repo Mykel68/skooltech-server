@@ -2,6 +2,8 @@
 
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
+import { ClassInstance } from './class.model';
+import { UserInstance } from './user.model';
 
 interface AttendanceAttributes {
 	attendance_id?: string;
@@ -15,7 +17,10 @@ interface AttendanceAttributes {
 
 export interface AttendanceInstance
 	extends Model<AttendanceAttributes>,
-		AttendanceAttributes {}
+		AttendanceAttributes {
+	Class?: ClassInstance;
+	student?: UserInstance;
+}
 
 const Attendance = sequelize.define<AttendanceInstance>(
 	'Attendance',

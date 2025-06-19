@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import {
 	getAttendance,
+	getAttendanceSummary,
 	getClassAttendance,
 	getTeacherClassStudentsAttendanceReport,
 	recordAttendance,
@@ -9,6 +10,7 @@ import {
 import { sendResponse } from '../utils/response.util';
 import { AppError } from '../utils/error.util';
 import { calculateTotalSchoolDaysFromTerm } from '../utils/date.util';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 export const recordStudentAttendance = async (
 	req: Request,
@@ -153,5 +155,35 @@ export const handleVerifyClassTeacher = async (
 		});
 	} catch (err) {
 		next(err);
+	}
+};
+
+export const getAttendanceSummaryHandler = async (
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { school_id, class_id } = req.params;
+		const session_id = (req.query.session_id as string) || req.session_id;
+		const term_id = (req.query.term_id as string) || req.term_id;
+
+		if (!school_id || !class_id || !session_id || !term_id) {
+			throw new AppError(
+				'school_id, class_id, session_id, and term_id are required',
+				400
+			);
+		}
+
+		const summary = await getAttendanceSummary(
+			school_id,
+			class_id,
+			session_id as string,
+			term_id as string
+		);
+
+		sendResponse(res, 200, summary);
+	} catch (error: any) {
+		next(new AppError(error.message, error.statusCode || 500));
 	}
 };
