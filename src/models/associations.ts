@@ -39,6 +39,10 @@ Attendance.belongsTo(User, {
 	foreignKey: 'student_id',
 	as: 'student',
 });
+User.hasMany(Attendance, {
+	foreignKey: 'student_id',
+	as: 'attendances',
+});
 
 // === CLASS STUDENT associations ===
 ClassStudent.belongsTo(Class, { foreignKey: 'class_id' });
