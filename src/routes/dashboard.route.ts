@@ -10,10 +10,6 @@ import {
 
 const router = Router();
 
-router.get("/test", (req, res) => {
-  res.send("Dashboard test works!");
-});
-
 router.get(
   "/:school_id/stats",
   verify_X_API_KEY,
