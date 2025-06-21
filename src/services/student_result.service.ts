@@ -1,86 +1,92 @@
-import { Session, StudentScore, Subject, Term, User } from "../models";
+import {
+  Attendance,
+  Class,
+  ClassStudent,
+  School,
+  Session,
+  StudentScore,
+  Subject,
+  Term,
+  User,
+} from "../models";
 
-export const getStudentResult = async (
+export const getStudentResults = async (
   student_id: string,
   school_id: string
 ) => {
-  const sessions = await Session.findAll({ where: { school_id } });
+  const classEnrollments = await ClassStudent.findAll({
+    where: { student_id },
+    include: [Class, Session, Term],
+  });
 
-  const resultsBySession = [];
+  const sessionsMap: { [session_id: string]: any } = {};
 
-  for (const session of sessions) {
-    const terms = await Term.findAll({
-      where: { session_id: session.session_id },
-      order: [["start_date", "ASC"]],
+  for (const enrollment of classEnrollments) {
+    const session = enrollment.Session;
+    const classData = enrollment.Class;
+    const term = enrollment.Term;
+
+    const scores = await StudentScore.findAll({
+      where: {
+        user_id: student_id,
+      },
+      include: [
+        {
+          model: Subject,
+          as: "subject",
+          where: { is_approved: true },
+        },
+      ],
     });
 
-    const sessionResult: any = {
-      session_id: session.session_id,
-      session_name: session.name,
+    if (!scores.length) continue;
+
+    const summaryScores = scores.map((score) => ({
+      subject_id: score.subject_id,
+      subject_name: score.subject.name,
+      total_score: score.total_score,
+    }));
+
+    const entry = sessionsMap[session?.session_id!] || {
+      session: {
+        session_id: session?.session_id!,
+        name: session?.name!,
+      },
       terms: [],
     };
 
-    let scoredTerms = 0;
+    entry.terms.push({
+      term_id: term?.term_id!,
+      name: term?.name!,
+      start_date: term?.start_date!,
+      end_date: term?.end_date!,
+      class: {
+        class_id: classData?.class_id!,
+        name: classData?.name!,
+        grade_level: classData?.grade_level!,
+      },
+      scores: summaryScores,
+    });
 
-    for (const term of terms) {
-      const scores = await StudentScore.findAll({
-        where: {
-          user_id: student_id,
-        },
-        include: [
-          { model: Subject, as: "subject", attributes: ["name"] },
-          {
-            model: User,
-            as: "teacher",
-            attributes: ["first_name", "last_name"],
-          },
-        ],
-      });
-
-      if (!scores.length) continue;
-      scoredTerms++;
-
-      const termData = {
-        term_id: term.term_id,
-        term_name: term.name,
-        start_date: term.start_date,
-        results: [] as any[],
-      };
-
-      for (const score of scores) {
-        const subjectScores = await StudentScore.findAll({
-          where: {
-            subject_id: score.subject_id,
-            class_id: score.class_id,
-          },
-        });
-
-        const totalScores = subjectScores.map((s) => s.total_score);
-
-        const subjectResult = {
-          subject: score.subject?.name,
-          total_score: score.total_score,
-          ...(scoredTerms < 3 && scoredTerms === terms.length
-            ? {}
-            : {
-                components: score.scores,
-              }),
-          class_average:
-            totalScores.reduce((sum, val) => sum + val, 0) / totalScores.length,
-          lowest_score: Math.min(...totalScores),
-          highest_score: Math.max(...totalScores),
-        };
-
-        termData.results.push(subjectResult);
-      }
-
-      sessionResult.terms.push(termData);
-    }
-
-    if (sessionResult.terms.length > 0) {
-      resultsBySession.push(sessionResult);
-    }
+    sessionsMap[session?.session_id!] = entry;
   }
 
-  return { sessions: resultsBySession };
+  const attendance = await Attendance.findAll({
+    where: { student_id: student_id },
+  });
+
+  const student = await User.findByPk(student_id, {
+    attributes: ["user_id", "first_name", "last_name", "email"],
+  });
+
+  const school = await School.findByPk(school_id, {
+    attributes: ["name", "address"],
+  });
+
+  return {
+    student,
+    school,
+    attendance,
+    sessions: Object.values(sessionsMap),
+  };
 };
