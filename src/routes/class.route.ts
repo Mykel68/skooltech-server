@@ -177,21 +177,28 @@ router.get(
  *       404:
  *         description: Student not found or class not found
  */
+// router.get(
+//   "/student/:school_id/:student_id",
+//   authMiddleware,
+//   authorize(["Student"]),
+//   classController.getStudentClassHandler
+// );
+
 router.get(
   "/student/:school_id/:student_id",
   authMiddleware,
   authorize(["Student"]),
-  classController.getStudentClassHandler
-);
-
-router.get(
-  "/class-info/:school_id/:student_id",
-  verify_X_API_KEY,
-  authMiddleware,
-  authorize(["Student"]),
-  restrictToSchool(),
   classController.getStudentClassInfoHandler
 );
+
+// router.get(
+//   "/class-info/:school_id/:student_id",
+//   verify_X_API_KEY,
+//   authMiddleware,
+//   authorize(["Student"]),
+//   restrictToSchool(),
+//   classController.getStudentClassInfoHandler
+// );
 
 router.put(
   "/:school_id/:class_id",
