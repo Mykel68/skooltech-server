@@ -1,15 +1,14 @@
-import {
-  Attendance,
-  Class,
-  ClassStudent,
-  GradingSetting,
-  School,
-  Session,
-  StudentScore,
-  Subject,
-  Term,
-  User,
-} from "../models";
+import { Op } from "sequelize";
+import Term from "../models/term.model";
+import Session from "../models/session.model";
+import StudentScore from "../models/student_score.model";
+import Subject from "../models/subject.model";
+import Attendance from "../models/attendance.model";
+import User from "../models/user.model";
+import School from "../models/school.model";
+import ClassStudent from "../models/class_student.model";
+import Class from "../models/class.model";
+import GradingSetting from "../models/grading_setting.model";
 
 export const getStudentResults = async (
   student_id: string,
@@ -35,7 +34,11 @@ export const getStudentResults = async (
         {
           model: Subject,
           as: "subject",
-          where: { is_approved: true },
+          where: {
+            is_approved: true,
+            session_id: session.session_id,
+            term_id: term.term_id,
+          },
         },
         {
           model: GradingSetting,
@@ -56,25 +59,31 @@ export const getStudentResults = async (
     const summaryScores = Object.entries(subjectsGrouped).map(
       ([subject_id, entries]) => {
         const total_score = entries.reduce((sum, s) => sum + s.total_score, 0);
-        const total_score_possible = entries.reduce(
-          (sum, s) => sum + s.grading_setting.mark,
-          0
-        );
         const subject_name = entries[0].subject.name;
-        const components = entries.map((s) => ({
-          component_name: s.grading_setting.component_name,
-          mark: s.grading_setting.mark,
-          score: s.total_score,
-        }));
+        const gradingSetting = entries[0].grading_setting;
+
+        const components =
+          gradingSetting?.components?.map((comp: any) => {
+            const scoreEntry = entries.find(
+              (e) => e.component_name === comp.name
+            );
+            return {
+              component_name: comp.name,
+              weight: comp.weight,
+              score: scoreEntry ? scoreEntry.total_score : 0,
+            };
+          }) || [];
+
+        const total_score_possible = 100; // Usually it's 100 when weight sums to 100%
 
         let extra: any = {};
         if (
           classEnrollments.filter(
-            (e) => e?.Session?.session_id! === session.session_id
+            (e) => e?.Session?.session_id === session.session_id
           ).length === 1
         ) {
           extra = {
-            average: 0, // Placeholder: Calculate class average here
+            average: 0,
             min: 0,
             max: 0,
           };
@@ -91,7 +100,7 @@ export const getStudentResults = async (
       }
     );
 
-    const entry = sessionsMap[session?.session_id!] || {
+    const entry = sessionsMap[session.session_id!] || {
       session: {
         session_id: session.session_id,
         name: session.name,
@@ -112,7 +121,7 @@ export const getStudentResults = async (
       scores: summaryScores,
     });
 
-    sessionsMap[session?.session_id!] = entry;
+    sessionsMap[session.session_id!] = entry;
   }
 
   for (const session of Object.values(sessionsMap)) {
