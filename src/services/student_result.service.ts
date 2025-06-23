@@ -8,6 +8,7 @@ import School from "../models/school.model";
 import ClassStudent from "../models/class_student.model";
 import Class from "../models/class.model";
 import GradingSetting from "../models/grading_setting.model";
+import { Op } from "sequelize";
 
 export const getStudentResults = async (
   student_id: string,
@@ -33,11 +34,7 @@ export const getStudentResults = async (
         {
           model: Subject,
           as: "subject",
-          where: {
-            is_approved: true,
-            session_id: session.session_id,
-            term_id: term.term_id,
-          },
+          where: { is_approved: true },
         },
         {
           model: GradingSetting,
@@ -103,6 +100,14 @@ export const getStudentResults = async (
       })
     );
 
+    const nextTerm = await Term.findOne({
+      where: {
+        session_id: session.session_id,
+        start_date: { [Op.gt]: term.end_date },
+      },
+      order: [["start_date", "ASC"]],
+    });
+
     const entry = sessionsMap[session.session_id!] || {
       session: {
         session_id: session.session_id,
@@ -121,6 +126,12 @@ export const getStudentResults = async (
         name: classData.name,
         grade_level: classData.grade_level,
       },
+      next_term_start_date: nextTerm?.start_date || null,
+      total_days: Math.ceil(
+        (new Date(term.end_date).getTime() -
+          new Date(term.start_date).getTime()) /
+          (1000 * 60 * 60 * 24)
+      ),
       scores: summaryScores,
     });
 
