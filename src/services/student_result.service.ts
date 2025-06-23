@@ -174,7 +174,7 @@ export const getStudentResults = async (
   });
 
   const student = await User.findByPk(student_id, {
-    attributes: ["user_id", "first_name", "last_name", "email"],
+    attributes: ["user_id", "first_name", "last_name", "email", "gender"],
   });
 
   const school = await School.findByPk(school_id, {
