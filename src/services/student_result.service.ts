@@ -34,7 +34,11 @@ export const getStudentResults = async (
         {
           model: Subject,
           as: "subject",
-          where: { is_approved: true },
+          where: {
+            is_approved: true,
+            session_id: session.session_id,
+            term_id: term.term_id,
+          },
         },
         {
           model: GradingSetting,
