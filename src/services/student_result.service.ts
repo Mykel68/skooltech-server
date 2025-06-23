@@ -1,4 +1,3 @@
-import { Op } from "sequelize";
 import Term from "../models/term.model";
 import Session from "../models/session.model";
 import StudentScore from "../models/student_score.model";
@@ -164,7 +163,18 @@ export const getStudentResults = async (
   });
 
   const school = await School.findByPk(school_id, {
-    attributes: ["name", "address"],
+    attributes: ["name", "address", "phone_number", "motto"],
+    include: [
+      {
+        model: User,
+        as: "users",
+        attributes: ["email"],
+        where: {
+          school_id,
+          role: "Admin",
+        },
+      },
+    ],
   });
 
   return {
