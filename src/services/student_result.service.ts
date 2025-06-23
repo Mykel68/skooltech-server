@@ -56,38 +56,40 @@ export const getStudentResults = async (
       subjectsGrouped[score.subject_id].push(score);
     }
 
-    const summaryScores = Object.entries(subjectsGrouped).map(
-      ([subject_id, entries]) => {
+    const summaryScores = await Promise.all(
+      Object.entries(subjectsGrouped).map(async ([subject_id, entries]) => {
         const total_score = entries.reduce((sum, s) => sum + s.total_score, 0);
         const subject_name = entries[0].subject.name;
         const gradingSetting = entries[0].grading_setting;
 
         const components =
           gradingSetting?.components?.map((comp: any) => {
-            const scoreEntry = entries.find(
-              (e) => e.component_name === comp.name
+            const entry = entries.find((e) =>
+              e.scores.some((sc: any) => sc.component_name === comp.name)
+            );
+            const scoreComp = entry?.scores.find(
+              (sc: any) => sc.component_name === comp.name
             );
             return {
               component_name: comp.name,
               weight: comp.weight,
-              score: scoreEntry ? scoreEntry.total_score : 0,
+              score: scoreComp ? scoreComp.score : 0,
             };
           }) || [];
 
-        const total_score_possible = 100; // Usually it's 100 when weight sums to 100%
+        const total_score_possible = 100;
 
-        let extra: any = {};
-        if (
-          classEnrollments.filter(
-            (e) => e?.Session?.session_id === session.session_id
-          ).length === 1
-        ) {
-          extra = {
-            average: 0,
-            min: 0,
-            max: 0,
-          };
-        }
+        const classScores = await StudentScore.findAll({
+          where: {
+            subject_id,
+            class_id: classData.class_id,
+          },
+        });
+
+        const allScores = classScores.map((s) => s.total_score);
+        const average = allScores.reduce((a, b) => a + b, 0) / allScores.length;
+        const min = Math.min(...allScores);
+        const max = Math.max(...allScores);
 
         return {
           subject_id,
@@ -95,9 +97,11 @@ export const getStudentResults = async (
           total_score,
           total_score_possible,
           components,
-          ...extra,
+          average,
+          min,
+          max,
         };
-      }
+      })
     );
 
     const entry = sessionsMap[session.session_id!] || {
