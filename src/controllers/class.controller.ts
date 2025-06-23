@@ -192,3 +192,18 @@ export const getStudentClassHandler = async (
     });
   }
 };
+
+export const getStudentClassInfoHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { school_id, student_id } = req.params;
+
+    const info = await classService.getStudentClassInfo(student_id, school_id);
+    sendResponse(res, 200, info);
+  } catch (error: any) {
+    next(error);
+  }
+};

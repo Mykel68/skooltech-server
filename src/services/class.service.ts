@@ -7,6 +7,7 @@ import sequelize from "../config/db";
 import User from "../models/user.model";
 import Subject from "../models/subject.model";
 import ClassTeacher from "../models/class_teacher.model";
+import { Attendance, Session, Term } from "../models";
 
 /**
  * Create a new class in a school
@@ -187,6 +188,70 @@ export const getAllClassesOfSchoolNoAuth = async (
   return classes;
 };
 
+export const getStudentClassInfo = async (
+  student_id: string,
+  school_id: string
+) => {
+  const enrollment = await ClassStudent.findOne({
+    where: { student_id },
+    include: [Class, Session, Term],
+  });
+
+  if (!enrollment)
+    throw new Error("Student is not currently enrolled in a class");
+
+  const classData = enrollment.Class!;
+  const session = enrollment.Session!;
+  const term = enrollment.Term!;
+
+  const totalStudents = await ClassStudent.count({
+    where: {
+      class_id: classData.class_id,
+      session_id: session.session_id,
+      term_id: term.term_id,
+    },
+  });
+
+  const subjectsOffered = await Subject.findAll({
+    where: {
+      class_id: classData.class_id,
+      session_id: session.session_id,
+      term_id: term.term_id,
+      is_approved: true,
+      school_id,
+    },
+  });
+
+  const subject_list = subjectsOffered.map((s) => ({
+    subject_id: s.subject_id,
+    name: s.name,
+    short: s.short,
+  }));
+
+  const attendanceRecords = await Attendance.findAll({
+    where: { student_id },
+  });
+
+  const totalSchoolDays = Math.ceil(
+    (new Date(term.end_date).getTime() - new Date(term.start_date).getTime()) /
+      (1000 * 60 * 60 * 24)
+  );
+  const daysPresent = attendanceRecords.length;
+  const attendance_percentage =
+    totalSchoolDays > 0 ? (daysPresent / totalSchoolDays) * 100 : 0;
+
+  return {
+    class: {
+      class_id: classData.class_id,
+      name: classData.name,
+      grade_level: classData.grade_level,
+    },
+    totalStudents,
+    subject_list,
+    attendance_percentage: parseFloat(attendance_percentage.toFixed(2)),
+  };
+};
+
 export const getStudentClass = async (
   school_id: string,
   student_id: string
@@ -230,5 +295,3 @@ export const getStudentClass = async (
 
   return classData as ClassInstance & { student_count: number };
 };
-
-// export const createClassTeacher = async()
