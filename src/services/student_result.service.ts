@@ -91,6 +91,9 @@ export const getStudentResults = async (
         const min = Math.min(...allScores);
         const max = Math.max(...allScores);
 
+        const sortedScores = [...allScores].sort((a, b) => b - a);
+        const subject_position = sortedScores.indexOf(total_score) + 1;
+
         return {
           subject_id,
           subject_name,
@@ -100,9 +103,43 @@ export const getStudentResults = async (
           average,
           min,
           max,
+          subject_position,
         };
       })
     );
+
+    const totalSubjects = summaryScores.length;
+    const totalScores = summaryScores.reduce(
+      (sum, s) => sum + s.total_score,
+      0
+    );
+
+    const allStudentScores = await StudentScore.findAll({
+      where: {
+        class_id: classData.class_id,
+      },
+    });
+
+    const totalStudents = await ClassStudent.count({
+      where: {
+        class_id: classData.class_id,
+        session_id: session.session_id,
+        term_id: term.term_id,
+      },
+    });
+
+    const studentTotalsMap: { [user_id: string]: number } = {};
+    allStudentScores.forEach((score) => {
+      studentTotalsMap[score.user_id] =
+        (studentTotalsMap[score.user_id] || 0) + score.total_score;
+    });
+
+    const sortedTotals = Object.entries(studentTotalsMap)
+      .map(([user_id, total]) => ({ user_id, total }))
+      .sort((a, b) => b.total - a.total);
+
+    const overall_position =
+      sortedTotals.findIndex((s) => s.user_id === student_id) + 1;
 
     const nextTerm = await Term.findOne({
       where: {
@@ -137,36 +174,12 @@ export const getStudentResults = async (
           (1000 * 60 * 60 * 24)
       ),
       scores: summaryScores,
+      overall_position,
+      totalStudents,
+      total_score: totalScores,
     });
 
     sessionsMap[session.session_id!] = entry;
-  }
-
-  for (const session of Object.values(sessionsMap)) {
-    session.terms.sort(
-      (a: any, b: any) =>
-        new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
-    );
-
-    const terms = session.terms;
-
-    terms.forEach((term: any, idx: number) => {
-      if (terms.length >= 3 && idx < terms.length - 1) {
-        term.scores = term.scores.map((s: any) => ({
-          subject_id: s.subject_id,
-          subject_name: s.subject_name,
-          total_score: s.total_score,
-          total_score_possible: s.total_score_possible,
-        }));
-      } else if (terms.length === 2 && idx === 0) {
-        term.scores = term.scores.map((s: any) => ({
-          subject_id: s.subject_id,
-          subject_name: s.subject_name,
-          total_score: s.total_score,
-          total_score_possible: s.total_score_possible,
-        }));
-      }
-    });
   }
 
   const attendance = await Attendance.findAll({
