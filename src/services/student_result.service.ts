@@ -14,11 +14,20 @@ export const getStudentResults = async (
   student_id: string,
   school_id: string
 ) => {
+  // 1. Get all class enrolments for the student
   const classEnrollments = await ClassStudent.findAll({
     where: { student_id },
     include: [Class, Session, Term],
   });
 
+  // 2. Get all attendance records up front
+  const attendanceRecords = await Attendance.findAll({
+    where: { student_id, school_id },
+    attributes: ["session_id", "term_id", "class_id", "days_present"],
+    raw: true,
+  });
+
+  // 3. Prepare sessions map
   const sessionsMap: { [session_id: string]: any } = {};
 
   for (const enrollment of classEnrollments) {
@@ -26,6 +35,7 @@ export const getStudentResults = async (
     const classData = enrollment.Class!;
     const term = enrollment.Term!;
 
+    // 4. Get approved scores for the term/subject
     const scores = await StudentScore.findAll({
       where: {
         user_id: student_id,
@@ -49,6 +59,7 @@ export const getStudentResults = async (
 
     if (!scores.length) continue;
 
+    // 5. Group scores by subject
     const subjectsGrouped: { [subject_id: string]: any[] } = {};
     for (const score of scores) {
       if (!subjectsGrouped[score.subject_id])
@@ -56,12 +67,14 @@ export const getStudentResults = async (
       subjectsGrouped[score.subject_id].push(score);
     }
 
+    // 6. Process each subject
     const summaryScores = await Promise.all(
       Object.entries(subjectsGrouped).map(async ([subject_id, entries]) => {
         const total_score = entries.reduce((sum, s) => sum + s.total_score, 0);
         const subject_name = entries[0].subject.name;
         const gradingSetting = entries[0].grading_setting;
 
+        // Get components
         const components =
           gradingSetting?.components?.map((comp: any) => {
             const entry = entries.find((e) =>
@@ -77,8 +90,7 @@ export const getStudentResults = async (
             };
           }) || [];
 
-        const total_score_possible = 100;
-
+        // Class scores for comparison
         const classScores = await StudentScore.findAll({
           where: {
             subject_id,
@@ -87,9 +99,11 @@ export const getStudentResults = async (
         });
 
         const allScores = classScores.map((s) => s.total_score);
-        const average = allScores.reduce((a, b) => a + b, 0) / allScores.length;
-        const min = Math.min(...allScores);
-        const max = Math.max(...allScores);
+        const average = allScores.length
+          ? allScores.reduce((a, b) => a + b, 0) / allScores.length
+          : 0;
+        const min = allScores.length ? Math.min(...allScores) : 0;
+        const max = allScores.length ? Math.max(...allScores) : 0;
 
         const sortedScores = [...allScores].sort((a, b) => b - a);
         const subject_position = sortedScores.indexOf(total_score) + 1;
@@ -98,7 +112,7 @@ export const getStudentResults = async (
           subject_id,
           subject_name,
           total_score,
-          total_score_possible,
+          total_score_possible: 100,
           components,
           average,
           min,
@@ -108,6 +122,7 @@ export const getStudentResults = async (
       })
     );
 
+    // 7. Calculate term-level stats
     const totalSubjects = summaryScores.length;
     const totalScores = summaryScores.reduce(
       (sum, s) => sum + s.total_score,
@@ -141,6 +156,7 @@ export const getStudentResults = async (
     const overall_position =
       sortedTotals.findIndex((s) => s.user_id === student_id) + 1;
 
+    // 8. Next term info
     const nextTerm = await Term.findOne({
       where: {
         session_id: session.session_id,
@@ -149,6 +165,23 @@ export const getStudentResults = async (
       order: [["start_date", "ASC"]],
     });
 
+    // 9. Attendance for this term
+    const attendanceRecord = attendanceRecords.find(
+      (a) =>
+        a.session_id === session.session_id &&
+        a.term_id === term.term_id &&
+        a.class_id === classData.class_id
+    );
+    const days_present = attendanceRecord?.days_present || 0;
+
+    // 10. Calculate term days
+    const total_days = Math.ceil(
+      (new Date(term.end_date).getTime() -
+        new Date(term.start_date).getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+
+    // 11. Save into sessionsMap
     const entry = sessionsMap[session.session_id!] || {
       session: {
         session_id: session.session_id,
@@ -162,18 +195,25 @@ export const getStudentResults = async (
       name: term.name,
       start_date: term.start_date,
       end_date: term.end_date,
+      next_term_start_date: nextTerm?.start_date || null,
+      total_days,
+      days_present,
       class: {
         class_id: classData.class_id,
         name: classData.name,
         grade_level: classData.grade_level,
       },
-      next_term_start_date: nextTerm?.start_date || null,
-      total_days: Math.ceil(
-        (new Date(term.end_date).getTime() -
-          new Date(term.start_date).getTime()) /
-          (1000 * 60 * 60 * 24)
-      ),
-      scores: summaryScores,
+      scores: summaryScores.map((s) => ({
+        subject_id: s.subject_id,
+        subject_name: s.subject_name,
+        total_score: s.total_score,
+        subject_position: s.subject_position,
+        average: s.average,
+        components: s.components.map((c: any) => ({
+          component_name: c.component_name,
+          score: c.score,
+        })),
+      })),
       overall_position,
       totalStudents,
       total_score: totalScores,
@@ -182,14 +222,20 @@ export const getStudentResults = async (
     sessionsMap[session.session_id!] = entry;
   }
 
-  const attendance = await Attendance.findAll({
-    where: { student_id },
-  });
+  // 12. Attendance summary array (for flat list)
+  const attendance = Object.values(sessionsMap)
+    .flatMap((session: any) => session.terms)
+    .map((term: any) => ({
+      days_present: term.days_present,
+      total_days: term.total_days,
+    }));
 
+  // 13. Student info
   const student = await User.findByPk(student_id, {
     attributes: ["user_id", "first_name", "last_name", "email", "gender"],
   });
 
+  // 14. School info
   const school = await School.findByPk(school_id, {
     attributes: ["name", "address", "phone_number", "motto"],
     include: [
