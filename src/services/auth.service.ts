@@ -200,6 +200,7 @@ export const registerTeacherStudent = async (
 		class_id,
 		session_id,
 		term_id,
+		gender,
 	} = userData;
 
 	if (!validateUUID(school_id)) throw new AppError('Invalid school ID', 400);
@@ -249,6 +250,7 @@ export const registerTeacherStudent = async (
 		school_id,
 		is_approved: role === 'Teacher' ? false : true,
 		is_active: true,
+		gender,
 	});
 
 	if (role === 'Student' && class_id && session_id && term_id) {
