@@ -893,6 +893,14 @@ router.patch(
   userController.verifyStudentController
 );
 
+router.patch(
+  "/bulk-update",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  userController.verifyUserBulkController
+);
+
 /**
  * @swagger
  * /users/teachers/{user_id}:

@@ -168,6 +168,25 @@ export const verifyStudent = async (
   return student as UserInstance;
 };
 
+export const verifyUsers = async (
+  user_ids: string[],
+  is_approved: boolean
+): Promise<UserInstance[]> => {
+  //   if (!validateUUID(user_ids)) throw new AppError("Invalid student ID", 400);
+
+  const students = await User.findAll({
+    where: { user_id: user_ids,  },
+  });
+
+  await Promise.all(
+    students.map(async (student) => {
+      await student.update({ is_approved });
+    })
+  );
+
+  return students as UserInstance[];
+};
+
 export const getStudentsBySchool = async (
   school_id: string,
   session_id: string,

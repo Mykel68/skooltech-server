@@ -28,6 +28,7 @@ const userUpdateSchema = Joi.object({
 
 const VerifySchema = Joi.object({
   is_approved: Joi.boolean().required(),
+  user_ids: Joi.array().items(Joi.string().uuid()).optional(),
 });
 
 export const registerUserController = async (
@@ -233,6 +234,28 @@ export const verifyStudentController = async (
       role: updatedStudent.role,
       school_id: updatedStudent.school_id,
       is_approved: updatedStudent.is_approved,
+    });
+  } catch (error: any) {
+    next(new AppError(error.message, error.statusCode || 400));
+  }
+};
+
+export const verifyUserBulkController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { user_ids } = req.body;
+    const { error, value } = VerifySchema.validate(req.body);
+    if (error) throw new AppError(error.details[0].message, 400);
+
+    const updatedStudents = await userService.verifyUsers(
+      user_ids,
+      value.is_approved
+    );
+    sendResponse(res, 200, {
+      user_ids: updatedStudents.map((s) => s.user_id),
     });
   } catch (error: any) {
     next(new AppError(error.message, error.statusCode || 400));
