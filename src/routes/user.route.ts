@@ -1,12 +1,12 @@
-import express from 'express';
-import * as userController from '../controllers/user.controller';
+import express from "express";
+import * as userController from "../controllers/user.controller";
 import {
-	attachCurrentSessionTerm,
-	authMiddleware,
-	authorize,
-	restrictToSchool,
-	verify_X_API_KEY,
-} from '../middlewares/auth.middleware';
+  attachCurrentSessionTerm,
+  authMiddleware,
+  authorize,
+  restrictToSchool,
+  verify_X_API_KEY,
+} from "../middlewares/auth.middleware";
 
 const router = express.Router();
 
@@ -116,7 +116,7 @@ const router = express.Router();
  *                   type: string
  *                   example: "School not found"
  */
-router.post('/', userController.registerUserController);
+router.post("/", userController.registerUserController);
 
 /**
  * @swagger
@@ -199,9 +199,9 @@ router.post('/', userController.registerUserController);
  *                   example: "User not found"
  */
 router.get(
-	'/profile/:user_id',
-	authMiddleware,
-	userController.getUserController
+  "/profile/:user_id",
+  authMiddleware,
+  userController.getUserController
 );
 
 /**
@@ -323,10 +323,10 @@ router.get(
  *                   example: "User not found"
  */
 router.patch(
-	'/profile/:user_id',
-	authMiddleware,
-	verify_X_API_KEY,
-	userController.updateUserController
+  "/profile/:user_id",
+  authMiddleware,
+  verify_X_API_KEY,
+  userController.updateUserController
 );
 
 /**
@@ -422,11 +422,11 @@ router.patch(
  *                   example: "School not found"
  */
 router.get(
-	'/:school_id/teachers',
-	authMiddleware,
-	authorize(['Admin']),
-	restrictToSchool(),
-	userController.getTeachersBySchoolController
+  "/:school_id/teachers",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  userController.getTeachersBySchoolController
 );
 
 /**
@@ -522,12 +522,12 @@ router.get(
  *                   example: "School not found"
  */
 router.get(
-	'/:school_id/students',
-	authMiddleware,
-	attachCurrentSessionTerm,
-	authorize(['Admin']),
-	restrictToSchool(),
-	userController.getStudentsBySchoolController
+  "/:school_id/students",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  userController.getStudentsBySchoolController
 );
 
 /**
@@ -621,11 +621,11 @@ router.get(
  *                   example: "Teacher not found"
  */
 router.get(
-	'/teachers/:user_id',
-	authMiddleware,
-	authorize(['Admin']),
-	restrictToSchool(),
-	userController.getTeacherByIdController
+  "/teachers/:user_id",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  userController.getTeacherByIdController
 );
 
 /**
@@ -756,11 +756,11 @@ router.get(
  *                   example: "Teacher not found"
  */
 router.patch(
-	'/teachers/:user_id',
-	authMiddleware,
-	authorize(['Admin']),
-	restrictToSchool(),
-	userController.updateTeacherController
+  "/teachers/:user_id",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  userController.updateTeacherController
 );
 
 /**
@@ -878,11 +878,19 @@ router.patch(
  *                   example: "Teacher not found"
  */
 router.patch(
-	'/teachers/:user_id/verify',
-	authMiddleware,
-	authorize(['Admin']),
-	restrictToSchool(),
-	userController.verifyTeacherController
+  "/teachers/:user_id/verify",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  userController.verifyTeacherController
+);
+
+router.patch(
+  "/students/:user_id/verify",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  userController.verifyStudentController
 );
 
 /**
@@ -951,11 +959,11 @@ router.patch(
  *                   example: "Teacher not found"
  */
 router.delete(
-	'/teachers/:user_id',
-	authMiddleware,
-	authorize(['Admin']),
-	restrictToSchool(),
-	userController.deleteTeacherController
+  "/teachers/:user_id",
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  userController.deleteTeacherController
 );
 
 /**
