@@ -18,7 +18,7 @@ const registrationSchema = Joi.object({
   username: Joi.string().min(3).max(30).required(),
   password: Joi.string().min(8).required(),
   email: Joi.string().email().required(),
-  role: Joi.string().valid("Student", "Teacher").required(),
+  role: Joi.string().valid("Student", "Teacher", "Parent").required(),
   first_name: Joi.string().max(50).optional(),
   last_name: Joi.string().max(50).optional(),
 });
