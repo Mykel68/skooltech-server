@@ -12,6 +12,8 @@ import GradingSetting from "./grading_setting.model";
 import StudentScore from "./student_score.model";
 import Term from "./term.model";
 import Payment from "./payment.model";
+import StudentLinkCode from "./studentLinkCode";
+import ParentLink from "./parentLink";
 
 // === CLASS associations ===
 Class.belongsTo(School, { foreignKey: "school_id" });
@@ -143,6 +145,11 @@ User.hasMany(Class, { foreignKey: "teacher_id", as: "taught_classes" });
 
 Payment.belongsTo(User, { foreignKey: "student_id", as: "student" });
 Payment.belongsTo(School, { foreignKey: "school_id", as: "school" });
+
+ParentLink.belongsTo(User, { foreignKey: "parent_user_id", as: "parent_user" });
+ParentLink.belongsTo(User, { foreignKey: "child_user_id", as: "child_user" });
+
+StudentLinkCode.belongsTo(User, { foreignKey: "student_user_id", as: "user" });
 
 export const applyAssociations = () => {
   // Intentionally empty. Running this file will apply all associations.
