@@ -242,7 +242,7 @@ export const registerTeacherStudent = async (
     first_name,
     last_name,
     school_id,
-    is_approved: role === "Teacher" ? false : true,
+    is_approved: ["Teacher", "Parent"].includes(role) ? false : true,
     is_active: true,
     gender,
   });
