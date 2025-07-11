@@ -42,3 +42,7 @@ export const getPreviousMonthRange = () => {
   const end = new Date(now.getFullYear(), now.getMonth(), 0); // last day of last month
   return { start, end };
 };
+
+export const addMinutes = (date: Date, mins: number): Date => {
+  return new Date(date.getTime() + mins * 60_000);
+};

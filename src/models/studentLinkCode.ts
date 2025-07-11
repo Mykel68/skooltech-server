@@ -6,7 +6,7 @@ interface StudentLinkCodeAttributes {
   student_user_id: string;
   code: string;
   expires_at: Date;
-  used_at: Date;
+  used_at?: Date;
 }
 
 interface StudentLinkCodeCreationAttributes
@@ -48,6 +48,5 @@ const StudentLinkCode = sequelize.define<
 );
 
 // Association
-StudentLinkCode.belongsTo(User, { foreignKey: "user_id", as: "user" });
 
 export default StudentLinkCode;
