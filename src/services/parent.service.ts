@@ -1,6 +1,7 @@
 import User from "../models/user.model";
 import ParentStudent from "../models/parent_student.model";
 import { AppError } from "../utils/error.util";
+import { Class, ClassStudent } from "../models";
 
 export const linkParentToStudent = async ({
   parent_user_id,
@@ -55,4 +56,71 @@ export const linkParentToStudent = async ({
     first_name: student.first_name,
     last_name: student.last_name,
   };
+};
+
+export const getLinkedChildrenOfParent = async ({
+  parent_user_id,
+  school_id,
+}: {
+  parent_user_id: string;
+  school_id: string;
+}) => {
+  // 1. Verify parent exists
+  const parent = await User.findOne({
+    where: { user_id: parent_user_id, role: "Parent" },
+  });
+  if (!parent) throw new AppError("Parent account not found", 404);
+
+  // 2. Find all links
+  const links = await ParentStudent.findAll({
+    where: { parent_user_id },
+  });
+  if (links.length === 0) return [];
+
+  const studentIds = links.map((link) => link.student_user_id);
+
+  // 3. Fetch all students
+  const students = await User.findAll({
+    where: {
+      user_id: studentIds,
+      school_id,
+      role: "Student",
+    },
+    include: [
+      {
+        model: ClassStudent,
+        as: "class_students",
+        where: { school_id },
+        required: false,
+        include: [
+          {
+            model: Class,
+            as: "class",
+          },
+        ],
+      },
+    ],
+  });
+
+  // 4. Format response
+  return students.map((student) => {
+    // Get latest class_student entry if exists
+    const classStudent = student.class_students?.[0];
+
+    return {
+      id: student.user_id,
+      admission_number: student.admission_number,
+      name: `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim(),
+      gender: student.gender,
+      class: classStudent
+        ? {
+            id: classStudent.class_id,
+            name: classStudent.Class?.name,
+            grade_level: classStudent.Class?.grade_level,
+            // session_id: classStudent.Session?.session_id,
+            // term_id: classStudent.term_id,
+          }
+        : null,
+    };
+  });
 };

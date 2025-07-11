@@ -1,6 +1,7 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
 import User from "./user.model";
+import { ClassStudentInstance } from "./class_student.model";
 
 export interface ParentStudentAttributes {
   id?: string;
@@ -11,7 +12,9 @@ export interface ParentStudentAttributes {
 
 export interface ParentStudentInstance
   extends Model<ParentStudentAttributes>,
-    ParentStudentAttributes {}
+    ParentStudentAttributes {
+  classStudent?: ClassStudentInstance;
+}
 
 const ParentStudent = sequelize.define<ParentStudentInstance>(
   "ParentStudent",

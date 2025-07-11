@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { linkParentToStudent } from "../services/parent.service";
+import {
+  getLinkedChildrenOfParent,
+  linkParentToStudent,
+} from "../services/parent.service";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
 import { AuthRequest } from "../middlewares/auth.middleware";
@@ -26,6 +29,29 @@ export const linkChildToParent = async (
     sendResponse(res, 200, {
       message: "Student successfully linked to parent",
       student: linked,
+    });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getLinkedChildren = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const parent_user_id = req.user?.user_id;
+    const school_id = req.user?.school_id;
+
+    const linked = await getLinkedChildrenOfParent({
+      parent_user_id: parent_user_id as string,
+      school_id: school_id as string,
+    });
+
+    sendResponse(res, 200, {
+      message: "Student successfully linked to parent",
+      children: linked,
     });
   } catch (error: any) {
     next(error);
