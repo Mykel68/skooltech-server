@@ -12,10 +12,10 @@ import Session from "./session.model";
 import Term from "./term.model";
 import GradingSetting from "./grading_setting.model";
 import StudentScore from "./student_score.model";
-import StudentLinkCode from "./studentLinkCode";
 import ParentLink from "./parentLink";
 import SchoolSequence from "./school_sequence.model";
 import ParentStudent from "./parent_student.model";
+import StudentLinkCode from "./student_link_code";
 
 // Apply all relationships
 import { applyAssociations } from "./associations";

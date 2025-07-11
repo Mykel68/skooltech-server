@@ -1,4 +1,5 @@
-import { School } from "../models";
+import { Op } from "sequelize";
+import { School, StudentLinkCode } from "../models";
 import Class from "../models/class.model";
 import ClassStudent from "../models/class_student.model";
 import Student from "../models/student.model";
@@ -345,3 +346,28 @@ export const getStudentById = async (user_id: string): Promise<any> => {
 //     };
 //   });
 // };
+
+export const generateStudentLinkCode = async (student_user_id: string) => {
+  const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getMinutes() + 10); // Expires in 10 minutes
+
+  // Optionally, invalidate old codes
+  await StudentLinkCode.update(
+    { used_at: new Date() },
+    {
+      where: {
+        student_user_id,
+        used_at: { [Op.is]: null },
+      },
+    }
+  );
+
+  const newCode = await StudentLinkCode.create({
+    student_user_id,
+    code,
+    expires_at: expiresAt,
+  });
+
+  return newCode.code;
+};
