@@ -15,6 +15,7 @@ import Payment from "./payment.model";
 import StudentLinkCode from "./studentLinkCode";
 import ParentLink from "./parentLink";
 import SchoolSequence from "./school_sequence.model";
+import ParentStudent from "./parent_student.model";
 
 // === CLASS associations ===
 Class.belongsTo(School, { foreignKey: "school_id" });
@@ -158,6 +159,20 @@ StudentLinkCode.belongsTo(User, {
 SchoolSequence.belongsTo(School, {
   foreignKey: "school_id",
   as: "school",
+});
+
+User.belongsToMany(User, {
+  as: "children",
+  through: ParentStudent,
+  foreignKey: "parent_user_id",
+  otherKey: "student_user_id",
+});
+
+User.belongsToMany(User, {
+  as: "parents",
+  through: ParentStudent,
+  foreignKey: "student_user_id",
+  otherKey: "parent_user_id",
 });
 
 export const applyAssociations = () => {
