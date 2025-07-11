@@ -90,7 +90,6 @@ export const getLinkedChildrenOfParent = async ({
       {
         model: ClassStudent,
         as: "class_students",
-        where: { school_id },
         required: false,
         include: [
           {
