@@ -44,6 +44,11 @@ export const linkParentToStudent = async ({
     student_user_id: student.user_id,
   });
 
+  // approve the parent
+  if (!parent.is_approved) {
+    await parent.update({ is_approved: true });
+  }
+
   return {
     student_id: student.user_id,
     admission_number: student.admission_number,
