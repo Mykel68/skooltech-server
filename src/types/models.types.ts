@@ -39,6 +39,7 @@ export interface UserRegistrationData {
   last_name?: string;
   school_id: string;
   gender?: "Male" | "Female";
+  admission_number?: string;
 }
 
 export interface UserCreationData {

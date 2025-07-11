@@ -14,6 +14,7 @@ import Term from "./term.model";
 import Payment from "./payment.model";
 import StudentLinkCode from "./studentLinkCode";
 import ParentLink from "./parentLink";
+import SchoolSequence from "./school_sequence.model";
 
 // === CLASS associations ===
 Class.belongsTo(School, { foreignKey: "school_id" });
@@ -149,8 +150,15 @@ Payment.belongsTo(School, { foreignKey: "school_id", as: "school" });
 ParentLink.belongsTo(User, { foreignKey: "parent_user_id", as: "parent_user" });
 ParentLink.belongsTo(User, { foreignKey: "child_user_id", as: "child_user" });
 
-StudentLinkCode.belongsTo(User, { foreignKey: "student_user_id", as: "student_user" });
+StudentLinkCode.belongsTo(User, {
+  foreignKey: "student_user_id",
+  as: "student_user",
+});
 
+SchoolSequence.belongsTo(School, {
+  foreignKey: "school_id",
+  as: "school",
+});
 
 export const applyAssociations = () => {
   // Intentionally empty. Running this file will apply all associations.

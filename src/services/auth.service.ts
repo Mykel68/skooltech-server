@@ -18,6 +18,8 @@ import {
   StudentTeacherRegistrationData,
   UserRegistrationData,
 } from "../types/models.types";
+import { SchoolSequence, sequelize } from "../models";
+import { generateAdmissionNumber } from "../utils/admission_number.util";
 
 export const login = async (
   username: string,
@@ -215,6 +217,14 @@ export const registerTeacherStudent = async (
   const school = await School.findByPk(school_id);
   if (!school) throw new AppError("School not found", 404);
 
+  if (!school.school_code && role === "Student") {
+    throw new AppError(
+      "School code not defined. Cannot create admission number",
+      500
+    );
+  }
+
+  // Check uniqueness
   const [existingUser, existingEmail] = await Promise.all([
     User.findOne({ where: { username } }),
     User.findOne({ where: { email } }),
@@ -222,6 +232,7 @@ export const registerTeacherStudent = async (
   if (existingUser) throw new AppError("Username already taken", 400);
   if (existingEmail) throw new AppError("Email already registered", 400);
 
+  // Validate class belongs to school
   if (role === "Student" && class_id) {
     const classInstance = await Class.findByPk(class_id);
     if (!classInstance) throw new AppError("Class not found", 404);
@@ -230,34 +241,52 @@ export const registerTeacherStudent = async (
     }
   }
 
+  // Hash the password
   const password_hash = await bcrypt.hash(password, await bcrypt.genSalt(10));
   const user_id = uuidv4();
 
-  const newUser = await User.create({
-    user_id,
-    username,
-    email,
-    password_hash,
-    role,
-    first_name,
-    last_name,
-    school_id,
-    is_approved: ["Teacher", "Parent"].includes(role) ? false : true,
-    is_active: true,
-    gender,
+  // Run the whole thing in a transaction
+  return await sequelize.transaction(async (t) => {
+    let admission_number: string | undefined = undefined;
+
+    if (role === "Student") {
+      // Only students get admission number
+      admission_number = await generateAdmissionNumber(school_id, t);
+    }
+
+    const newUser = await User.create(
+      {
+        user_id,
+        username,
+        email,
+        password_hash,
+        role,
+        first_name,
+        last_name,
+        school_id,
+        is_approved: ["Teacher", "Parent"].includes(role) ? false : true,
+        is_active: true,
+        gender,
+        admission_number,
+      },
+      { transaction: t }
+    );
+
+    if (role === "Student" && class_id && session_id && term_id) {
+      await ClassStudent.create(
+        {
+          class_id,
+          student_id: user_id,
+          session_id,
+          term_id,
+          created_at: new Date(),
+        },
+        { transaction: t }
+      );
+    }
+
+    return newUser;
   });
-
-  if (role === "Student" && class_id && session_id && term_id) {
-    await ClassStudent.create({
-      class_id,
-      student_id: user_id,
-      session_id,
-      term_id,
-      created_at: new Date(),
-    });
-  }
-
-  return newUser;
 };
 
 // export const verifyUsername = async (username: string): Promise<string> => {

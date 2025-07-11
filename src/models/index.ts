@@ -14,6 +14,7 @@ import GradingSetting from "./grading_setting.model";
 import StudentScore from "./student_score.model";
 import StudentLinkCode from "./studentLinkCode";
 import ParentLink from "./parentLink";
+import SchoolSequence from "./school_sequence.model";
 
 // Apply all relationships
 import { applyAssociations } from "./associations";
@@ -35,4 +36,5 @@ export {
   StudentScore,
   StudentLinkCode,
   ParentLink,
+  SchoolSequence,
 };
