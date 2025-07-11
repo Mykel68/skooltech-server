@@ -16,13 +16,16 @@ export const linkChildToParent = async (
     const parent_user_id = req.user?.user_id;
     const school_id = req.user?.school_id;
 
-    const { admission_number } = req.body;
-    if (!admission_number)
-      throw new AppError("Admission number is required", 400);
+    const { admission_number, code } = req.body;
+
+    if (!admission_number && !code) {
+      throw new AppError("Either admission_number or code is required", 400);
+    }
 
     const linked = await linkParentToStudent({
       parent_user_id: parent_user_id as string,
       student_admission_number: admission_number,
+      code,
       school_id: school_id as string,
     });
 
