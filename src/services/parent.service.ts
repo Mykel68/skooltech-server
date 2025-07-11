@@ -94,7 +94,6 @@ export const getLinkedChildrenOfParent = async ({
         include: [
           {
             model: Class,
-            as: "class",
           },
         ],
       },
