@@ -149,7 +149,8 @@ Payment.belongsTo(School, { foreignKey: "school_id", as: "school" });
 ParentLink.belongsTo(User, { foreignKey: "parent_user_id", as: "parent_user" });
 ParentLink.belongsTo(User, { foreignKey: "child_user_id", as: "child_user" });
 
-StudentLinkCode.belongsTo(User, { foreignKey: "student_user_id", as: "user" });
+StudentLinkCode.belongsTo(User, { foreignKey: "student_user_id", as: "student_user" });
+
 
 export const applyAssociations = () => {
   // Intentionally empty. Running this file will apply all associations.
