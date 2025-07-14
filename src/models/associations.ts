@@ -16,6 +16,8 @@ import StudentLinkCode from "./studentLinkCode";
 import ParentLink from "./parentLink";
 import SchoolSequence from "./school_sequence.model";
 import ParentStudent from "./parent_student.model";
+import MessageRecipient from "./message_recipient";
+import Message from "./message";
 
 // === CLASS associations ===
 Class.belongsTo(School, { foreignKey: "school_id" });
@@ -174,6 +176,20 @@ User.belongsToMany(User, {
   foreignKey: "student_user_id",
   otherKey: "parent_user_id",
 });
+
+// Message model
+Message.hasMany(MessageRecipient, {
+  foreignKey: "message_id",
+  as: "recipients",
+});
+
+MessageRecipient.belongsTo(Message, {
+  foreignKey: "message_id",
+  as: "message",
+});
+
+User.hasMany(MessageRecipient, { foreignKey: "user_id" });
+MessageRecipient.belongsTo(User, { foreignKey: "user_id" });
 
 export const applyAssociations = () => {
   // Intentionally empty. Running this file will apply all associations.
