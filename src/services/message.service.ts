@@ -157,7 +157,7 @@ export const getMessagesForUser = async (
         required: false,
       },
     ],
-    order: [["sent_at", "DESC"]],
+    order: [["created_at", "DESC"]],
   });
 
   const truncate = (text: string, length = 20) =>
@@ -246,7 +246,7 @@ export const markMessageAsRead = async (
   message_id: string,
   user_id: string
 ) => {
-  // Find the recipient entry for this user
+  // 1. Find the recipient entry for this user
   const recipient = await MessageRecipient.findOne({
     where: { message_id, user_id },
   });
@@ -255,23 +255,30 @@ export const markMessageAsRead = async (
     throw new Error("Recipient entry not found.");
   }
 
-  // Only mark as read once
+  // 2. Only mark as read once
   if (!recipient.read_at) {
     recipient.read_at = new Date();
     await recipient.save();
 
-    // Increment read count on Message
     await Message.increment("read_count", {
       where: { message_id },
     });
   }
 
-  // Return the full message only (no recipients)
+  // 3. Fetch the message itself
   const message = await Message.findOne({
     where: { message_id },
   });
 
-  return message;
+  if (!message) {
+    throw new Error("Message not found.");
+  }
+
+  // 4. Return all fields plus isRead: true
+  return {
+    ...message.toJSON(),
+    isRead: true,
+  };
 };
 
 export const deleteMessage = async (message_id: string, user_id: string) => {

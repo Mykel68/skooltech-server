@@ -90,10 +90,7 @@ export const markMessageAsRead = async (
     const user_id = req.user?.user_id;
     const message_id = req.params.message_id;
     const result = await MessageService.markMessageAsRead(message_id, user_id!);
-    sendResponse(res, 200, {
-      message: "Message marked as read",
-      data: result,
-    });
+    sendResponse(res, 200, { result });
   } catch (err: any) {
     next(new AppError(err.message, err.statusCode || 500));
   }
