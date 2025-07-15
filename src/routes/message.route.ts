@@ -50,4 +50,12 @@ router.post(
   MessageController.markMessageAsRead
 );
 
+router.delete(
+  "/:message_id",
+  verify_X_API_KEY,
+  authMiddleware,
+  restrictToSchool(),
+  MessageController.deleteMessage
+);
+
 export default router;

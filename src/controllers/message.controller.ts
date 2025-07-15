@@ -103,7 +103,8 @@ export const deleteMessage = async (
 ) => {
   try {
     const user_id = req.user?.user_id;
-    const result = await MessageService.deleteMessage(req.params.id, user_id!);
+    const message_id = req.params.message_id;
+    const result = await MessageService.deleteMessage(message_id, user_id!);
     sendResponse(res, 200, {
       message: "Message deleted successfully",
       data: result,
