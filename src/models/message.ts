@@ -1,6 +1,7 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
 import { ClassInstance } from "./class.model";
+import { MessageRecipientInstance } from "./message_recipient";
 
 export interface MessageAttributes {
   message_id?: string;
@@ -18,6 +19,7 @@ export interface MessageAttributes {
   read_count: number;
   created_at?: Date;
   sent_at?: Date;
+  recipients?: MessageRecipientInstance[];
 }
 
 type CreationAttributes = Optional<
@@ -35,6 +37,7 @@ export interface MessageInstance
   extends Model<MessageAttributes, CreationAttributes>,
     MessageAttributes {
   class?: ClassInstance;
+  // recipients?: MessageRecipientInstance[];
 }
 
 const Message = sequelize.define<MessageInstance>(

@@ -151,21 +151,35 @@ export const getMessagesForUser = async (
         where: { user_id },
         required: true,
       },
+      {
+        model: Class,
+        as: "class", // adjust this alias to match your association
+        required: false,
+      },
     ],
     order: [["sent_at", "DESC"]],
   });
 
-  // Helper function to truncate text
   const truncate = (text: string, length = 20) =>
     text && text.length > length ? text.slice(0, length) + "..." : text;
 
   const transformedMessages = messages.map((msg) => {
     const json = msg.toJSON();
+    const recipient = json.recipients?.[0];
 
     return {
-      ...json,
-      content: truncate(json.content),
+      message_id: json.message_id,
+      title: json.title,
+      grade_level: messages[0]?.class?.grade_level,
+      message_type: json.message_type,
+      target_role: json.target_role,
+      content: truncate(json.content || ""),
+      isRead: !!recipient?.read_at,
       author: json.admin_id ? "School Admin" : "Unknown",
+      created_at: json.created_at,
+      sent_at: json.sent_at,
+      hasAttachment: json.has_attachment,
+      attachmentName: json.attachment_name,
     };
   });
 
@@ -231,6 +245,7 @@ export const markMessageAsRead = async (
   message_id: string,
   user_id: string
 ) => {
+  // Find the recipient entry for this user
   const recipient = await MessageRecipient.findOne({
     where: { message_id, user_id },
   });
@@ -239,6 +254,7 @@ export const markMessageAsRead = async (
     throw new Error("Recipient entry not found.");
   }
 
+  // Only mark as read once
   if (!recipient.read_at) {
     recipient.read_at = new Date();
     await recipient.save();
@@ -249,7 +265,12 @@ export const markMessageAsRead = async (
     });
   }
 
-  return recipient;
+  // Return the full message only (no recipients)
+  const message = await Message.findOne({
+    where: { message_id },
+  });
+
+  return message;
 };
 
 export const deleteMessage = async (message_id: string, user_id: string) => {

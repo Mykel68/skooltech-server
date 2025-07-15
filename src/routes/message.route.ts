@@ -43,7 +43,7 @@ router.get(
   MessageController.getMessageById
 );
 router.post(
-  "/:id/read",
+  "/:message_id/read",
   verify_X_API_KEY,
   authMiddleware,
   restrictToSchool(),
