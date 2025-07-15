@@ -8,7 +8,7 @@ export interface MessageAttributes {
   title: string;
   content: string;
   message_type: "announcement" | "message" | "urgent" | "newsletter";
-  target_role: "student" | "teacher" | "parent" | "all";
+  target_role: "Student" | "Teacher" | "Parent" | "All";
   class_id?: string | null;
   has_attachment: boolean;
   attachment_name?: string | null;
@@ -63,7 +63,7 @@ const Message = sequelize.define<MessageInstance>(
       allowNull: false,
     },
     target_role: {
-      type: DataTypes.ENUM("student", "teacher", "parent", "all"),
+      type: DataTypes.ENUM("Student", "Teacher", "Parent", "All"),
       allowNull: false,
     },
     class_id: {

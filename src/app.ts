@@ -21,6 +21,7 @@ import attendanceRoutes from "./routes/attendance.route";
 import dashboardRoutes from "./routes/dashboard.route";
 import studentResultRoutes from "./routes/student_result.route";
 import parentRoutes from "./routes/parent.route";
+import messageRoutes from "./routes/message.route";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { applyAssociations } from "./models/associations";
 
@@ -72,6 +73,7 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/student-results", studentResultRoutes);
 app.use("/api/parents", parentRoutes);
+app.use("/api/messages", messageRoutes);
 
 // Welcome Route
 app.get("/", (req, res) => {

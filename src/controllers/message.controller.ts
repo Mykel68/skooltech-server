@@ -11,7 +11,7 @@ export const createMessage = async (
 ) => {
   try {
     const admin_id = req.user?.user_id;
-    const school_id = req.user?.school_id;
+    const school_id = req.params.school_id;
 
     const message = await MessageService.createMessage({
       ...req.body,

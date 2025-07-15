@@ -11,7 +11,7 @@ import {
 const router = Router();
 
 router.post(
-  "/",
+  "/:school_id",
   verify_X_API_KEY,
   authMiddleware,
   attachCurrentSessionTerm,

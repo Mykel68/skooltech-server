@@ -1,5 +1,12 @@
 import { Op } from "sequelize";
-import { Message, MessageRecipient, User } from "../models";
+import {
+  ClassStudent,
+  Message,
+  MessageRecipient,
+  ParentStudent,
+  Subject,
+  User,
+} from "../models";
 import { v4 as uuidv4 } from "uuid";
 
 interface CreateMessagePayload {
@@ -8,35 +15,91 @@ interface CreateMessagePayload {
   title: string;
   content: string;
   message_type: "announcement" | "message" | "urgent" | "newsletter";
-  target_role: "student" | "teacher" | "parent" | "all";
+  target_role: "Student" | "Teacher" | "Parent" | "All";
   class_id?: string;
   has_attachment?: boolean;
   attachment_name?: string;
 }
 
 export const createMessage = async (payload: CreateMessagePayload) => {
-  // 1. Find recipients in this school
   let roleFilter: string[] = [];
 
-  if (payload.target_role === "all") {
-    roleFilter = ["student", "teacher", "parent"];
+  if (payload.target_role === "All") {
+    roleFilter = ["Student", "Teacher", "Parent"];
   } else {
     roleFilter = [payload.target_role];
   }
 
-  const whereClause: any = {
-    school_id: payload.school_id,
-    role: { [Op.in]: roleFilter },
-  };
+  let recipients;
 
-  if (payload.class_id) {
-    whereClause.class_id = payload.class_id;
+  if (payload.target_role === "Student" && payload.class_id) {
+    // Students in class
+    recipients = await User.findAll({
+      include: [
+        {
+          model: ClassStudent,
+          as: "class_students",
+          required: true,
+          where: { class_id: payload.class_id },
+        },
+      ],
+      where: {
+        school_id: payload.school_id,
+        role: "Student",
+      },
+      attributes: ["user_id"],
+    });
+  } else if (payload.target_role === "Teacher" && payload.class_id) {
+    // Teachers teaching subjects in class
+    recipients = await User.findAll({
+      include: [
+        {
+          model: Subject,
+          as: "subjects",
+          required: true,
+          where: { class_id: payload.class_id },
+        },
+      ],
+      where: {
+        school_id: payload.school_id,
+        role: "Teacher",
+      },
+      attributes: ["user_id"],
+    });
+  } else if (payload.target_role === "Parent" && payload.class_id) {
+    // Parents whose children are in class
+    recipients = await User.findAll({
+      include: [
+        {
+          model: User,
+          as: "children",
+          required: true,
+          include: [
+            {
+              model: ClassStudent,
+              as: "class_students",
+              required: true,
+              where: { class_id: payload.class_id },
+            },
+          ],
+        },
+      ],
+      where: {
+        school_id: payload.school_id,
+        role: "Parent",
+      },
+      attributes: ["user_id"],
+    });
+  } else {
+    // No class filter
+    recipients = await User.findAll({
+      where: {
+        school_id: payload.school_id,
+        role: { [Op.in]: roleFilter },
+      },
+      attributes: ["user_id"],
+    });
   }
-
-  const recipients = await User.findAll({
-    where: whereClause,
-    attributes: ["user_id"],
-  });
 
   if (!recipients.length) {
     throw new Error("No recipients found for the specified criteria.");
@@ -44,9 +107,18 @@ export const createMessage = async (payload: CreateMessagePayload) => {
 
   // 2. Create the message
   const message = await Message.create({
-    ...payload,
-    recipient_count: recipients.length,
+    school_id: payload.school_id,
+    admin_id: payload.admin_id,
+    title: payload.title,
+    content: payload.content,
+    message_type: payload.message_type,
+    target_role: payload.target_role,
+    class_id: payload.class_id,
+    has_attachment: payload.has_attachment,
+    attachment_name: payload.attachment_name,
     status: "sent",
+    recipient_count: recipients.length,
+    read_count: 0,
     sent_at: new Date(),
   });
 
