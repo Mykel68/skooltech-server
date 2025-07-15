@@ -166,15 +166,16 @@ export const getMessagesForUser = async (
   const transformedMessages = messages.map((msg) => {
     const json = msg.toJSON();
     const recipient = json.recipients?.[0];
+    const isRead = !!recipient?.read_at;
 
     return {
       message_id: json.message_id,
       title: json.title,
-      grade_level: messages[0]?.class?.grade_level,
+      grade_level: messages[0]?.class?.grade_level || "",
       message_type: json.message_type,
       target_role: json.target_role,
-      content: truncate(json.content || ""),
-      isRead: !!recipient?.read_at,
+      content: isRead ? json.content || "" : truncate(json.content || ""),
+      isRead,
       author: json.admin_id ? "School Admin" : "Unknown",
       created_at: json.created_at,
       sent_at: json.sent_at,
