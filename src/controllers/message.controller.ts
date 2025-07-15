@@ -35,8 +35,12 @@ export const getUserMessages = async (
 ) => {
   try {
     const user_id = req.user?.user_id;
-    const messages = await MessageService.getMessagesForUser(user_id!);
-    sendResponse(res, 200, messages);
+    const school_id = req.params.school_id;
+    const messages = await MessageService.getMessagesForUser(
+      school_id,
+      user_id!
+    );
+    sendResponse(res, 200, { messages });
   } catch (err: any) {
     next(new AppError(err.message, err.statusCode || 500));
   }

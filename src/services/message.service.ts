@@ -138,8 +138,12 @@ export const createMessage = async (payload: CreateMessagePayload) => {
 };
 
 // Get only messages for this user
-export const getMessagesForUser = async (user_id: string) => {
-  return await Message.findAll({
+export const getMessagesForUser = async (
+  school_id: string,
+  user_id: string
+) => {
+  const messages = await Message.findAll({
+    where: { school_id },
     include: [
       {
         model: MessageRecipient,
@@ -150,6 +154,22 @@ export const getMessagesForUser = async (user_id: string) => {
     ],
     order: [["sent_at", "DESC"]],
   });
+
+  // Helper function to truncate text
+  const truncate = (text: string, length = 20) =>
+    text && text.length > length ? text.slice(0, length) + "..." : text;
+
+  const transformedMessages = messages.map((msg) => {
+    const json = msg.toJSON();
+
+    return {
+      ...json,
+      content: truncate(json.content),
+      author: json.admin_id ? "School Admin" : "Unknown",
+    };
+  });
+
+  return transformedMessages;
 };
 
 // Get *all* messages sent in a school
