@@ -19,14 +19,17 @@ router.post(
   restrictToSchool(),
   MessageController.createMessage
 );
+
 router.get(
-  "/",
+  "/:school_id",
   verify_X_API_KEY,
   authMiddleware,
   attachCurrentSessionTerm,
+  authorize(["Admin"]),
   restrictToSchool(),
-  MessageController.getUserMessages
+  MessageController.getSchoolMessages
 );
+
 router.get(
   "/:id",
   verify_X_API_KEY,

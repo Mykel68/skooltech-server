@@ -136,8 +136,9 @@ export const createMessage = async (payload: CreateMessagePayload) => {
   return message;
 };
 
+// Get only messages for this user
 export const getMessagesForUser = async (user_id: string) => {
-  const messages = await Message.findAll({
+  return await Message.findAll({
     include: [
       {
         model: MessageRecipient,
@@ -148,8 +149,17 @@ export const getMessagesForUser = async (user_id: string) => {
     ],
     order: [["sent_at", "DESC"]],
   });
+};
 
-  return messages;
+// Get *all* messages sent in a school
+export const getSchoolMessages = async (
+  school_id: string,
+  admin_id: string
+) => {
+  return await Message.findAll({
+    where: { school_id, admin_id },
+    order: [["sent_at", "DESC"]],
+  });
 };
 
 export const getMessageById = async (id: string, user_id: string) => {
