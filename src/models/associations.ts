@@ -188,6 +188,8 @@ MessageRecipient.belongsTo(Message, {
   as: "message",
 });
 
+Message.belongsTo(Class, { foreignKey: "class_id", as: "class" });
+
 User.hasMany(MessageRecipient, { foreignKey: "user_id" });
 MessageRecipient.belongsTo(User, { foreignKey: "user_id" });
 

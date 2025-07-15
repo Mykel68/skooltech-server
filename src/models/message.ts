@@ -1,5 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
+import { ClassInstance } from "./class.model";
 
 export interface MessageAttributes {
   message_id?: string;
@@ -32,7 +33,9 @@ type CreationAttributes = Optional<
 
 export interface MessageInstance
   extends Model<MessageAttributes, CreationAttributes>,
-    MessageAttributes {}
+    MessageAttributes {
+  class?: ClassInstance;
+}
 
 const Message = sequelize.define<MessageInstance>(
   "Message",

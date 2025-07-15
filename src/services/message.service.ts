@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import {
+  Class,
   ClassStudent,
   Message,
   MessageRecipient,
@@ -156,9 +157,33 @@ export const getSchoolMessages = async (
   school_id: string,
   admin_id: string
 ) => {
-  return await Message.findAll({
+  const messages = await Message.findAll({
     where: { school_id, admin_id },
     order: [["sent_at", "DESC"]],
+    include: [
+      {
+        model: Class,
+        as: "class",
+        attributes: ["class_id", "grade_level", "name"],
+      },
+    ],
+  });
+
+  return messages.map((msg) => {
+    let target_description;
+
+    if (!msg.class_id) {
+      target_description = `All ${msg.target_role}s`;
+    } else if (msg.class) {
+      target_description = `${msg.class.grade_level} ${msg.target_role}s`;
+    } else {
+      target_description = `${msg.target_role}s`;
+    }
+
+    return {
+      ...msg.toJSON(),
+      target_description,
+    };
   });
 };
 
