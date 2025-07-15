@@ -113,3 +113,26 @@ export const deleteMessage = async (
     next(new AppError(err.message, err.statusCode || 500));
   }
 };
+
+export const deleteMessageAsAdmin = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const admin_id = req.user?.user_id;
+    const message_id = req.params.message_id;
+
+    const result = await MessageService.deleteAdminMessage(
+      message_id,
+      admin_id!
+    );
+
+    sendResponse(res, 200, {
+      message: "Message deleted successfully",
+      data: result,
+    });
+  } catch (err: any) {
+    next(new AppError(err.message, err.statusCode || 500));
+  }
+};

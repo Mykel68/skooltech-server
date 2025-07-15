@@ -58,4 +58,13 @@ router.delete(
   MessageController.deleteMessage
 );
 
+router.delete(
+  "/:message_id/admin",
+  verify_X_API_KEY,
+  authMiddleware,
+  authorize(["Admin"]),
+  restrictToSchool(),
+  MessageController.deleteMessageAsAdmin
+);
+
 export default router;

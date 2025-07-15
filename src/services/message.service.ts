@@ -292,9 +292,33 @@ export const deleteMessage = async (message_id: string, user_id: string) => {
   await recipient.destroy();
 
   // Decrement read count on Message
-  await Message.decrement("read_count", {
+  // await Message.decrement("read_count", {
+  //   where: { message_id },
+  // });
+
+  return { success: true };
+};
+
+export const deleteAdminMessage = async (
+  message_id: string,
+  admin_id: string
+) => {
+  // Find the message
+  const message = await Message.findOne({
+    where: { message_id, admin_id },
+  });
+
+  if (!message) {
+    throw new Error("Message not found or you are not the owner.");
+  }
+
+  // Delete all recipients
+  await MessageRecipient.destroy({
     where: { message_id },
   });
 
-  return recipient;
+  // Delete the message itself
+  await message.destroy();
+
+  return { success: true };
 };
