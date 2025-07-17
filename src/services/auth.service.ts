@@ -26,7 +26,7 @@ export const login = async (
   password: string
 ): Promise<string> => {
   const user: UserInstance | null = await User.findOne({
-    where: { username },
+    where: { username, role: "Admin" },
   });
   if (!user) throw new AppError("User not found", 404);
 
@@ -34,9 +34,9 @@ export const login = async (
   if (!isPasswordValid) throw new AppError("Invalid credentials", 401);
 
   // Although this is not the login endpoint for teachers and students, we need to check if the user is a teacher and if the account is approved
-  if (user.role === "Teacher" && !user.is_approved) {
-    throw new AppError("Account awaiting approval", 403);
-  }
+  // if (user.role === "Teacher" && !user.is_approved) {
+  //   throw new AppError("Account awaiting approval", 403);
+  // }
 
   const school = await School.findByPk(user.school_id);
   if (!school) throw new AppError("School not found", 404);
