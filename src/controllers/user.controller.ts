@@ -7,6 +7,7 @@ import Joi from "joi";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { validateUUID } from "../utils/validation.util";
 import User from "../models/user.model";
+import { create } from "domain";
 
 const userRegistrationSchema = Joi.object({
   username: Joi.string().min(3).max(30).required(),
@@ -306,7 +307,7 @@ export const getStudentsBySchoolController = async (
           "en-GB",
           {
             day: "numeric",
-            month: "long",
+            month: "short",
             year: "numeric",
           }
         ),

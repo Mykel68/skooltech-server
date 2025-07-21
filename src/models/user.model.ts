@@ -1,7 +1,7 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
 import School from "./school.model";
-import Class, { ClassInstance } from "./class.model";
+import { ClassInstance } from "./class.model";
 import { AttendanceInstance } from "./attendance.model";
 import { StudentScoreInstance } from "./student_score.model";
 
@@ -91,6 +91,14 @@ const User = sequelize.define<UserInstance>(
     },
     admission_number: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
       allowNull: true,
     },
   },
