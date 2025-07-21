@@ -4,6 +4,7 @@ import {
   getAttendanceSummary,
   getClassAttendance,
   getTeacherClassStudentsAttendanceReport,
+  getTodaysAttendanceForClass,
   markStudentDailyAttendance,
   recordAttendance,
   recordBulkAttendance,
@@ -54,6 +55,8 @@ export const markDailyAttendance = async (
       present,
     } = req.body;
 
+    // console.log(req.body);
+
     const data = await markStudentDailyAttendance({
       student_id,
       class_id,
@@ -70,6 +73,33 @@ export const markDailyAttendance = async (
     });
   } catch (err) {
     next(err);
+  }
+};
+
+// fetch daily attendance
+export const fetchTodaysAttendance = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { class_id, school_id, session_id, term_id } = req.query;
+
+    if (!class_id || !school_id || !session_id || !term_id) {
+      throw new AppError("Missing required query parameters", 400);
+    }
+
+    const attendance = await getTodaysAttendanceForClass(
+      class_id as string,
+      school_id as string,
+      session_id as string,
+      term_id as string
+    );
+
+    sendResponse(res, 200, { attendance });
+  } catch (error) {
+    console.error(error);
+    next(error);
   }
 };
 

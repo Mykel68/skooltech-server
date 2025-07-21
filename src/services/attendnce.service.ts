@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import Attendance from "../models/attendance.model";
 import AttendanceLog from "../models/attendanceLog";
 import Class from "../models/class.model";
@@ -80,6 +81,31 @@ export const getAttendance = async (
     days_present: record?.days_present ?? 0,
     total_days,
   };
+};
+
+export const getTodaysAttendanceForClass = async (
+  class_id: string,
+  school_id: string,
+  session_id: string,
+  term_id: string
+) => {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  return AttendanceLog.findAll({
+    where: {
+      class_id,
+      school_id,
+      session_id,
+      term_id,
+      date: {
+        [Op.between]: [todayStart, todayEnd],
+      },
+    },
+  });
 };
 
 export const markStudentDailyAttendance = async ({

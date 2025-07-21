@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   fetchClassAttendance,
+  fetchTodaysAttendance,
   getAttendanceSummaryHandler,
   getStudentAttendance,
   handleVerifyClassTeacher,
@@ -26,7 +27,21 @@ router.get(
   restrictToSchool(),
   handleVerifyClassTeacher
 );
-
+router.post(
+  "/daily",
+  authMiddleware,
+  verify_X_API_KEY,
+  authorize(["Admin", "Teacher"]),
+  restrictToSchool(),
+  markDailyAttendance
+);
+router.get(
+  "/attendance/today",
+  authMiddleware,
+  verify_X_API_KEY,
+  authorize(["Admin", "Teacher"]),
+  fetchTodaysAttendance
+);
 router.post(
   "/:school_id",
   authMiddleware,
@@ -35,14 +50,7 @@ router.post(
   restrictToSchool(),
   recordStudentAttendance
 );
-router.post(
-  "/daily",
-  authMiddleware,
-  verify_X_API_KEY,
-  authorize(["Teacher"]),
-  restrictToSchool(),
-  markDailyAttendance
-);
+
 router.get(
   "/:school_id/:student_id",
   authMiddleware,
