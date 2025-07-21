@@ -36,7 +36,7 @@ router.post(
   markDailyAttendance
 );
 router.get(
-  "/attendance/today",
+  "/today",
   authMiddleware,
   verify_X_API_KEY,
   authorize(["Admin", "Teacher"]),
