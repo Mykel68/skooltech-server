@@ -4,6 +4,7 @@ import {
   getAttendanceSummary,
   getClassAttendance,
   getTeacherClassStudentsAttendanceReport,
+  markStudentDailyAttendance,
   recordAttendance,
   recordBulkAttendance,
 } from "../services/attendnce.service";
@@ -32,6 +33,41 @@ export const recordStudentAttendance = async (
     );
 
     res.status(200).json({ message: "Attendance recorded", data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const markDailyAttendance = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {
+      student_id,
+      class_id,
+      session_id,
+      term_id,
+      school_id,
+      date,
+      present,
+    } = req.body;
+
+    const data = await markStudentDailyAttendance({
+      student_id,
+      class_id,
+      session_id,
+      term_id,
+      school_id,
+      date,
+      present,
+    });
+
+    sendResponse(res, 200, {
+      message: "Daily attendance recorded",
+      data,
+    });
   } catch (err) {
     next(err);
   }
