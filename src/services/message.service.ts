@@ -4,11 +4,14 @@ import {
   ClassStudent,
   Message,
   MessageRecipient,
-  ParentStudent,
   Subject,
   User,
 } from "../models";
 import { v4 as uuidv4 } from "uuid";
+import { AppError } from "../utils/error.util";
+
+// Define accepted roles
+export type Role = "Teacher" | "Student" | "Parent" | "All";
 
 interface CreateMessagePayload {
   school_id: string;
@@ -16,25 +19,37 @@ interface CreateMessagePayload {
   title: string;
   content: string;
   message_type: "announcement" | "message" | "urgent" | "newsletter";
-  target_role: "Student" | "Teacher" | "Parent" | "All";
+  target_role: string; // we accept plural/singular/invalids initially
   class_id?: string;
   has_attachment?: boolean;
   attachment_name?: string;
 }
 
+// Helper: Check if a role is valid (excluding plural/syntax variations)
+const isValidRole = (role: string): role is Role => {
+  return ["Teacher", "Student", "Parent", "All"].includes(role);
+};
 export const createMessage = async (payload: CreateMessagePayload) => {
+  let normalizedRole: Role = "All";
   let roleFilter: string[] = [];
 
-  if (payload.target_role === "All") {
-    roleFilter = ["Student", "Teacher", "Parent"];
+  // Detect plural and normalize (e.g. Teachers → Teacher)
+  const isPlural = /(s|S)$/.test(payload.target_role);
+  const rawRole = payload.target_role.trim().replace(/s$/i, "");
+
+  if (isValidRole(rawRole)) {
+    normalizedRole = rawRole;
+    roleFilter =
+      normalizedRole === "All"
+        ? ["Teacher", "Student", "Parent"]
+        : [normalizedRole];
   } else {
-    roleFilter = [payload.target_role];
+    throw new AppError(`Invalid target_role: ${payload.target_role}`, 400);
   }
 
   let recipients;
 
-  if (payload.target_role === "Student" && payload.class_id) {
-    // Students in class
+  if (normalizedRole === "Student" && payload.class_id && !isPlural) {
     recipients = await User.findAll({
       include: [
         {
@@ -50,8 +65,7 @@ export const createMessage = async (payload: CreateMessagePayload) => {
       },
       attributes: ["user_id"],
     });
-  } else if (payload.target_role === "Teacher" && payload.class_id) {
-    // Teachers teaching subjects in class
+  } else if (normalizedRole === "Teacher" && payload.class_id && !isPlural) {
     recipients = await User.findAll({
       include: [
         {
@@ -67,8 +81,7 @@ export const createMessage = async (payload: CreateMessagePayload) => {
       },
       attributes: ["user_id"],
     });
-  } else if (payload.target_role === "Parent" && payload.class_id) {
-    // Parents whose children are in class
+  } else if (normalizedRole === "Parent" && payload.class_id && !isPlural) {
     recipients = await User.findAll({
       include: [
         {
@@ -92,7 +105,6 @@ export const createMessage = async (payload: CreateMessagePayload) => {
       attributes: ["user_id"],
     });
   } else {
-    // No class filter
     recipients = await User.findAll({
       where: {
         school_id: payload.school_id,
@@ -103,17 +115,17 @@ export const createMessage = async (payload: CreateMessagePayload) => {
   }
 
   if (!recipients.length) {
-    throw new Error("No recipients found for the specified criteria.");
+    throw new AppError("No recipients found for the specified criteria.", 404);
   }
 
-  // 2. Create the message
+  // Create message
   const message = await Message.create({
     school_id: payload.school_id,
     admin_id: payload.admin_id,
     title: payload.title,
     content: payload.content,
     message_type: payload.message_type,
-    target_role: payload.target_role,
+    target_role: normalizedRole,
     class_id: payload.class_id,
     has_attachment: payload.has_attachment,
     attachment_name: payload.attachment_name,
@@ -123,7 +135,7 @@ export const createMessage = async (payload: CreateMessagePayload) => {
     sent_at: new Date(),
   });
 
-  // 3. Insert MessageRecipient records
+  // Create message recipients
   const recipientEntries = recipients.map((user) => ({
     id: uuidv4(),
     message_id: message.message_id!,

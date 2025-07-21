@@ -14,7 +14,7 @@ export interface MessageAttributes {
   class_id?: string | null;
   has_attachment: boolean;
   attachment_name?: string | null;
-  status: string;
+  status: "sent" | "delivered" | "read" | "draft";
   recipient_count: number;
   read_count: number;
   created_at?: Date;
