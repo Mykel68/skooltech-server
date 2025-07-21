@@ -18,6 +18,7 @@ import SchoolSequence from "./school_sequence.model";
 import ParentStudent from "./parent_student.model";
 import MessageRecipient from "./message_recipient";
 import Message from "./message";
+import AttendanceLog from "./attendanceLog";
 
 // === CLASS associations ===
 Class.belongsTo(School, { foreignKey: "school_id" });
@@ -192,6 +193,28 @@ Message.belongsTo(Class, { foreignKey: "class_id", as: "class" });
 
 User.hasMany(MessageRecipient, { foreignKey: "user_id" });
 MessageRecipient.belongsTo(User, { foreignKey: "user_id" });
+
+// ========== AttendanceLog (daily) ==========
+
+AttendanceLog.belongsTo(User, {
+  foreignKey: "student_id",
+  as: "student",
+});
+
+AttendanceLog.belongsTo(Class, {
+  foreignKey: "class_id",
+  as: "class",
+});
+
+AttendanceLog.belongsTo(Term, {
+  foreignKey: "term_id",
+  as: "term",
+});
+
+AttendanceLog.belongsTo(Session, {
+  foreignKey: "session_id",
+  as: "session",
+});
 
 export const applyAssociations = () => {
   // Intentionally empty. Running this file will apply all associations.

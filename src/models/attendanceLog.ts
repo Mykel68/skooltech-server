@@ -59,6 +59,7 @@ const AttendanceLog = sequelize.define<AttendanceLogInstance>(
     underscored: true,
     indexes: [
       {
+        name: "unique_attendance_log_per_student_day",
         unique: true,
         fields: [
           "student_id",
