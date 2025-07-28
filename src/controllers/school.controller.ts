@@ -44,7 +44,7 @@ export const createSchoolController = async (
 ): Promise<void> => {
   try {
     const { error, value } = schoolRegistrationSchema.validate(req.body);
-    console.log("Hi");
+    // console.log("Hi");
     if (error) throw new AppError(error.details[0].message, 400);
 
     const schoolData: SchoolRegistrationData = value;

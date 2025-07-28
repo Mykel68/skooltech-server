@@ -15,7 +15,7 @@ const DEFAULT_COUNTRY: CountryCode = "NG";
 export const createSchool = async (
   schoolData: SchoolRegistrationData
 ): Promise<{ school: SchoolInstance; admin: UserInstance }> => {
-  console.log(schoolData);
+  // console.log(schoolData);
   const {
     name,
     school_image,
