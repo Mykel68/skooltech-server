@@ -14,6 +14,7 @@ export interface SchoolRegistrationData {
   admin_email: string;
   admin_first_name?: string;
   admin_last_name?: string;
+  gender?: "Male" | "Female";
 }
 
 export interface StudentTeacherRegistrationData {

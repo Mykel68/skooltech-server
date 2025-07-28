@@ -6,16 +6,16 @@ const PORT = process.env.PORT || 3000;
 sequelize
   .authenticate()
   .then(() => {
-    console.log("Database connection established successfully.");
+    console.log("✅ DB connection OK");
     return sequelize.sync({ alter: true, force: false });
   })
   .then(() => {
+    console.log("✅ Sequelize sync done");
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Visit ${PORT}/api-docs for documentation`);
+      console.log(`✅ Server running at http://localhost:${PORT}`);
     });
   })
-  .catch((error: Error) => {
-    console.error("Unable to connect to the database:", error.message);
+  .catch((err) => {
+    console.error("❌ Error during init:", err);
     process.exit(1);
   });
