@@ -78,8 +78,16 @@ export const login = async (
 export const registerUser = async (
   userData: UserRegistrationData
 ): Promise<UserInstance> => {
-  const { username, email, password, role, first_name, last_name, school_id } =
-    userData;
+  const {
+    username,
+    email,
+    password,
+    role,
+    first_name,
+    last_name,
+    school_id,
+    gender,
+  } = userData;
 
   // Check if school exists
   const school = await School.findByPk(school_id);
@@ -112,6 +120,7 @@ export const registerUser = async (
     last_name,
     school_id,
     is_approved: role === "Teacher" ? false : true,
+    gender,
   });
 
   return newUser;
