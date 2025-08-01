@@ -175,7 +175,7 @@ export const verifyUsers = async (
   //   if (!validateUUID(user_ids)) throw new AppError("Invalid student ID", 400);
 
   const students = await User.findAll({
-    where: { user_id: user_ids,  },
+    where: { user_id: user_ids },
   });
 
   await Promise.all(
@@ -206,6 +206,7 @@ export const getStudentsBySchool = async (
       "last_name",
       "gender",
       "is_approved",
+      "admission_number",
       "created_at", // ✅ Include this
     ],
     include: [

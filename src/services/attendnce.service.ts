@@ -325,7 +325,7 @@ export const getAttendanceSummary = async (
       {
         model: User,
         as: "student",
-        attributes: ["user_id", "first_name", "last_name"],
+        attributes: ["admission_number", "first_name", "last_name"],
       },
       {
         model: Class,
@@ -341,7 +341,7 @@ export const getAttendanceSummary = async (
 
     return {
       attendance_id: record.attendance_id,
-      studentId: record.student?.user_id,
+      studentId: record.student?.admission_number,
       studentName: `${record.student?.first_name} ${record.student?.last_name}`,
       classId: record.class_id,
       className: record.Class?.name,

@@ -314,6 +314,7 @@ export const getStudentsBySchoolController = async (
         class: classInfo?.name,
         grade_level: classInfo?.grade_level,
         class_id: classInfo?.class_id,
+        admission_number: student.admission_number,
       };
     });
 
