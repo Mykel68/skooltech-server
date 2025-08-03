@@ -4,6 +4,7 @@ import {
   fetchTodaysAttendance,
   getAttendanceSummaryHandler,
   getStudentAttendance,
+  getStudentAttendanceSummary,
   handleVerifyClassTeacher,
   markDailyAttendance,
   recordClassAttendance,
@@ -86,6 +87,16 @@ router.get(
   authorize(["Admin"]),
   restrictToSchool(),
   getAttendanceSummaryHandler
+);
+
+router.get(
+  "/student/:school_id/:student_id",
+  authMiddleware,
+  attachCurrentSessionTerm,
+  verify_X_API_KEY,
+  authorize(["Student"]),
+  restrictToSchool(),
+  getStudentAttendanceSummary
 );
 
 export default router;

@@ -8,6 +8,7 @@ import {
   markStudentDailyAttendance,
   recordAttendance,
   recordBulkAttendance,
+  studentAttendance,
 } from "../services/attendnce.service";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
@@ -251,5 +252,25 @@ export const getAttendanceSummaryHandler = async (
     sendResponse(res, 200, summary);
   } catch (error: any) {
     next(new AppError(error.message, error.statusCode || 500));
+  }
+};
+
+export const getStudentAttendanceSummary = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { studentId } = req.params;
+
+    if (!studentId) {
+      throw new AppError("Missing student ID", 400);
+    }
+
+    const data = await studentAttendance(studentId);
+    sendResponse(res, 200, data);
+  } catch (err: any) {
+    console.error(err);
+    next(new AppError(err.message, err.statusCode || 500));
   }
 };

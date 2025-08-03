@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import Attendance from "../models/attendance.model";
 import AttendanceLog from "../models/attendanceLog";
 import Class from "../models/class.model";
@@ -355,5 +355,55 @@ export const getAttendanceSummary = async (
   return {
     totalDays,
     attendanceData,
+  };
+};
+
+export const studentAttendance = async (studentId: string) => {
+  // Fetch daily attendance
+  const dailyAttendance = await AttendanceLog.findAll({
+    where: { student_id: studentId },
+    order: [["date", "DESC"]],
+  });
+
+  // Group attendance by month
+  const monthlyStats = await AttendanceLog.findAll({
+    where: { student_id: studentId },
+    attributes: [
+      [Sequelize.fn("to_char", Sequelize.col("date"), "Month YYYY"), "month"],
+      [Sequelize.fn("COUNT", Sequelize.col("log_id")), "total"],
+      [
+        Sequelize.fn(
+          "SUM",
+          Sequelize.literal(`CASE WHEN present = true THEN 1 ELSE 0 END`)
+        ),
+        "present",
+      ],
+      [
+        Sequelize.fn(
+          "SUM",
+          Sequelize.literal(`CASE WHEN present = false THEN 1 ELSE 0 END`)
+        ),
+        "absent",
+      ],
+    ],
+    group: [Sequelize.fn("to_char", Sequelize.col("date"), "Month YYYY")],
+    order: [[Sequelize.fn("MIN", Sequelize.col("date")), "DESC"]],
+    raw: true,
+  });
+
+  // Add percentage and late stats (custom logic)
+  const enrichedMonthlyStats = monthlyStats.map((stat: any) => {
+    const { present, total } = stat;
+    const percentage = Math.round((present / total) * 100);
+    return {
+      ...stat,
+      late: 0, // If you track lateness, modify model and logic here
+      percentage,
+    };
+  });
+
+  return {
+    dailyAttendance,
+    monthlyStats: enrichedMonthlyStats,
   };
 };
