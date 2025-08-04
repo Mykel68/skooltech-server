@@ -261,13 +261,13 @@ export const getStudentAttendanceSummary = async (
   next: NextFunction
 ) => {
   try {
-    const { studentId } = req.params;
+    const { student_id } = req.params;
 
-    if (!studentId) {
+    if (!student_id) {
       throw new AppError("Missing student ID", 400);
     }
 
-    const data = await studentAttendance(studentId);
+    const data = await studentAttendance(student_id);
     sendResponse(res, 200, data);
   } catch (err: any) {
     console.error(err);

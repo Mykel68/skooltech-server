@@ -422,7 +422,7 @@ router.patch(
  *                   example: "School not found"
  */
 router.get(
-  "/:school_id/teachers",
+  "/:school_id/teachers/:session_id/:term_id",
   authMiddleware,
   authorize(["Admin"]),
   restrictToSchool(),

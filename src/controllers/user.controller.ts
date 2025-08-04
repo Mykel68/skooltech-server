@@ -136,8 +136,12 @@ export const getTeachersBySchoolController = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { school_id } = req.params;
-    const teachers = await userService.getTeachersBySchool(school_id);
+    const { school_id, session_id, term_id } = req.params;
+    const teachers = await userService.getTeachersBySchool(
+      school_id,
+      session_id,
+      term_id
+    );
     sendResponse(
       res,
       200,

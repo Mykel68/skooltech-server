@@ -6,6 +6,7 @@ import { AppError } from "../utils/error.util";
 import { validateUUID } from "../utils/validation.util";
 import Class from "../models/class.model";
 import ClassStudent from "../models/class_student.model";
+import { ClassTeacher, Subject } from "../models";
 
 export const registerUser = async (
   userData: UserRegistrationData
@@ -83,9 +84,13 @@ export const getTeacherById = async (
 };
 
 export const getTeachersBySchool = async (
-  school_id: string
+  school_id: string,
+  session_id: string,
+  term_id: string
 ): Promise<UserInstance[]> => {
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
+  if (!validateUUID(session_id)) throw new AppError("Invalid session ID", 400);
+  if (!validateUUID(term_id)) throw new AppError("Invalid term ID", 400);
 
   const school = await School.findByPk(school_id);
   if (!school) throw new AppError("School not found", 404);
@@ -101,6 +106,15 @@ export const getTeachersBySchool = async (
       "role",
       "school_id",
       "is_approved",
+    ],
+    include: [
+      {
+        model: Subject,
+        as: "subjects",
+        where: { session_id, term_id },
+        required: false,
+        attributes: [],
+      },
     ],
   });
   return teachers as UserInstance[];
