@@ -11,7 +11,7 @@ import ClassStudent from "../models/class_student.model";
 import Subject from "../models/subject.model";
 import Session from "../models/session.model";
 import Term from "../models/term.model";
-import Attendance from "../models/attendance.model";
+import Attendance, { AttendanceInstance } from "../models/attendance.model";
 import { calculateSchoolDays } from "../utils/date.util";
 
 interface ScoreInput {
@@ -926,13 +926,57 @@ export const getStudentsInSession = async (
   return students;
 };
 
+type BasicStudent = {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  admission_number: string;
+  gender: string;
+  student_scores?: ExtendedStudentScore[];
+  attendances?: AttendanceInstance[];
+};
+
+type ExtendedStudentScore = {
+  total_score: number;
+  position?: number;
+  subject: {
+    subject_id: string;
+    name: string;
+  };
+  teacher?: {
+    user_id: string;
+    first_name: string;
+    last_name: string;
+  };
+};
+
+type SubjectScoreMap = Record<
+  string,
+  {
+    student_id: string;
+    total: number;
+  }[]
+>;
+type ScoreComponent = {
+  score: number;
+  component_name: string;
+};
+
+type StudentScoreWithPosition = {
+  score_id: string;
+  subject_id: string;
+  total_score: number;
+  scores: ScoreComponent[];
+  position?: number;
+};
+
 export const getStudentsWithResults = async (
   school_id: string,
   session_id: string,
   term_id: string,
   class_id: string
 ) => {
-  const students = await User.findAll({
+  const students = (await User.findAll({
     where: {
       school_id,
       role: "Student",
@@ -981,11 +1025,16 @@ export const getStudentsWithResults = async (
         attributes: ["days_present"],
       },
     ],
-    attributes: ["admission_number", "first_name", "last_name"],
+    attributes: [
+      "user_id",
+      "admission_number",
+      "first_name",
+      "last_name",
+      "gender",
+    ],
     order: [["first_name", "ASC"]],
-  });
+  })) as BasicStudent[];
 
-  // Get current term
   const currentTerm = await Term.findOne({
     where: { term_id },
     attributes: ["start_date", "end_date"],
@@ -996,7 +1045,6 @@ export const getStudentsWithResults = async (
       ? calculateSchoolDays(currentTerm.start_date, currentTerm.end_date)
       : 0;
 
-  // Get next term
   const nextTerm = await Term.findOne({
     where: {
       school_id,
@@ -1005,6 +1053,55 @@ export const getStudentsWithResults = async (
     order: [["start_date", "ASC"]],
     attributes: ["name", "start_date"],
   });
+
+  // === Positioning Logic Per Subject ===
+  const subjectScoresMap: SubjectScoreMap = {};
+
+  for (const student of students) {
+    for (const score of student.student_scores ?? []) {
+      const subjectId = score.subject.subject_id;
+
+      if (!subjectScoresMap[subjectId]) {
+        subjectScoresMap[subjectId] = [];
+      }
+
+      subjectScoresMap[subjectId].push({
+        student_id: student.user_id,
+        total: score.total_score || 0,
+      });
+    }
+  }
+
+  for (const [subjectId, scores] of Object.entries(subjectScoresMap)) {
+    scores.sort((a, b) => b.total - a.total);
+
+    let currentPosition = 1;
+    let lastScore: number | null = null;
+    let positionOffset = 0;
+
+    for (let i = 0; i < scores.length; i++) {
+      const { student_id, total } = scores[i];
+
+      if (total === lastScore) {
+        positionOffset++;
+      } else {
+        currentPosition = i + 1;
+        positionOffset = 0;
+      }
+
+      const student = students.find((s) => s.user_id === student_id);
+      const score = student?.student_scores?.find(
+        (s: any) =>
+          s.subject_id === subjectId || s.subject?.subject_id === subjectId
+      );
+
+      if (score) {
+        (score as any).position = currentPosition;
+      }
+
+      lastScore = total;
+    }
+  }
 
   return {
     students,

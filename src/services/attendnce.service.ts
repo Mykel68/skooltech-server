@@ -130,7 +130,7 @@ export const markStudentDailyAttendance = async ({
   });
 
   if (exists) {
-    throw new AppError("Attendance already marked for this date", 400);
+    return exists;
   }
 
   // Record daily log
