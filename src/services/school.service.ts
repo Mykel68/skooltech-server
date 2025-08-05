@@ -88,7 +88,7 @@ export const createSchool = async (
         school_id: school.school_id!,
         first_name: admin_first_name,
         last_name: admin_last_name,
-        is_approved: false,
+        is_approved: true,
         gender,
       },
       { transaction: t }
