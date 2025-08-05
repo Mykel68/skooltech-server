@@ -1,8 +1,15 @@
 import User from "../models/user.model";
 import ParentStudent from "../models/parent_student.model";
 import { AppError } from "../utils/error.util";
-import { Class, ClassStudent, StudentLinkCode } from "../models";
+import {
+  Class,
+  ClassStudent,
+  Message,
+  StudentLinkCode,
+  StudentScore,
+} from "../models";
 import { Op } from "sequelize";
+import AttendanceLog from "../models/attendanceLog";
 
 export const linkParentToStudent = async ({
   parent_user_id,
@@ -153,4 +160,92 @@ export const getLinkedChildrenOfParent = async ({
         : null,
     };
   });
+};
+
+export const parentStats = async ({
+  parent_user_id,
+  school_id,
+}: {
+  parent_user_id: string;
+  school_id: string;
+}) => {
+  // 1. Verify parent exists
+  const parent = await User.findOne({
+    where: { user_id: parent_user_id, role: "Parent" },
+  });
+  if (!parent) throw new AppError("Parent account not found", 404);
+
+  // 2. Find all links
+  const links = await ParentStudent.findAll({
+    where: { parent_user_id },
+  });
+  if (links.length === 0) return [];
+
+  const studentIds = links.map((link) => link.student_user_id);
+
+  // 3. Fetch all students
+  const students = await User.findAll({
+    where: {
+      user_id: studentIds,
+      school_id,
+      role: "Student",
+    },
+    include: [
+      {
+        model: AttendanceLog,
+        as: "student_attendances",
+        limit: 5,
+        order: [["date", "DESC"]],
+      },
+      {
+        model: StudentScore,
+        where: { user_id: studentIds },
+        as: "student_scores",
+        limit: 5,
+        order: [["createdAt", "DESC"]],
+      },
+      {
+        model: ClassStudent,
+        as: "class_students",
+        include: [
+          {
+            model: Class,
+          },
+        ],
+      },
+    ],
+  });
+
+  // 4. Optional: Fetch school-wide announcements or activities
+  const announcements = await Message.findAll({
+    where: {
+      school_id,
+      target_role: { [Op.or]: ["Parent", "Student"] },
+      message_type: "announcement",
+    },
+    order: [["sent_at", "DESC"]],
+    limit: 5,
+  });
+
+  const activities = await Message.findAll({
+    where: { school_id, message_type: "urgent" },
+    order: [["sent_at", "DESC"]],
+    limit: 5,
+  });
+
+  return {
+    total_students: students.length,
+    students: students.map((student) => ({
+      user_id: student.user_id,
+      full_name: student.first_name + " " + student.last_name,
+      gender: student.gender,
+      class: student.class_students?.[0]?.Class?.name,
+      attendances: student.attendances,
+      results: student.student_scores,
+    })),
+    school: {
+      announcements,
+      activities,
+    },
+  };
 };

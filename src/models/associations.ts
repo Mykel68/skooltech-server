@@ -196,6 +196,11 @@ MessageRecipient.belongsTo(User, { foreignKey: "user_id" });
 
 // ========== AttendanceLog (daily) ==========
 
+User.hasMany(AttendanceLog, {
+  foreignKey: "student_id",
+  as: "student_attendances",
+});
+
 AttendanceLog.belongsTo(User, {
   foreignKey: "student_id",
   as: "student",

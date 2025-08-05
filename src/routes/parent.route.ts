@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getLinkedChildren,
   linkChildToParent,
+  overview,
 } from "../controllers/parent.controller";
 import {
   authMiddleware,
@@ -27,7 +28,7 @@ router.get(
   authMiddleware,
   authorize(["Parent"]),
   restrictToSchool(),
-  getLinkedChildren
+  overview
 );
 
 export default router;

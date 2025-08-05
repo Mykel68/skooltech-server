@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import {
   getLinkedChildrenOfParent,
   linkParentToStudent,
+  parentStats,
 } from "../services/parent.service";
 import { sendResponse } from "../utils/response.util";
 import { AppError } from "../utils/error.util";
@@ -56,6 +57,24 @@ export const getLinkedChildren = async (
       message: "Student successfully linked to parent",
       children: linked,
     });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const overview = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const parent_user_id = req.user?.user_id;
+    const school_id = req.user?.school_id;
+    const children = await parentStats({
+      parent_user_id: parent_user_id as string,
+      school_id: school_id as string,
+    });
+    sendResponse(res, 200, { children });
   } catch (error: any) {
     next(error);
   }
