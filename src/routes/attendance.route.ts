@@ -28,7 +28,7 @@ router.get(
   restrictToSchool(),
   handleVerifyClassTeacher
 );
-router.post(
+router.put(
   "/daily",
   authMiddleware,
   verify_X_API_KEY,
