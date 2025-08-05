@@ -2,6 +2,7 @@ import User from "../models/user.model";
 import ParentStudent from "../models/parent_student.model";
 import { AppError } from "../utils/error.util";
 import {
+  Attendance,
   Class,
   ClassStudent,
   Message,
@@ -194,7 +195,7 @@ export const parentStats = async ({
       {
         model: AttendanceLog,
         as: "student_attendances",
-        limit: 5,
+        where: { student_id: studentIds },
         order: [["date", "DESC"]],
       },
       {
@@ -203,6 +204,7 @@ export const parentStats = async ({
         as: "student_scores",
         limit: 5,
         order: [["createdAt", "DESC"]],
+        attributes: ["scores"],
       },
       {
         model: ClassStudent,
