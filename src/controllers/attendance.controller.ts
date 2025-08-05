@@ -84,9 +84,9 @@ export const fetchTodaysAttendance = async (
   next: NextFunction
 ) => {
   try {
-    const { class_id, school_id, session_id, term_id } = req.query;
+    const { class_id, school_id, session_id, term_id, date } = req.query;
 
-    if (!class_id || !school_id || !session_id || !term_id) {
+    if (!class_id || !school_id || !session_id || !term_id || !date) {
       throw new AppError("Missing required query parameters", 400);
     }
 
@@ -94,7 +94,8 @@ export const fetchTodaysAttendance = async (
       class_id as string,
       school_id as string,
       session_id as string,
-      term_id as string
+      term_id as string,
+      date as string
     );
 
     sendResponse(res, 200, { attendance });

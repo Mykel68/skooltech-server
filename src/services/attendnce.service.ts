@@ -9,6 +9,7 @@ import User from "../models/user.model";
 import { calculateSchoolDays } from "../utils/date.util";
 import { AppError } from "../utils/error.util";
 import { countWeekdays } from "../utils/getWeekdays";
+import { date } from "joi";
 
 interface DailyAttendancePayload {
   student_id: string;
@@ -87,25 +88,40 @@ export const getTodaysAttendanceForClass = async (
   class_id: string,
   school_id: string,
   session_id: string,
-  term_id: string
+  term_id: string,
+  date: string
 ) => {
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
-
-  return AttendanceLog.findAll({
-    where: {
-      class_id,
-      school_id,
-      session_id,
-      term_id,
-      date: {
-        [Op.between]: [todayStart, todayEnd],
+  if (date) {
+    return AttendanceLog.findAll({
+      where: {
+        class_id,
+        school_id,
+        session_id,
+        term_id,
+        date: {
+          [Op.eq]: new Date(date),
+        },
       },
-    },
-  });
+    });
+  } else {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    return AttendanceLog.findAll({
+      where: {
+        class_id,
+        school_id,
+        session_id,
+        term_id,
+        date: {
+          [Op.between]: [todayStart, todayEnd],
+        },
+      },
+    });
+  }
 };
 
 export const markStudentDailyAttendance = async ({
