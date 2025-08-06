@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  getChildrenResults,
   getLinkedChildren,
   linkChildToParent,
   overview,
@@ -29,6 +30,15 @@ router.get(
   authorize(["Parent"]),
   restrictToSchool(),
   overview
+);
+
+router.get(
+  "/result",
+  verify_X_API_KEY,
+  authMiddleware,
+  authorize(["Parent"]),
+  restrictToSchool(),
+  getChildrenResults
 );
 
 export default router;

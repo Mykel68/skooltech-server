@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import {
+  childResults,
   getLinkedChildrenOfParent,
   linkParentToStudent,
   parentStats,
@@ -71,6 +72,24 @@ export const overview = async (
     const parent_user_id = req.user?.user_id;
     const school_id = req.user?.school_id;
     const children = await parentStats({
+      parent_user_id: parent_user_id as string,
+      school_id: school_id as string,
+    });
+    sendResponse(res, 200, { children });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getChildrenResults = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const parent_user_id = req.user?.user_id;
+    const school_id = req.user?.school_id;
+    const children = await childResults({
       parent_user_id: parent_user_id as string,
       school_id: school_id as string,
     });

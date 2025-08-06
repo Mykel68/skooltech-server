@@ -251,3 +251,47 @@ export const parentStats = async ({
     },
   };
 };
+
+export const childResults = async ({
+  parent_user_id,
+  school_id,
+}: {
+  parent_user_id: string;
+  school_id: string;
+}) => {
+  // 1. Verify parent exists
+  const parent = await User.findOne({
+    where: { user_id: parent_user_id, role: "Parent" },
+  });
+  if (!parent) throw new AppError("Parent account not found", 404);
+
+  // 2. Get all linked students
+  const links = await ParentStudent.findAll({
+    where: { parent_user_id },
+  });
+  if (links.length === 0) return [];
+
+  const studentIds = links.map((link) => link.student_user_id);
+
+  // 3. Fetch only student results
+  const students = await User.findAll({
+    where: {
+      user_id: studentIds,
+      school_id,
+      role: "Student",
+    },
+    include: [
+      {
+        model: StudentScore,
+        as: "student_scores", // Make sure this alias matches your association
+      },
+    ],
+  });
+
+  // 4. Return only results per student
+  return students.map((student) => ({
+    user_id: student.user_id,
+    full_name: `${student.first_name} ${student.last_name}`,
+    results: student.student_scores, // This should contain the scores per subject
+  }));
+};
