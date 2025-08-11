@@ -1,9 +1,20 @@
-import { QueryInterface } from "sequelize";
-import bcrypt from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
+// @ts-nocheck
+"use strict";
 
-export default {
-  up: async (queryInterface: QueryInterface) => {
+const bcrypt = require("bcrypt");
+const { v4: uuidv4 } = require("uuid");
+
+module.exports = {
+  up: async (queryInterface) => {
+    const [rows] = await queryInterface.sequelize.query(
+      `SELECT * FROM users WHERE role = 'SuperAdmin'`
+    );
+
+    if (rows.length > 0) {
+      console.log("✅ SuperAdmin already exists. Skipping creation.");
+      return;
+    }
+
     const passwordHash = await bcrypt.hash("SuperAdmin@123", 10);
 
     await queryInterface.bulkInsert("users", [
@@ -23,9 +34,12 @@ export default {
         updated_at: new Date(),
       },
     ]);
+
+    console.log("🚀 SuperAdmin account created successfully!");
   },
 
-  down: async (queryInterface: QueryInterface) => {
+  down: async (queryInterface) => {
     await queryInterface.bulkDelete("users", { username: "superadmin" });
+    console.log("🗑️ SuperAdmin account deleted.");
   },
 };

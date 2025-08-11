@@ -39,7 +39,7 @@
     "@types/joi": "^17.2.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^22.14.1",
+    "@types/node": "^22.17.1",
     "@types/nodemailer": "^6.4.17",
     "@types/pdfkit": "^0.13.9",
     "@types/swagger-jsdoc": "^6.0.4",
