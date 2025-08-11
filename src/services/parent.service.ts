@@ -25,7 +25,10 @@ export const linkParentToStudent = async ({
 }) => {
   // Check if parent exists and is role Parent
   const parent = await User.findOne({
-    where: { user_id: parent_user_id, role: "Parent" },
+    where: {
+      user_id: parent_user_id,
+      role_id: 5, // Parent
+    },
   });
   if (!parent) throw new AppError("Parent account not found", 404);
 
@@ -37,7 +40,7 @@ export const linkParentToStudent = async ({
       where: {
         admission_number: student_admission_number,
         school_id,
-        role: "Student",
+        role_id: 4, // Student
       },
     });
     if (!student)
@@ -57,7 +60,7 @@ export const linkParentToStudent = async ({
       where: {
         user_id: linkCode.student_user_id,
         school_id,
-        role: "Student",
+        role_id: 4, // Student
       },
     });
     if (!student)
@@ -107,7 +110,10 @@ export const getLinkedChildrenOfParent = async ({
 }) => {
   // 1. Verify parent exists
   const parent = await User.findOne({
-    where: { user_id: parent_user_id, role: "Parent" },
+    where: {
+      user_id: parent_user_id,
+      role_id: 5, // Parent
+    },
   });
   if (!parent) throw new AppError("Parent account not found", 404);
 
@@ -124,7 +130,7 @@ export const getLinkedChildrenOfParent = async ({
     where: {
       user_id: studentIds,
       school_id,
-      role: "Student",
+      role_id: 4, // Student
     },
     include: [
       {
@@ -172,7 +178,10 @@ export const parentStats = async ({
 }) => {
   // 1. Verify parent exists
   const parent = await User.findOne({
-    where: { user_id: parent_user_id, role: "Parent" },
+    where: {
+      user_id: parent_user_id,
+      role_id: 5, // Parent
+    },
   });
   if (!parent) throw new AppError("Parent account not found", 404);
 
@@ -189,7 +198,7 @@ export const parentStats = async ({
     where: {
       user_id: studentIds,
       school_id,
-      role: "Student",
+      role_id: 4, // Student
     },
     include: [
       {
@@ -261,7 +270,10 @@ export const childResults = async ({
 }) => {
   // 1. Verify parent exists
   const parent = await User.findOne({
-    where: { user_id: parent_user_id, role: "Parent" },
+    where: {
+      user_id: parent_user_id,
+      role_id: 5, // Parent
+    },
   });
   if (!parent) throw new AppError("Parent account not found", 404);
 
@@ -278,7 +290,7 @@ export const childResults = async ({
     where: {
       user_id: studentIds,
       school_id,
-      role: "Student",
+      role_id: 4, // Student
     },
     include: [
       {

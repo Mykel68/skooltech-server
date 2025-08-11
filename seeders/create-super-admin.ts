@@ -6,28 +6,20 @@ const { v4: uuidv4 } = require("uuid");
 
 module.exports = {
   up: async (queryInterface) => {
-    const [rows] = await queryInterface.sequelize.query(
-      `SELECT * FROM users WHERE role = 'SuperAdmin'`
+    const [role] = await queryInterface.sequelize.query(
+      `SELECT role_id FROM roles WHERE name = 'Super Admin' LIMIT 1`
     );
-
-    if (rows.length > 0) {
-      console.log("✅ SuperAdmin already exists. Skipping creation.");
-      return;
-    }
-
-    const passwordHash = await bcrypt.hash("SuperAdmin@123", 10);
 
     await queryInterface.bulkInsert("users", [
       {
         user_id: uuidv4(),
         school_id: null,
-        role: "SuperAdmin",
+        role_id: role[0].role_id,
         username: "superadmin",
-        password_hash: passwordHash,
+        password_hash: bcrypt.hashSync("password123", 10),
         email: "superadmin@skooltech.com",
         first_name: "Super",
         last_name: "Admin",
-        gender: null,
         is_approved: true,
         is_active: true,
         created_at: new Date(),

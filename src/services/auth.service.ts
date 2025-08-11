@@ -18,25 +18,27 @@ import {
   StudentTeacherRegistrationData,
   UserRegistrationData,
 } from "../types/models.types";
-import { SchoolSequence, sequelize } from "../models";
+import { Role, SchoolSequence, sequelize } from "../models";
 import { generateAdmissionNumber } from "../utils/admission_number.util";
 
 export const login = async (
   username: string,
   password: string
 ): Promise<string> => {
-  const user: UserInstance | null = await User.findOne({
-    where: { username, role: "Admin" },
-  });
+  // Find user by username
+  const user: UserInstance | null = await User.findOne({ where: { username } });
   if (!user) throw new AppError("User not found", 404);
+
+  // Get role details from role_id
+  const role = await Role.findByPk(user.role_id);
+  if (!role) throw new AppError("User role not found", 400);
+
+  // Restrict to Admin login
+  if (role.name !== "Admin")
+    throw new AppError("Only admins can log in here", 403);
 
   const isPasswordValid = await bcrypt.compare(password, user.password_hash);
   if (!isPasswordValid) throw new AppError("Invalid credentials", 401);
-
-  // Although this is not the login endpoint for teachers and students, we need to check if the user is a teacher and if the account is approved
-  // if (user.role === "Teacher" && !user.is_approved) {
-  //   throw new AppError("Account awaiting approval", 403);
-  // }
 
   const school = await School.findByPk(user.school_id!);
   if (!school) throw new AppError("School not found", 404);
@@ -50,16 +52,15 @@ export const login = async (
       end_date: { [Op.gte]: currentDate },
     },
   });
-  // if (!session)
-  //   throw new AppError("No active session found for this school", 400);
 
   const token = jwt.sign(
     {
       user_id: user.user_id,
       school_id: user.school_id,
-      session_id: session?.session_id, // Added session_id
+      session_id: session?.session_id,
       school_code: school.school_code,
-      role: user.role,
+      role_id: user.role_id,
+      role_name: role.name,
       first_name: user.first_name,
       last_name: user.last_name,
       username: user.username,
@@ -82,7 +83,7 @@ export const registerUser = async (
     username,
     email,
     password,
-    role,
+    role_id,
     first_name,
     last_name,
     school_id,
@@ -91,20 +92,19 @@ export const registerUser = async (
 
   // Check if school exists
   const school = await School.findByPk(school_id);
-  if (!school) {
-    throw new AppError("Invalid school ID", 404);
-  }
+  if (!school) throw new AppError("Invalid school ID", 404);
+
+  // Verify role exists
+  const role = await Role.findByPk(role_id);
+  if (!role) throw new AppError("Invalid role ID", 404);
 
   // Check if username or email already exists
-  const existingUser = await User.findOne({ where: { username } });
-  if (existingUser) {
-    throw new AppError("Username already taken", 400);
-  }
-
-  const existingEmail = await User.findOne({ where: { email } });
-  if (existingEmail) {
-    throw new AppError("Email already registered", 400);
-  }
+  const [existingUser, existingEmail] = await Promise.all([
+    User.findOne({ where: { username } }),
+    User.findOne({ where: { email } }),
+  ]);
+  if (existingUser) throw new AppError("Username already taken", 400);
+  if (existingEmail) throw new AppError("Email already registered", 400);
 
   // Hash the password
   const salt = await bcrypt.genSalt(10);
@@ -115,11 +115,11 @@ export const registerUser = async (
     username,
     email,
     password_hash,
-    role,
+    role_id,
     first_name,
     last_name,
     school_id,
-    is_approved: role === "Teacher" ? false : true,
+    is_approved: role.name === "Teacher" ? false : true,
     gender,
   });
 
@@ -135,6 +135,10 @@ export const loginTeacherStudent = async (
     where: { username },
   });
   if (!user) throw new AppError("User not found", 404);
+
+  // Fetch role from role_id
+  const role = await Role.findByPk(user.role_id);
+  if (!role) throw new AppError("User role not found", 400);
 
   const school = await School.findByPk(user.school_id!);
   if (!school) throw new AppError("School not found", 404);
@@ -159,7 +163,7 @@ export const loginTeacherStudent = async (
     throw new AppError("No active session found for this school", 400);
 
   let class_id: string | undefined;
-  if (user.role === "Student") {
+  if (role.name === "Student") {
     const classStudent = await ClassStudent.findOne({
       where: { student_id: user.user_id },
     });
@@ -172,7 +176,8 @@ export const loginTeacherStudent = async (
       school_id: user.school_id,
       session_id: session.session_id, // Added session_id
       school_code: school.school_code,
-      role: user.role,
+      role_id: user.role_id, // store role_id
+      role_name: role.name, // also store role name for convenience
       first_name: user.first_name,
       last_name: user.last_name,
       username: user.username,
@@ -197,7 +202,7 @@ export const registerTeacherStudent = async (
     username,
     email,
     password,
-    role,
+    role_id,
     first_name,
     last_name,
     school_id,
@@ -209,24 +214,28 @@ export const registerTeacherStudent = async (
 
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
 
-  if (!["Student", "Teacher", "Parent"].includes(role)) {
+  // Fetch role from roles table
+  const role = await Role.findByPk(role_id);
+  if (!role) throw new AppError("Invalid role ID", 400);
+
+  if (!["Student", "Teacher", "Parent"].includes(role.name)) {
     throw new AppError(
       "Only Student, Parent or Teacher roles are allowed",
       400
     );
   }
 
-  if (role === "Student") {
+  if (role.name === "Student") {
     if (!class_id) throw new AppError("Class ID is required for students", 400);
     if (!validateUUID(class_id)) throw new AppError("Invalid class ID", 400);
-  } else if (role === "Teacher" && class_id) {
+  } else if (role.name === "Teacher" && class_id) {
     throw new AppError("Class ID is not allowed for teachers", 400);
   }
 
   const school = await School.findByPk(school_id);
   if (!school) throw new AppError("School not found", 404);
 
-  if (!school.school_code && role === "Student") {
+  if (!school.school_code && role.name === "Student") {
     throw new AppError(
       "School code not defined. Cannot create admission number",
       500
@@ -242,7 +251,7 @@ export const registerTeacherStudent = async (
   if (existingEmail) throw new AppError("Email already registered", 400);
 
   // Validate class belongs to school
-  if (role === "Student" && class_id) {
+  if (role.name === "Student" && class_id) {
     const classInstance = await Class.findByPk(class_id);
     if (!classInstance) throw new AppError("Class not found", 404);
     if (classInstance.school_id !== school_id) {
@@ -254,12 +263,11 @@ export const registerTeacherStudent = async (
   const password_hash = await bcrypt.hash(password, await bcrypt.genSalt(10));
   const user_id = uuidv4();
 
-  // Run the whole thing in a transaction
+  // Run in a transaction
   return await sequelize.transaction(async (t) => {
     let admission_number: string | undefined = undefined;
 
-    if (role === "Student") {
-      // Only students get admission number
+    if (role.name === "Student") {
       admission_number = await generateAdmissionNumber(school_id, t);
     }
 
@@ -269,11 +277,11 @@ export const registerTeacherStudent = async (
         username,
         email,
         password_hash,
-        role,
+        role_id, // store FK
         first_name,
         last_name,
         school_id,
-        is_approved: ["Teacher", "Parent"].includes(role) ? false : true,
+        is_approved: ["Teacher", "Parent"].includes(role.name) ? false : true,
         is_active: true,
         gender,
         admission_number,
@@ -281,7 +289,7 @@ export const registerTeacherStudent = async (
       { transaction: t }
     );
 
-    if (role === "Student" && class_id && session_id && term_id) {
+    if (role.name === "Student" && class_id && session_id && term_id) {
       await ClassStudent.create(
         {
           class_id,

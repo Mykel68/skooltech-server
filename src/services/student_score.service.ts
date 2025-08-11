@@ -49,7 +49,7 @@ export const assignStudentScores = async (
     where: {
       user_id: teacher_id,
       school_id,
-      role: "Teacher",
+      role_id: 3, // Teacher
       is_approved: true,
     },
   });
@@ -212,7 +212,7 @@ export const editStudentScores = async (
     where: {
       user_id: teacher_id,
       school_id,
-      role: "Teacher",
+      role_id: 3, // Teacher
       is_approved: true,
     },
   });
@@ -403,7 +403,7 @@ export const getStudentScores = async (
     where: {
       user_id: teacher_id,
       school_id,
-      role: "Teacher",
+      role_id: 3, // Teacher
       is_approved: true,
     },
   });
@@ -538,7 +538,7 @@ export const editBulkStudentScores = async (
     where: {
       user_id: teacher_id,
       school_id,
-      role: "Teacher",
+      role_id: 3, // Teacher
       is_approved: true,
     },
   });
@@ -814,7 +814,7 @@ export const getStudentSubjectsAndScores = async (
     where: {
       user_id: student_id,
       school_id,
-      role: "Student",
+      role_id: 4, // Student
       is_approved: true,
     },
   });
@@ -903,7 +903,7 @@ export const getStudentsInSession = async (
   const students = await User.findAll({
     where: {
       school_id,
-      role: "Student",
+      role_id: 4, // Student
     },
     include: [
       {
@@ -979,7 +979,7 @@ export const getStudentsWithResults = async (
   const students = (await User.findAll({
     where: {
       school_id,
-      role: "Student",
+      role_id: 4, // Student
     },
     include: [
       {

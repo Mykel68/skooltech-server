@@ -61,7 +61,7 @@ export const createMessage = async (payload: CreateMessagePayload) => {
       ],
       where: {
         school_id: payload.school_id,
-        role: "Student",
+        role_id: 4, // Student
       },
       attributes: ["user_id"],
     });
@@ -77,7 +77,7 @@ export const createMessage = async (payload: CreateMessagePayload) => {
       ],
       where: {
         school_id: payload.school_id,
-        role: "Teacher",
+        role_id: 3, // Teacher
       },
       attributes: ["user_id"],
     });
@@ -100,7 +100,7 @@ export const createMessage = async (payload: CreateMessagePayload) => {
       ],
       where: {
         school_id: payload.school_id,
-        role: "Parent",
+        role_id: 5, // Parent
       },
       attributes: ["user_id"],
     });
@@ -108,7 +108,7 @@ export const createMessage = async (payload: CreateMessagePayload) => {
     recipients = await User.findAll({
       where: {
         school_id: payload.school_id,
-        role: { [Op.in]: roleFilter },
+        role_id: { [Op.in]: roleFilter },
       },
       attributes: ["user_id"],
     });

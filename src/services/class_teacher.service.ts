@@ -102,7 +102,7 @@ export const getTeacherClassStudents = async (
   const assignedStudents = await User.findAll({
     where: {
       school_id,
-      role: "Student",
+      role_id: 4, // Student
     },
     include: [
       {

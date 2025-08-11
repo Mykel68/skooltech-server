@@ -277,7 +277,7 @@ export const getTeacherClassStudentsAttendanceReport = async (
   const students = await User.findAll({
     where: {
       school_id,
-      role: "Student",
+      role_id: 4, // Student
     },
     include: [
       {

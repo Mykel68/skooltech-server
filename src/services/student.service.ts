@@ -232,7 +232,10 @@ export const getStudentById = async (user_id: string): Promise<any> => {
   if (!user_id) throw new AppError("Invalid user ID", 400);
 
   const student = await User.findOne({
-    where: { user_id, role: "Student" },
+    where: {
+      user_id,
+      role_id: 4, // Student
+    },
   });
   if (!student) throw new AppError("Student not found", 404);
   return student;

@@ -84,7 +84,7 @@ export const createSchool = async (
         username: admin_username,
         password_hash,
         email: admin_email,
-        role: "Admin",
+        role_id: 2, // Admin
         school_id: school.school_id!,
         first_name: admin_first_name,
         last_name: admin_last_name,

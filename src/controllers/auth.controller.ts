@@ -196,7 +196,7 @@ export const registerTeacherStudent = async (
       user_id: user.user_id,
       username: user.username,
       email: user.email,
-      role: user.role,
+      role_id: user.role_id,
       first_name: user.first_name,
       last_name: user.last_name,
       school_id: user.school_id,

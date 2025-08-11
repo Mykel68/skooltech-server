@@ -21,7 +21,7 @@ export interface StudentTeacherRegistrationData {
   username: string;
   password: string;
   email: string;
-  role: "Student" | "Teacher";
+  role_id: number;
   first_name?: string;
   last_name?: string;
   school_id: string;
@@ -35,7 +35,7 @@ export interface UserRegistrationData {
   username: string;
   password: string;
   email: string;
-  role: "Student" | "Teacher";
+  role_id: number;
   first_name?: string;
   last_name?: string;
   school_id: string;

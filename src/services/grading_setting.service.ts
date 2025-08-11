@@ -45,7 +45,7 @@ export const createGradingSetting = async (
     where: {
       user_id: teacher_id,
       school_id,
-      role: "Teacher",
+      role_id: 3, // Teacher
       is_approved: true,
     },
   });
@@ -121,7 +121,7 @@ export const getGradingSetting = async (
     where: {
       user_id: teacher_id,
       school_id,
-      role: "Teacher",
+      role_id: 3, // Teacher
       is_approved: true,
     },
   });
@@ -170,7 +170,7 @@ export const updateGradingSetting = async (
     where: {
       user_id: teacher_id,
       school_id,
-      role: "Teacher",
+      role_id: 3, // Teacher
       is_approved: true,
     },
   });
@@ -239,7 +239,7 @@ export const deleteGradingSetting = async (
     where: {
       user_id: teacher_id,
       school_id,
-      role: "Teacher",
+      role_id: 3, // Teacher
       is_approved: true,
     },
   });

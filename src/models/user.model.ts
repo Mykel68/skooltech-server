@@ -1,14 +1,15 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
 import School from "./school.model";
+import Role from "./role.model";
 import { ClassInstance } from "./class.model";
 import { AttendanceInstance } from "./attendance.model";
 import { StudentScoreInstance } from "./student_score.model";
 
 export interface UserAttributes {
   user_id: string;
-  school_id?: string | null; // now optional for SuperAdmin
-  role: "SuperAdmin" | "Admin" | "Teacher" | "Student" | "Parent";
+  school_id?: string | null; // optional for SuperAdmin
+  role_id: number; // FK to roles table
   username: string;
   password_hash: string;
   email: string;
@@ -43,21 +44,19 @@ const User = sequelize.define<UserInstance>(
     },
     school_id: {
       type: DataTypes.UUID,
-      allowNull: true, // Nullable for SuperAdmin
+      allowNull: true,
       references: {
         model: School,
         key: "school_id",
       },
     },
-    role: {
-      type: DataTypes.ENUM(
-        "SuperAdmin",
-        "Admin",
-        "Teacher",
-        "Student",
-        "Parent"
-      ),
+    role_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: Role,
+        key: "role_id",
+      },
     },
     username: {
       type: DataTypes.STRING,

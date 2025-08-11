@@ -19,6 +19,10 @@ import ParentStudent from "./parent_student.model";
 import MessageRecipient from "./message_recipient";
 import Message from "./message";
 import AttendanceLog from "./attendanceLog";
+import Role from "./role.model";
+
+User.belongsTo(Role, { foreignKey: "role_id", as: "role" });
+Role.hasMany(User, { foreignKey: "role_id", as: "users" });
 
 // === CLASS associations ===
 Class.belongsTo(School, { foreignKey: "school_id" });

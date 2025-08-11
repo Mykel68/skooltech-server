@@ -6,13 +6,20 @@ import { AppError } from "../utils/error.util";
 import { validateUUID } from "../utils/validation.util";
 import Class from "../models/class.model";
 import ClassStudent from "../models/class_student.model";
-import { ClassTeacher, Subject } from "../models";
+import { ClassTeacher, Role, Subject } from "../models";
 
 export const registerUser = async (
   userData: UserRegistrationData
 ): Promise<UserInstance> => {
-  const { username, password, email, role, first_name, last_name, school_id } =
-    userData;
+  const {
+    username,
+    password,
+    email,
+    role_id,
+    first_name,
+    last_name,
+    school_id,
+  } = userData;
 
   const existingUser = await User.findOne({ where: { username } });
   if (existingUser) throw new AppError("Username already exists", 400);
@@ -23,16 +30,20 @@ export const registerUser = async (
   const school = await School.findByPk(school_id);
   if (!school) throw new AppError("School not found", 404);
 
+  // Verify role exists
+  const role = await Role.findByPk(role_id);
+  if (!role) throw new AppError("Invalid role ID", 404);
+
   const password_hash = await bcrypt.hash(password, 10);
   const user = await User.create({
     username,
     password_hash,
     email,
-    role,
+    role_id,
     school_id,
     first_name,
     last_name,
-    is_approved: role === "Student" ? true : false,
+    is_approved: role.name === "Student" ? false : true,
   });
 
   return user as UserInstance;
@@ -78,7 +89,12 @@ export const getTeacherById = async (
 ): Promise<UserInstance> => {
   if (!validateUUID(user_id)) throw new AppError("Invalid teacher ID", 400);
 
-  const teacher = await User.findOne({ where: { user_id, role: "Teacher" } });
+  const teacher = await User.findOne({
+    where: {
+      user_id,
+      role_id: 3, // Teacher
+    },
+  });
   if (!teacher) throw new AppError("Teacher not found", 404);
   return teacher as UserInstance;
 };
@@ -96,7 +112,7 @@ export const getTeachersBySchool = async (
   if (!school) throw new AppError("School not found", 404);
 
   const teachers = await User.findAll({
-    where: { school_id, role: "Teacher" },
+    where: { school_id, role_id: 3 },
     attributes: [
       "user_id",
       "username",
@@ -126,7 +142,7 @@ export const updateTeacher = async (
 ): Promise<UserInstance> => {
   if (!validateUUID(user_id)) throw new AppError("Invalid teacher ID", 400);
 
-  const teacher = await User.findOne({ where: { user_id, role: "Teacher" } });
+  const teacher = await User.findOne({ where: { user_id, role_id: 3 } });
   if (!teacher) throw new AppError("Teacher not found", 404);
 
   if (updates.username && updates.username !== teacher.username) {
@@ -153,7 +169,7 @@ export const verifyTeacher = async (
 ): Promise<UserInstance> => {
   if (!validateUUID(user_id)) throw new AppError("Invalid teacher ID", 400);
 
-  const teacher = await User.findOne({ where: { user_id, role: "Teacher" } });
+  const teacher = await User.findOne({ where: { user_id, role_id: 3 } });
   if (!teacher) throw new AppError("Teacher not found", 404);
 
   await teacher.update({ is_approved });
@@ -163,7 +179,7 @@ export const verifyTeacher = async (
 export const deleteTeacher = async (user_id: string): Promise<void> => {
   if (!validateUUID(user_id)) throw new AppError("Invalid teacher ID", 400);
 
-  const teacher = await User.findOne({ where: { user_id, role: "Teacher" } });
+  const teacher = await User.findOne({ where: { user_id, role_id: 3 } });
   if (!teacher) throw new AppError("Teacher not found", 404);
 
   await teacher.destroy();
@@ -175,7 +191,12 @@ export const verifyStudent = async (
 ): Promise<UserInstance> => {
   if (!validateUUID(user_id)) throw new AppError("Invalid student ID", 400);
 
-  const student = await User.findOne({ where: { user_id, role: "Student" } });
+  const student = await User.findOne({
+    where: {
+      user_id,
+      role_id: 4, // Student
+    },
+  });
   if (!student) throw new AppError("Student not found", 404);
 
   await student.update({ is_approved });
@@ -212,7 +233,7 @@ export const getStudentsBySchool = async (
   if (!school) throw new AppError("School not found", 404);
 
   const students = await User.findAll({
-    where: { school_id, role: "Student" },
+    where: { school_id, role_id: 4 },
     attributes: [
       "user_id",
       "email",

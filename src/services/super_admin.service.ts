@@ -9,7 +9,7 @@ export const createSuperAdmin = async (data: {
   const hashedPassword = await bcrypt.hash(data.password, 10);
 
   return await User.create({
-    role: "SuperAdmin",
+    role_id: 1, // Super Admin
     username: data.username,
     password_hash: hashedPassword,
     email: data.email,

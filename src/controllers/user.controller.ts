@@ -47,7 +47,7 @@ export const registerUserController = async (
       user_id: user.user_id,
       username: user.username,
       email: user.email,
-      role: user.role,
+      role_id: user.role_id,
       school_id: user.school_id,
       is_approved: user.is_approved,
     });
@@ -70,7 +70,7 @@ export const getUserController = async (
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
-      role: user.role,
+      role_id: user.role_id,
       school_id: user.school_id,
       is_approved: user.is_approved,
     });
@@ -97,7 +97,7 @@ export const updateUserController = async (
       email: updatedUser.email,
       first_name: updatedUser.first_name,
       last_name: updatedUser.last_name,
-      role: updatedUser.role,
+      role_id: updatedUser.role_id,
       gender: updatedUser.gender,
       school_id: updatedUser.school_id,
       is_approved: updatedUser.is_approved,
@@ -121,7 +121,7 @@ export const getTeacherByIdController = async (
       email: teacher.email,
       first_name: teacher.first_name,
       last_name: teacher.last_name,
-      role: teacher.role,
+      role_id: teacher.role_id,
       school_id: teacher.school_id,
       is_approved: teacher.is_approved,
     });
@@ -151,7 +151,7 @@ export const getTeachersBySchoolController = async (
         email: teacher.email,
         first_name: teacher.first_name,
         last_name: teacher.last_name,
-        role: teacher.role,
+        role_id: teacher.role_id,
         school_id: teacher.school_id,
         is_approved: teacher.is_approved,
       }))
@@ -178,7 +178,7 @@ export const updateTeacherController = async (
       email: updatedTeacher.email,
       first_name: updatedTeacher.first_name,
       last_name: updatedTeacher.last_name,
-      role: updatedTeacher.role,
+      role_id: updatedTeacher.role_id,
       school_id: updatedTeacher.school_id,
       is_approved: updatedTeacher.is_approved,
     });
@@ -207,7 +207,7 @@ export const verifyTeacherController = async (
       email: updatedTeacher.email,
       first_name: updatedTeacher.first_name,
       last_name: updatedTeacher.last_name,
-      role: updatedTeacher.role,
+      role_id: updatedTeacher.role_id,
       school_id: updatedTeacher.school_id,
       is_approved: updatedTeacher.is_approved,
     });
@@ -236,7 +236,7 @@ export const verifyStudentController = async (
       email: updatedStudent.email,
       first_name: updatedStudent.first_name,
       last_name: updatedStudent.last_name,
-      role: updatedStudent.role,
+      role_id: updatedStudent.role_id,
       school_id: updatedStudent.school_id,
       is_approved: updatedStudent.is_approved,
     });

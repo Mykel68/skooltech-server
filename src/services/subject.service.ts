@@ -25,7 +25,11 @@ export const createSubject = async (
   if (!classInstance) throw new AppError("Class not found", 404);
 
   const teacher = await User.findOne({
-    where: { user_id: teacher_id, role: "Teacher", is_approved: true },
+    where: {
+      user_id: teacher_id,
+      role_id: 3, // Teacher
+      is_approved: true,
+    },
   });
   if (!teacher) throw new AppError("Approved teacher not found", 404);
 

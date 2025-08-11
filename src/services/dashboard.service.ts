@@ -15,7 +15,10 @@ export const getDashboardStats = async (
     where: { session_id, term_id },
   });
   const totalTeachers = await User.count({
-    where: { school_id, role: "Teacher" },
+    where: {
+      school_id,
+      role_id: 3, // Teacher
+    },
   });
   const totalClasses = await Class.count({ where: { school_id } });
   const totalRevenue =
@@ -27,7 +30,7 @@ export const getDashboardStats = async (
   const lastMonthStudents = await User.count({
     where: {
       school_id,
-      role: "Student",
+      role_id: 4, // Student
       created_at: { [Op.between]: [start, end] },
     },
   });
@@ -35,7 +38,7 @@ export const getDashboardStats = async (
   const lastMonthTeachers = await User.count({
     where: {
       school_id,
-      role: "Teacher",
+      role_id: 3, // Teacher
       created_at: { [Op.between]: [start, end] },
     },
   });
