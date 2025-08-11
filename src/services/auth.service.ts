@@ -38,14 +38,14 @@ export const login = async (
   //   throw new AppError("Account awaiting approval", 403);
   // }
 
-  const school = await School.findByPk(user.school_id);
+  const school = await School.findByPk(user.school_id!);
   if (!school) throw new AppError("School not found", 404);
 
   // Find active session for the school
   const currentDate = new Date();
   const session = await Session.findOne({
     where: {
-      school_id: user.school_id,
+      school_id: user.school_id!,
       start_date: { [Op.lte]: currentDate },
       end_date: { [Op.gte]: currentDate },
     },
@@ -136,7 +136,7 @@ export const loginTeacherStudent = async (
   });
   if (!user) throw new AppError("User not found", 404);
 
-  const school = await School.findByPk(user.school_id);
+  const school = await School.findByPk(user.school_id!);
   if (!school) throw new AppError("School not found", 404);
 
   if (school.school_code !== school_code) {
@@ -150,7 +150,7 @@ export const loginTeacherStudent = async (
   const currentDate = new Date();
   const session = await Session.findOne({
     where: {
-      school_id: user.school_id,
+      school_id: user.school_id!,
       start_date: { [Op.lte]: currentDate },
       end_date: { [Op.gte]: currentDate },
     },

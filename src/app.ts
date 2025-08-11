@@ -22,6 +22,7 @@ import dashboardRoutes from "./routes/dashboard.route";
 import studentResultRoutes from "./routes/student_result.route";
 import parentRoutes from "./routes/parent.route";
 import messageRoutes from "./routes/message.route";
+import superAdminRoutes from "./routes/super_admin.route";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { applyAssociations } from "./models/associations";
 
@@ -51,7 +52,9 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 // Middlewares
-// app.use(morgan("dev"));
+if (process.env.NODE_ENV !== "test") {
+  app.use(morgan("dev")); // Log requests in development
+}
 app.use(express.json());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
@@ -74,6 +77,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/student-results", studentResultRoutes);
 app.use("/api/parents", parentRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/superadmin", superAdminRoutes);
 
 // Welcome Route
 app.get("/", (req, res) => {

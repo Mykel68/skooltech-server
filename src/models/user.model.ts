@@ -5,11 +5,10 @@ import { ClassInstance } from "./class.model";
 import { AttendanceInstance } from "./attendance.model";
 import { StudentScoreInstance } from "./student_score.model";
 
-// Define attributes and instance
 export interface UserAttributes {
   user_id: string;
-  school_id: string;
-  role: "Admin" | "Teacher" | "Student" | "Parent";
+  school_id?: string | null; // now optional for SuperAdmin
+  role: "SuperAdmin" | "Admin" | "Teacher" | "Student" | "Parent";
   username: string;
   password_hash: string;
   email: string;
@@ -44,14 +43,20 @@ const User = sequelize.define<UserInstance>(
     },
     school_id: {
       type: DataTypes.UUID,
-      allowNull: false,
+      allowNull: true, // Nullable for SuperAdmin
       references: {
         model: School,
         key: "school_id",
       },
     },
     role: {
-      type: DataTypes.ENUM("Admin", "Teacher", "Student", "Parent"),
+      type: DataTypes.ENUM(
+        "SuperAdmin",
+        "Admin",
+        "Teacher",
+        "Student",
+        "Parent"
+      ),
       allowNull: false,
     },
     username: {
@@ -68,14 +73,8 @@ const User = sequelize.define<UserInstance>(
       allowNull: false,
       unique: true,
     },
-    first_name: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    last_name: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+    first_name: DataTypes.STRING,
+    last_name: DataTypes.STRING,
     gender: {
       type: DataTypes.ENUM("Male", "Female"),
       allowNull: true,
