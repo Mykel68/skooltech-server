@@ -18,6 +18,7 @@ import ParentStudent from "./parent_student.model";
 import StudentLinkCode from "./student_link_code";
 import Message from "./message";
 import MessageRecipient from "./message_recipient";
+import Role from "./role.model";
 
 // Apply all relationships
 import { applyAssociations } from "./associations";
@@ -43,4 +44,5 @@ export {
   ParentStudent,
   Message,
   MessageRecipient,
+  Role,
 };
