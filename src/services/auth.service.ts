@@ -18,7 +18,7 @@ import {
   StudentTeacherRegistrationData,
   UserRegistrationData,
 } from "../types/models.types";
-import { Role, SchoolSequence, sequelize } from "../models";
+import { Role, sequelize } from "../models";
 import { generateAdmissionNumber } from "../utils/admission_number.util";
 
 export const login = async (
@@ -34,7 +34,7 @@ export const login = async (
   if (!role) throw new AppError("User role not found", 400);
 
   // Restrict to Admin login
-  if (role.name !== "Admin")
+  if (role.name !== "Admin" && role.name !== "Super Admin")
     throw new AppError("Only admins can log in here", 403);
 
   const isPasswordValid = await bcrypt.compare(password, user.password_hash);

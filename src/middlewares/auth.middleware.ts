@@ -12,6 +12,8 @@ export interface AuthRequest extends Request {
     school_code: string | null;
     school_image: string | null;
     role: string;
+    role_id: number;
+    role_name: string;
   };
   session_id?: string;
   term_id?: string;
@@ -36,6 +38,8 @@ export const authMiddleware = (
       school_code: string | null;
       school_image: string | null;
       role: string;
+      role_id: number;
+      role_name: string;
       session_id: string;
     };
     req.user = decoded;
@@ -48,7 +52,7 @@ export const authMiddleware = (
 
 export const authorize = (roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (!req.user || !roles.includes(req.user.role_name)) {
       sendResponse(res, 403, {
         message: "Forbidden: Insufficient permissions",
       });
