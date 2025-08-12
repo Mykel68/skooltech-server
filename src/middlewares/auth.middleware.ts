@@ -13,7 +13,6 @@ export interface AuthRequest extends Request {
     school_image: string | null;
     role: string;
     role_id: number;
-    role_name: string;
   };
   session_id?: string;
   term_id?: string;
@@ -37,11 +36,16 @@ export const authMiddleware = (
       school_name: string;
       school_code: string | null;
       school_image: string | null;
-      role: string;
       role_id: number;
-      role_name: string;
+      role: string; // This is now the role name
       session_id: string;
     };
+
+    // Make sure role is the same as role_name if your token still has role_name
+    if ((decoded as any).role_name) {
+      decoded.role = (decoded as any).role_name;
+    }
+
     req.user = decoded;
     req.session_id = decoded.session_id;
     next();
@@ -52,7 +56,7 @@ export const authMiddleware = (
 
 export const authorize = (roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
-    if (!req.user || !roles.includes(req.user.role_name)) {
+    if (!req.user || !roles.includes(req.user.role)) {
       sendResponse(res, 403, {
         message: "Forbidden: Insufficient permissions",
       });
