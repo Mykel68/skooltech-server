@@ -11,8 +11,8 @@ export interface AuthRequest extends Request {
     school_name: string;
     school_code: string | null;
     school_image: string | null;
-    role: string[]; // changed from 'roles' to 'role'
-    role_ids?: number[];
+    role_ids?: number[]; // multiple role ids
+    role_names?: string[]; // multiple role names
   };
   session_id?: string;
   term_id?: string;
@@ -36,12 +36,23 @@ export const authMiddleware = (
       school_name: string;
       school_code: string | null;
       school_image: string | null;
-      role: string[]; // ✅ correct: array of roles
-      role_ids?: number[];
+      role_ids?: number[]; // now array
+      role_names?: string[]; // now array
       session_id: string;
+      // other props...
     };
 
-    req.user = decoded;
+    req.user = {
+      user_id: decoded.user_id,
+      school_id: decoded.school_id,
+      school_name: decoded.school_name,
+      school_code: decoded.school_code,
+      school_image: decoded.school_image,
+      role_ids:
+        decoded.role_ids ?? (decoded.role_ids ? [decoded.role_ids] : []), // fallback single id
+      role_names:
+        decoded.role_names ?? (decoded.role_names ? [decoded.role_names] : []), // fallback single name
+    };
     req.session_id = decoded.session_id;
     next();
   } catch (error) {
@@ -49,13 +60,22 @@ export const authMiddleware = (
   }
 };
 
-export const authorize = (allowedRoles: string[]) => {
+export const authorize = (allowedRoles: string | string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
-    const userRoles = req.user?.role || [];
+    const userRoles = req.user?.role_names;
+    if (!userRoles || userRoles.length === 0) {
+      sendResponse(res, 403, { message: "Forbidden: No roles found in token" });
+      return;
+    }
 
-    const hasPermission = userRoles.some((role) => allowedRoles.includes(role));
+    const rolesArray = Array.isArray(allowedRoles)
+      ? allowedRoles
+      : [allowedRoles];
 
-    if (!hasPermission) {
+    // Check if user has at least one allowed role
+    const hasRole = userRoles.some((role) => rolesArray.includes(role));
+
+    if (!hasRole) {
       sendResponse(res, 403, {
         message: "Forbidden: Insufficient permissions",
       });
