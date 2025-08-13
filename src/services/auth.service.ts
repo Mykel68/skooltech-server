@@ -20,6 +20,7 @@ import {
 } from "../types/models.types";
 import { Role, sequelize } from "../models";
 import { generateAdmissionNumber } from "../utils/admission_number.util";
+import { UserRole } from "../models/user_role.model";
 
 export const login = async (
   username: string,
@@ -131,14 +132,8 @@ export const loginTeacherStudent = async (
   password: string,
   school_code: string
 ): Promise<string> => {
-  const user: UserInstance | null = await User.findOne({
-    where: { username },
-  });
+  const user = await User.findOne({ where: { username } });
   if (!user) throw new AppError("User not found", 404);
-
-  // Fetch role from role_id
-  const role = await Role.findByPk(user.role_id);
-  if (!role) throw new AppError("User role not found", 400);
 
   const school = await School.findByPk(user.school_id!);
   if (!school) throw new AppError("School not found", 404);
@@ -150,7 +145,17 @@ export const loginTeacherStudent = async (
   const isPasswordValid = await bcrypt.compare(password, user.password_hash);
   if (!isPasswordValid) throw new AppError("Invalid credentials", 401);
 
-  // Find active session for the school
+  // Fetch roles from UserRole
+  const userWithRoles = await User.findOne({
+    where: { username },
+    include: [{ model: Role, through: { attributes: [] } }],
+  });
+
+  if (!userWithRoles) throw new AppError("User not found", 404);
+
+  const roleNames = userWithRoles.roles?.map((r) => r.Role?.name) || [];
+
+  // Find active session
   const currentDate = new Date();
   const session = await Session.findOne({
     where: {
@@ -159,31 +164,33 @@ export const loginTeacherStudent = async (
       end_date: { [Op.gte]: currentDate },
     },
   });
+
   if (!session)
     throw new AppError("No active session found for this school", 400);
 
+  // Optional: get class_id for students
   let class_id: string | undefined;
-  if (role.name === "Student") {
+  if (roleNames.includes("Student")) {
     const classStudent = await ClassStudent.findOne({
       where: { student_id: user.user_id },
     });
     if (classStudent) class_id = classStudent.class_id;
   }
 
+  // Generate JWT
   const token = jwt.sign(
     {
       user_id: user.user_id,
-      school_id: user.school_id,
-      session_id: session.session_id, // Added session_id
-      school_code: school.school_code,
-      role_id: user.role_id, // store role_id
-      role_name: role.name, // also store role name for convenience
-      first_name: user.first_name,
-      last_name: user.last_name,
       username: user.username,
       email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      school_id: user.school_id,
       school_name: school.name,
+      school_code: school.school_code,
       school_image: school.school_image,
+      roles: roleNames, // 🔁 Array of roles
+      session_id: session.session_id,
       is_approved: user.is_approved,
       class_id,
     },
@@ -214,7 +221,7 @@ export const registerTeacherStudent = async (
 
   if (!validateUUID(school_id)) throw new AppError("Invalid school ID", 400);
 
-  // Fetch role from roles table
+  // Fetch role
   const role = await Role.findByPk(role_id);
   if (!role) throw new AppError("Invalid role ID", 400);
 
@@ -232,6 +239,7 @@ export const registerTeacherStudent = async (
     throw new AppError("Class ID is not allowed for teachers", 400);
   }
 
+  // School validation
   const school = await School.findByPk(school_id);
   if (!school) throw new AppError("School not found", 404);
 
@@ -242,7 +250,7 @@ export const registerTeacherStudent = async (
     );
   }
 
-  // Check uniqueness
+  // Check username/email uniqueness
   const [existingUser, existingEmail] = await Promise.all([
     User.findOne({ where: { username } }),
     User.findOne({ where: { email } }),
@@ -259,11 +267,9 @@ export const registerTeacherStudent = async (
     }
   }
 
-  // Hash the password
   const password_hash = await bcrypt.hash(password, await bcrypt.genSalt(10));
   const user_id = uuidv4();
 
-  // Run in a transaction
   return await sequelize.transaction(async (t) => {
     let admission_number: string | undefined = undefined;
 
@@ -271,13 +277,13 @@ export const registerTeacherStudent = async (
       admission_number = await generateAdmissionNumber(school_id, t);
     }
 
+    // ✅ Create user WITHOUT role_id
     const newUser = await User.create(
       {
         user_id,
         username,
         email,
         password_hash,
-        role_id, // store FK
         first_name,
         last_name,
         school_id,
@@ -289,6 +295,16 @@ export const registerTeacherStudent = async (
       { transaction: t }
     );
 
+    // ✅ Add role to UserRole mapping table
+    await UserRole.create(
+      {
+        user_id: newUser.user_id,
+        role_id: role.role_id,
+      },
+      { transaction: t }
+    );
+
+    // ✅ Student-specific logic
     if (role.name === "Student" && class_id && session_id && term_id) {
       await ClassStudent.create(
         {

@@ -244,7 +244,7 @@ export const getSchoolSessions = async (school_id: string): Promise<any> => {
 
 export const getUserSessionsAndTerms = async (
   user_id: string,
-  role: string,
+  roles: string[],
   school_id: string
 ) => {
   // Fetch active session and term once
@@ -292,7 +292,8 @@ export const getUserSessionsAndTerms = async (
     }));
   };
 
-  if (role === "Student") {
+  // If user has Student role
+  if (roles.includes("Student")) {
     const records = await ClassStudent.findAll({
       where: { student_id: user_id },
       attributes: ["session_id", "term_id"],
@@ -334,7 +335,8 @@ export const getUserSessionsAndTerms = async (
     return prioritizeActive(sessions, sessionMap, terms);
   }
 
-  if (role === "Teacher") {
+  // If user has Teacher role
+  if (roles.includes("Teacher")) {
     const subjects = await Subject.findAll({
       where: {
         teacher_id: user_id,

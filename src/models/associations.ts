@@ -20,6 +20,7 @@ import MessageRecipient from "./message_recipient";
 import Message from "./message";
 import AttendanceLog from "./attendanceLog";
 import Role from "./role.model";
+import { UserRole } from "./user_role.model";
 
 User.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 Role.hasMany(User, { foreignKey: "role_id", as: "users" });
@@ -224,6 +225,40 @@ AttendanceLog.belongsTo(Session, {
   foreignKey: "session_id",
   as: "session",
 });
+
+// User.belongsToMany(Role, {
+//   through: UserRole,
+//   foreignKey: "user_id",
+//   otherKey: "role_id",
+//   as: "roles",
+// });
+
+// Role.belongsToMany(User, {
+//   through: UserRole,
+//   foreignKey: "role_id",
+//   otherKey: "user_id",
+//   as: "users",
+// });
+
+// User.belongsToMany(Role, { through: UserRole, foreignKey: "user_id" });
+// Role.belongsToMany(User, { through: UserRole, foreignKey: "role_id" });
+
+// Inside your model setup (after defining UserRole)
+
+User.belongsToMany(Role, {
+  through: UserRole,
+  foreignKey: "user_id",
+  otherKey: "role_id",
+});
+
+Role.belongsToMany(User, {
+  through: UserRole,
+  foreignKey: "role_id",
+  otherKey: "user_id",
+});
+
+UserRole.belongsTo(User, { foreignKey: "user_id" });
+UserRole.belongsTo(Role, { foreignKey: "role_id" });
 
 export const applyAssociations = () => {
   // Intentionally empty. Running this file will apply all associations.

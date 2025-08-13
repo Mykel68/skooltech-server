@@ -36,7 +36,7 @@ export const teacherStudentRegistrationSchema = Joi.object({
   username: Joi.string().required(),
   password: Joi.string().min(6).required(),
   email: Joi.string().email().required(),
-  role: Joi.string().valid("Student", "Teacher", "Admin", "Parent").required(),
+  role_id: Joi.number().required(),
   first_name: Joi.string().required(),
   last_name: Joi.string().required(),
   gender: Joi.string().valid("Male", "Female").required(),

@@ -1,15 +1,14 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
 import School from "./school.model";
-import Role from "./role.model";
 import { ClassInstance } from "./class.model";
 import { AttendanceInstance } from "./attendance.model";
 import { StudentScoreInstance } from "./student_score.model";
+import { UserRoleInstance } from "./user_role.model";
 
 export interface UserAttributes {
   user_id: string;
-  school_id?: string | null; // optional for SuperAdmin
-  role_id: number; // FK to roles table
+  school_id?: string | null; // Optional for SuperAdmin
   username: string;
   password_hash: string;
   email: string;
@@ -21,6 +20,7 @@ export interface UserAttributes {
   created_at?: Date;
   updated_at?: Date;
   admission_number?: string;
+  role_id?: number;
 }
 
 interface UserCreationAttributes
@@ -32,6 +32,7 @@ export interface UserInstance
   attendances?: AttendanceInstance[];
   student_scores?: StudentScoreInstance;
   class_students?: ClassInstance[];
+  roles?: UserRoleInstance[];
 }
 
 const User = sequelize.define<UserInstance>(
@@ -48,14 +49,6 @@ const User = sequelize.define<UserInstance>(
       references: {
         model: School,
         key: "school_id",
-      },
-    },
-    role_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: Role,
-        key: "role_id",
       },
     },
     username: {

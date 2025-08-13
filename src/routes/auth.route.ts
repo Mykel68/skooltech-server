@@ -1,7 +1,7 @@
-import express from 'express';
-import * as authController from '../controllers/auth.controller';
-import * as userController from '../controllers/user.controller';
-import { verify_X_API_KEY } from '../middlewares/auth.middleware';
+import express from "express";
+import * as authController from "../controllers/auth.controller";
+import * as userController from "../controllers/user.controller";
+import { verify_X_API_KEY } from "../middlewares/auth.middleware";
 const router = express.Router();
 
 /**
@@ -63,7 +63,7 @@ const router = express.Router();
  *                 message:
  *                   type: string
  */
-router.post('/login', authController.loginController);
+router.post("/login", authController.loginController);
 
 /**
  * @swagger
@@ -143,7 +143,7 @@ router.post('/login', authController.loginController);
  *                 message:
  *                   type: string
  */
-router.post('/register/:school_id', authController.registerController);
+router.post("/register/:school_id", authController.registerController);
 
 /**
  * @swagger
@@ -198,9 +198,9 @@ router.post('/register/:school_id', authController.registerController);
  *                   type: string
  */
 router.post(
-	'/teacher-student/login',
-	verify_X_API_KEY,
-	authController.loginTeacherStudentController
+  "/teacher-student/login",
+  verify_X_API_KEY,
+  authController.loginTeacherStudentController
 );
 
 /**
@@ -228,7 +228,7 @@ router.post(
  *
  */
 
-router.delete('/user/:user_id', userController.deleteUserController);
+router.delete("/user/:user_id", userController.deleteUserController);
 
 /**
  * @swagger
@@ -309,31 +309,31 @@ router.delete('/user/:user_id', userController.deleteUserController);
  *                   type: string
  */
 router.post(
-	'/register-teacher-student/:school_id',
-	authController.registerTeacherStudent
+  "/register-teacher-student/:school_id",
+  authController.registerTeacherStudent
 );
 
 router.post(
-	'/forgot-password',
-	verify_X_API_KEY,
-	authController.forgotPasswordController
+  "/forgot-password",
+  verify_X_API_KEY,
+  authController.forgotPasswordController
 );
 router.post(
-	'/reset-password',
-	verify_X_API_KEY,
-	authController.resetPasswordController
+  "/reset-password",
+  verify_X_API_KEY,
+  authController.resetPasswordController
 );
 
 router.get(
-	'/check-username',
-	verify_X_API_KEY,
-	authController.checkUsernameAvailability
+  "/check-username",
+  verify_X_API_KEY,
+  authController.checkUsernameAvailability
 );
 
 router.get(
-	'/check-email',
-	verify_X_API_KEY,
-	authController.checkEmailAvailaility
+  "/check-email",
+  verify_X_API_KEY,
+  authController.checkEmailAvailaility
 );
 
 export default router;

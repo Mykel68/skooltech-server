@@ -11,8 +11,8 @@ export interface AuthRequest extends Request {
     school_name: string;
     school_code: string | null;
     school_image: string | null;
-    role: string;
-    role_id: number;
+    role: string[]; // changed from 'roles' to 'role'
+    role_ids?: number[];
   };
   session_id?: string;
   term_id?: string;
@@ -36,15 +36,10 @@ export const authMiddleware = (
       school_name: string;
       school_code: string | null;
       school_image: string | null;
-      role_id: number;
-      role: string; // This is now the role name
+      role: string[]; // ✅ correct: array of roles
+      role_ids?: number[];
       session_id: string;
     };
-
-    // Make sure role is the same as role_name if your token still has role_name
-    if ((decoded as any).role_name) {
-      decoded.role = (decoded as any).role_name;
-    }
 
     req.user = decoded;
     req.session_id = decoded.session_id;
@@ -54,35 +49,39 @@ export const authMiddleware = (
   }
 };
 
-export const authorize = (roles: string[]) => {
+export const authorize = (allowedRoles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    const userRoles = req.user?.role || [];
+
+    const hasPermission = userRoles.some((role) => allowedRoles.includes(role));
+
+    if (!hasPermission) {
       sendResponse(res, 403, {
         message: "Forbidden: Insufficient permissions",
       });
       return;
     }
+
     next();
   };
 };
 
 export const restrictToSchool = () => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
-    console.log("Request", req.params);
+    const schoolIdFromParams = req.params.school_id || req.params.schoolId;
+
     if (!req.user) {
       sendResponse(res, 401, { message: "Unauthorized: No user data" });
       return;
     }
-    console.log("User ID:", req.user.user_id);
-    console.log("User School ID:", req.user.school_id);
-    const schoolIdFromParams = req.params.school_id || req.params.schoolId;
-    console.log("School ID from Params:", schoolIdFromParams);
+
     if (schoolIdFromParams && req.user.school_id !== schoolIdFromParams) {
       sendResponse(res, 403, {
         message: "Forbidden: Cannot access resources from another school",
       });
       return;
     }
+
     next();
   };
 };

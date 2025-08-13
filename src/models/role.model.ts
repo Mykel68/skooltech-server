@@ -1,7 +1,8 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
 
-interface RoleAttributes {
+// Role attributes
+export interface RoleAttributes {
   role_id: number;
   name: string;
   description?: string;
@@ -9,23 +10,19 @@ interface RoleAttributes {
   updated_at?: Date;
 }
 
-type RoleCreationAttributes = Optional<
+// Optional fields when creating a new role
+export type RoleCreationAttributes = Optional<
   RoleAttributes,
   "role_id" | "description" | "created_at" | "updated_at"
 >;
 
-class Role
-  extends Model<RoleAttributes, RoleCreationAttributes>
-  implements RoleAttributes
-{
-  public role_id!: number;
-  public name!: string;
-  public description?: string;
-  public readonly created_at!: Date;
-  public readonly updated_at!: Date;
-}
+// Exported RoleInstance type to use in associations
+export interface RoleInstance
+  extends Model<RoleAttributes, RoleCreationAttributes>,
+    RoleAttributes {}
 
-Role.init(
+const Role = sequelize.define<RoleInstance>(
+  "Role",
   {
     role_id: {
       type: DataTypes.INTEGER,
@@ -53,9 +50,8 @@ Role.init(
     },
   },
   {
-    sequelize,
-    modelName: "Role",
     tableName: "roles",
+    modelName: "Role", // optional
     timestamps: true,
     underscored: true,
   }

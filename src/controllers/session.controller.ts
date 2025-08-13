@@ -29,7 +29,7 @@ export const createSession = async (
 ) => {
   try {
     // console.log("req.user", req.user);
-    if (req.user?.role !== "Admin") {
+    if (!req.user?.role.includes("Admin")) {
       throw new AppError("Only admins can create sessions", 403);
     }
 
@@ -72,8 +72,8 @@ export const editSession = async (
   next: NextFunction
 ) => {
   try {
-    if (req.user?.role !== "Admin") {
-      throw new AppError("Only admins can edit sessions", 403);
+    if (!req.user?.role.includes("Admin")) {
+      throw new AppError("Only admins can create sessions", 403);
     }
 
     const { school_id, session_id } = req.params;
@@ -120,7 +120,10 @@ export const getSessions = async (
       throw new AppError("School ID is required", 400);
     }
 
-    if (req.user?.role !== "Admin" && req.user?.school_id !== school_id) {
+    if (
+      !req.user?.role.includes("Admin") &&
+      req.user?.school_id !== school_id
+    ) {
       throw new AppError("Cannot access sessions from another school", 403);
     }
 
@@ -159,14 +162,14 @@ export const getUserSessionsTerms = async (
 ) => {
   try {
     const user_id = req.user?.user_id;
-    const role_name = req.user?.role;
+    const role_names = req.user?.role;
     const { school_id } = req.params;
 
     if (!school_id) throw new Error("School ID is required");
 
     const data = await sessionService.getUserSessionsAndTerms(
       user_id!,
-      role_name!,
+      role_names!, // pass as string[]
       school_id
     );
     sendResponse(res, 200, data);
