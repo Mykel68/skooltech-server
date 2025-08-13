@@ -27,7 +27,7 @@ export const createTerm = async (
   next: NextFunction
 ) => {
   try {
-    if (!req.user || req.user.role !== "Admin") {
+    if (!req.user?.role.includes("Admin")) {
       throw new AppError("Only admins can create terms", 403);
     }
 
@@ -72,7 +72,7 @@ export const updateSchoolTerm = async (
   try {
     const { school_id, session_id, term_id } = req.params;
 
-    if (req.user?.role !== "Admin") {
+    if (!req.user?.role.includes("Admin")) {
       throw new AppError("Only admins can update terms", 403);
     }
 
