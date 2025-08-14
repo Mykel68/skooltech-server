@@ -1,7 +1,11 @@
 import express from "express";
 import * as authController from "../controllers/auth.controller";
 import * as userController from "../controllers/user.controller";
-import { verify_X_API_KEY } from "../middlewares/auth.middleware";
+import {
+  authMiddleware,
+  authorize,
+  verify_X_API_KEY,
+} from "../middlewares/auth.middleware";
 const router = express.Router();
 
 /**
@@ -63,7 +67,12 @@ const router = express.Router();
  *                 message:
  *                   type: string
  */
-router.post("/login", authController.loginController);
+router.post(
+  "/login",
+  // authMiddleware,
+  // authorize(["Admin", "Super Admin"]),
+  authController.loginController
+);
 
 /**
  * @swagger

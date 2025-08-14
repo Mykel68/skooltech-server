@@ -6,12 +6,14 @@ import Role, { RoleInstance } from "./role.model";
 export interface UserRoleAttributes {
   user_id: string;
   role_id: number;
+  role_name?: string;
 }
 
 export interface UserRoleInstance
   extends Model<UserRoleAttributes>,
     UserRoleAttributes {
   Role?: RoleInstance; // 👈 Add this line
+  role_name?: string;
 }
 
 export class UserRole

@@ -62,8 +62,16 @@ export const authMiddleware = (
 
 export const authorize = (allowedRoles: string | string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
-    const userRoles = req.user?.role_names;
-    if (!userRoles || userRoles.length === 0) {
+    let userRoles = req.user?.role_names;
+
+    // Normalize userRoles to an array
+    if (typeof userRoles === "string") {
+      userRoles = [userRoles];
+    } else if (!Array.isArray(userRoles)) {
+      userRoles = [];
+    }
+
+    if (userRoles.length === 0) {
       sendResponse(res, 403, { message: "Forbidden: No roles found in token" });
       return;
     }
