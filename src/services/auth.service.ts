@@ -145,17 +145,25 @@ export const loginTeacherStudent = async (
   const isPasswordValid = await bcrypt.compare(password, user.password_hash);
   if (!isPasswordValid) throw new AppError("Invalid credentials", 401);
 
-  // Fetch roles from UserRole
+  // ✅ Fetch roles from UserRole (many-to-many)
   const userWithRoles = await User.findOne({
     where: { username },
-    include: [{ model: Role, through: { attributes: [] } }],
+    include: [
+      {
+        model: Role,
+        as: "roles", // must match belongsToMany alias
+        through: { attributes: [] },
+      },
+    ],
   });
 
   if (!userWithRoles) throw new AppError("User not found", 404);
 
-  const roleNames = userWithRoles.roles?.map((r) => r.Role?.name) || [];
+  // Extract role IDs and names
+  const roleIds = userWithRoles.roles?.map((r) => r.role_id) || [];
+  const roleNames = userWithRoles.roles?.map((r) => r.name) || [];
 
-  // Find active session
+  // ✅ Find active session
   const currentDate = new Date();
   const session = await Session.findOne({
     where: {
@@ -165,10 +173,11 @@ export const loginTeacherStudent = async (
     },
   });
 
-  if (!session)
+  if (!session) {
     throw new AppError("No active session found for this school", 400);
+  }
 
-  // Optional: get class_id for students
+  // ✅ Optional: get class_id for students
   let class_id: string | undefined;
   if (roleNames.includes("Student")) {
     const classStudent = await ClassStudent.findOne({
@@ -177,7 +186,7 @@ export const loginTeacherStudent = async (
     if (classStudent) class_id = classStudent.class_id;
   }
 
-  // Generate JWT
+  // ✅ Generate JWT with role_ids & role_names
   const token = jwt.sign(
     {
       user_id: user.user_id,
@@ -189,7 +198,8 @@ export const loginTeacherStudent = async (
       school_name: school.name,
       school_code: school.school_code,
       school_image: school.school_image,
-      roles: roleNames, // 🔁 Array of roles
+      role_ids: roleIds, // 🔁 array of role IDs
+      role_names: roleNames, // 🔁 array of role names
       session_id: session.session_id,
       is_approved: user.is_approved,
       class_id,
@@ -290,6 +300,7 @@ export const registerTeacherStudent = async (
         is_approved: ["Teacher", "Parent"].includes(role.name) ? false : true,
         is_active: true,
         gender,
+        role_id,
         admission_number,
       },
       { transaction: t }
