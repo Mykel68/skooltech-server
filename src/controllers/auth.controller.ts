@@ -43,8 +43,8 @@ export const teacherStudentRegistrationSchema = Joi.object({
   gender: Joi.string().valid("Male", "Female").required(),
 
   // Conditional class_id rule
-  class_id: Joi.when("role", {
-    is: "Student",
+  class_id: Joi.when("role_id", {
+    is: 9, // Student
     then: Joi.string().uuid().required(),
     otherwise: Joi.forbidden(),
   }),

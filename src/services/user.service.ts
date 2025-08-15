@@ -7,6 +7,7 @@ import { validateUUID } from "../utils/validation.util";
 import Class from "../models/class.model";
 import ClassStudent from "../models/class_student.model";
 import { ClassTeacher, Role, Subject } from "../models";
+import { col } from "sequelize";
 
 export const registerUser = async (
   userData: UserRegistrationData
@@ -111,7 +112,7 @@ export const getTeachersBySchool = async (
   const school = await School.findByPk(school_id);
   if (!school) throw new AppError("School not found", 404);
 
-  const teachers = await User.findAll({
+  const teachersRaw = await User.findAll({
     where: { school_id, role_id: 3 },
     attributes: [
       "user_id",
@@ -119,7 +120,6 @@ export const getTeachersBySchool = async (
       "email",
       "first_name",
       "last_name",
-      "role",
       "school_id",
       "is_approved",
     ],
@@ -131,8 +131,19 @@ export const getTeachersBySchool = async (
         required: false,
         attributes: [],
       },
+      {
+        model: Role,
+        as: "roles",
+        attributes: ["name"],
+      },
     ],
   });
+
+  const teachers = teachersRaw.map((teacher: any) => ({
+    ...teacher.toJSON(),
+    role: teacher.roles[0]?.name || null, // flatten
+  }));
+
   return teachers as UserInstance[];
 };
 
@@ -233,7 +244,7 @@ export const getStudentsBySchool = async (
   if (!school) throw new AppError("School not found", 404);
 
   const students = await User.findAll({
-    where: { school_id, role_id: 4 },
+    where: { school_id, role_id: 9 }, // Student
     attributes: [
       "user_id",
       "email",
