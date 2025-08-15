@@ -232,7 +232,14 @@ export const getStudentResults = async (
 
   // 13. Student info
   const student = await User.findByPk(student_id, {
-    attributes: ["user_id", "first_name", "last_name", "email", "gender"],
+    attributes: [
+      "user_id",
+      "first_name",
+      "last_name",
+      "email",
+      "gender",
+      "admission_number",
+    ],
   });
 
   // 14. School info
@@ -245,7 +252,7 @@ export const getStudentResults = async (
         attributes: ["email"],
         where: {
           school_id,
-          role: "Admin",
+          role_id: 2, // Admin
         },
       },
     ],
