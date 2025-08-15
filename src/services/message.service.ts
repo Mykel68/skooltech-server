@@ -13,43 +13,51 @@ import { AppError } from "../utils/error.util";
 // Define accepted roles
 export type Role = "Teacher" | "Student" | "Parent" | "All";
 
+// Map role names to their numeric IDs in DB
+const ROLE_IDS = {
+  Teacher: 3,
+  Student: 9,
+  Parent: 10,
+} as const;
+
 interface CreateMessagePayload {
   school_id: string;
   admin_id: string;
   title: string;
   content: string;
   message_type: "announcement" | "message" | "urgent" | "newsletter";
-  target_role: string; // we accept plural/singular/invalids initially
+  target_role: string; // plural/singular possible
   class_id?: string;
   has_attachment?: boolean;
   attachment_name?: string;
 }
 
-// Helper: Check if a role is valid (excluding plural/syntax variations)
+// Helper: strict role validator
 const isValidRole = (role: string): role is Role => {
   return ["Teacher", "Student", "Parent", "All"].includes(role);
 };
+
 export const createMessage = async (payload: CreateMessagePayload) => {
   let normalizedRole: Role = "All";
-  let roleFilter: string[] = [];
+  let roleIdFilter: number[] = [];
 
-  // Detect plural and normalize (e.g. Teachers → Teacher)
-  const isPlural = /(s|S)$/.test(payload.target_role);
+  // Normalize role (remove plural 's')
   const rawRole = payload.target_role.trim().replace(/s$/i, "");
 
   if (isValidRole(rawRole)) {
     normalizedRole = rawRole;
-    roleFilter =
+    roleIdFilter =
       normalizedRole === "All"
-        ? ["Teacher", "Student", "Parent"]
-        : [normalizedRole];
+        ? [ROLE_IDS.Teacher, ROLE_IDS.Student, ROLE_IDS.Parent]
+        : [ROLE_IDS[normalizedRole]];
   } else {
     throw new AppError(`Invalid target_role: ${payload.target_role}`, 400);
   }
 
   let recipients;
 
-  if (normalizedRole === "Student" && payload.class_id && !isPlural) {
+  // Student in a specific class
+  if (normalizedRole === "Student" && payload.class_id) {
     recipients = await User.findAll({
       include: [
         {
@@ -61,11 +69,13 @@ export const createMessage = async (payload: CreateMessagePayload) => {
       ],
       where: {
         school_id: payload.school_id,
-        role_id: 4, // Student
+        role_id: ROLE_IDS.Student,
       },
       attributes: ["user_id"],
     });
-  } else if (normalizedRole === "Teacher" && payload.class_id && !isPlural) {
+  }
+  // Teacher in a specific class
+  else if (normalizedRole === "Teacher" && payload.class_id) {
     recipients = await User.findAll({
       include: [
         {
@@ -77,11 +87,13 @@ export const createMessage = async (payload: CreateMessagePayload) => {
       ],
       where: {
         school_id: payload.school_id,
-        role_id: 3, // Teacher
+        role_id: ROLE_IDS.Teacher,
       },
       attributes: ["user_id"],
     });
-  } else if (normalizedRole === "Parent" && payload.class_id && !isPlural) {
+  }
+  // Parent in a specific class
+  else if (normalizedRole === "Parent" && payload.class_id) {
     recipients = await User.findAll({
       include: [
         {
@@ -100,15 +112,17 @@ export const createMessage = async (payload: CreateMessagePayload) => {
       ],
       where: {
         school_id: payload.school_id,
-        role_id: 5, // Parent
+        role_id: ROLE_IDS.Parent,
       },
       attributes: ["user_id"],
     });
-  } else {
+  }
+  // All / Role without class filter
+  else {
     recipients = await User.findAll({
       where: {
         school_id: payload.school_id,
-        role_id: { [Op.in]: roleFilter },
+        role_id: { [Op.in]: roleIdFilter },
       },
       attributes: ["user_id"],
     });
@@ -118,7 +132,7 @@ export const createMessage = async (payload: CreateMessagePayload) => {
     throw new AppError("No recipients found for the specified criteria.", 404);
   }
 
-  // Create message
+  // Create the message
   const message = await Message.create({
     school_id: payload.school_id,
     admin_id: payload.admin_id,
