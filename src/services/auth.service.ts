@@ -151,8 +151,9 @@ export const loginTeacherStudent = async (
     include: [
       {
         model: Role,
-        as: "roles", // must match belongsToMany alias
-        through: { attributes: [] },
+        as: "roles",
+        through: { attributes: [] }, // hides join table columns
+        attributes: ["role_id", "name"],
       },
     ],
   });
