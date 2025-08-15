@@ -45,7 +45,7 @@ export const getStudentByClass = async (
       {
         model: User,
         as: "student", // make sure this alias matches your association
-        where: { role: "Student", school_id },
+        where: { school_id, role_id: 9 }, // Student
         attributes: { exclude: ["password_hash"] }, // exclude sensitive info if you want
       },
     ],
@@ -83,7 +83,6 @@ export const getStudentsBySchool = async (
           "email",
           "first_name",
           "last_name",
-          "role",
           "school_id",
           "is_approved",
         ],
@@ -234,7 +233,7 @@ export const getStudentById = async (user_id: string): Promise<any> => {
   const student = await User.findOne({
     where: {
       user_id,
-      role_id: 4, // Student
+      role_id: 9, // Student
     },
   });
   if (!student) throw new AppError("Student not found", 404);

@@ -5,6 +5,7 @@ import { validateUUID } from "../utils/validation.util";
 import ClassStudent from "../models/class_student.model";
 import User from "../models/user.model";
 import Class from "../models/class.model";
+import { UserRole } from "../models/user_role.model";
 
 export const createClassTeacher = async (
   school_id: string,
@@ -42,6 +43,10 @@ export const createClassTeacher = async (
     teacher_id,
     session_id,
     term_id,
+  });
+  await UserRole.create({
+    user_id: teacher_id,
+    role_id: 4, // Class Teacher
   });
   return assignment;
 };

@@ -21,6 +21,7 @@ const registrationSchema = Joi.object({
   role: Joi.string().valid("Student", "Teacher", "Parent").required(),
   first_name: Joi.string().max(50).optional(),
   last_name: Joi.string().max(50).optional(),
+  role_id: Joi.number().required(),
 });
 
 // const teacherStudentRegistrationSchema = Joi.object({
@@ -42,8 +43,8 @@ export const teacherStudentRegistrationSchema = Joi.object({
   gender: Joi.string().valid("Male", "Female").required(),
 
   // Conditional class_id rule
-  class_id: Joi.when("role", {
-    is: "Student",
+  class_id: Joi.when("role_id", {
+    is: 9, // Student
     then: Joi.string().uuid().required(),
     otherwise: Joi.forbidden(),
   }),
@@ -170,6 +171,8 @@ export const registerTeacherStudent = async (
     if (!school_id) {
       throw new AppError("School ID is required", 400);
     }
+
+    console.log("user", req.body);
 
     const { error, value } = teacherStudentRegistrationSchema.validate(
       req.body

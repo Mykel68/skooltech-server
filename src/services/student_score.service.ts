@@ -430,7 +430,7 @@ export const getStudentScores = async (
       {
         model: User,
         as: "student",
-        where: { role: "Student", is_approved: true },
+        where: { role_id: 9, is_approved: true }, /// Student
         attributes: ["user_id", "first_name", "last_name"],
         required: true,
       },
@@ -814,7 +814,7 @@ export const getStudentSubjectsAndScores = async (
     where: {
       user_id: student_id,
       school_id,
-      role_id: 4, // Student
+      role_id: 9, // Student
       is_approved: true,
     },
   });
@@ -903,7 +903,7 @@ export const getStudentsInSession = async (
   const students = await User.findAll({
     where: {
       school_id,
-      role_id: 4, // Student
+      role_id: 9, // Student
     },
     include: [
       {
@@ -979,7 +979,7 @@ export const getStudentsWithResults = async (
   const students = (await User.findAll({
     where: {
       school_id,
-      role_id: 4, // Student
+      role_id: 9, // Student
     },
     include: [
       {

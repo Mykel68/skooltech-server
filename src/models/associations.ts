@@ -249,12 +249,14 @@ User.belongsToMany(Role, {
   through: UserRole,
   foreignKey: "user_id",
   otherKey: "role_id",
+  as: "roles",
 });
 
 Role.belongsToMany(User, {
   through: UserRole,
   foreignKey: "role_id",
   otherKey: "user_id",
+  as: "role_users",
 });
 
 UserRole.belongsTo(User, { foreignKey: "user_id" });

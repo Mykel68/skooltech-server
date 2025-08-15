@@ -4,7 +4,7 @@ import School from "./school.model";
 import { ClassInstance } from "./class.model";
 import { AttendanceInstance } from "./attendance.model";
 import { StudentScoreInstance } from "./student_score.model";
-import { UserRoleInstance } from "./user_role.model";
+import { RoleInstance } from "./role.model";
 
 export interface UserAttributes {
   user_id: string;
@@ -32,7 +32,7 @@ export interface UserInstance
   attendances?: AttendanceInstance[];
   student_scores?: StudentScoreInstance;
   class_students?: ClassInstance[];
-  roles?: UserRoleInstance[];
+  roles?: RoleInstance[];
 }
 
 const User = sequelize.define<UserInstance>(
