@@ -32,8 +32,8 @@ export const getAppData = async (userId: string) => {
   return {
     totalUsers: await User.count(),
     activeUsers: await User.count({ where: { is_active: true } }),
-    approvedUsers: await User.count({ where: { is_approved: true } }),
-    pendingUsers: await User.count({ where: { is_approved: false } }),
+    activeSchools: await School.count({ where: { is_active: true } }),
+    pendingSchools: await School.count({ where: { is_active: false } }),
     totalSchools: await School.count(),
   };
 };
