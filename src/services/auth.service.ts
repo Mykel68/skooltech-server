@@ -45,6 +45,15 @@ export const login = async (
 
   let school: SchoolInstance | null = null;
   let session: SessionInstance | null = null;
+  let isActive: boolean | null = null;
+
+  if (role.name === "Super Admin") {
+    // Super Admin must be approved at user level
+    if (!user.is_active) {
+      throw new AppError("Super Admin not approved", 403);
+    }
+    isActive = user.is_active;
+  }
 
   if (role.name === "Admin") {
     // Admin must have a school
@@ -53,6 +62,13 @@ export const login = async (
 
     school = await School.findByPk(user.school_id);
     if (!school) throw new AppError("School not found", 404);
+
+    if (!school.is_active) {
+      throw new AppError("School not approved", 403);
+    }
+
+    // Save active status from school
+    isActive = school.is_active;
 
     // Find active session
     const currentDate = new Date();
@@ -69,8 +85,8 @@ export const login = async (
   const token = jwt.sign(
     {
       user_id: user.user_id,
-      role_ids: user.role_id,
-      role_names: role.name,
+      role_id: user.role_id,
+      role_name: role.name,
       first_name: user.first_name,
       last_name: user.last_name,
       username: user.username,
@@ -81,7 +97,11 @@ export const login = async (
       school_code: school?.school_code ?? null,
       school_name: school?.name ?? null,
       school_image: school?.school_image ?? null,
-      is_school_active: school?.is_active ?? null,
+
+      // Active status (based on role type)
+      is_school_active: isActive,
+
+      // Session only for admins
       session_id: session?.session_id ?? null,
     },
     process.env.JWT_SECRET!,
