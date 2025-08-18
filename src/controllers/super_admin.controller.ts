@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import {
   createSuperAdmin,
   getAllSchools,
+  getAllUsers,
   getAppData,
 } from "../services/super_admin.service";
 import { AuthRequest } from "../middlewares/auth.middleware";
@@ -60,6 +61,23 @@ export const getSchools = async (
     }
     const schools = await getAllSchools();
     sendResponse(res, 200, schools);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUsers = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user?.user_id;
+    if (!userId) {
+      sendResponse(res, 401, { message: "Unauthorized: No user data" });
+    }
+    const users = await getAllUsers();
+    sendResponse(res, 200, users);
   } catch (error) {
     next(error);
   }

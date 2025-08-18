@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { School, User } from "../models";
+import { Role, School, User } from "../models";
 
 export const createSuperAdmin = async (data: {
   username: string;
@@ -56,6 +56,27 @@ export const getAllSchools = async () => {
     totalUsers: s.users.length,
     totalRevenue: 0, // placeholder until you track revenue
     createdAt: s.users[0]?.created_at || null, // maybe admin’s created_at
+    logo: s.school_image || null,
     // users: s.users,
+  }));
+};
+
+export const getAllUsers = async () => {
+  const users = await User.findAll({
+    include: [
+      { model: Role, as: "role", attributes: ["role_id", "name"] },
+      { model: School, as: "school", attributes: ["school_id", "name"] },
+    ],
+    attributes: ["user_id", "username", "email", "is_active", "createdAt"],
+  });
+
+  return users.map((u: any) => ({
+    id: u.user_id,
+    name: u.username, // ✅ correct field
+    email: u.email,
+    status: u.is_active ? "active" : "inactive",
+    role: u.role ? u.role.name : null, // ✅ guard against undefined
+    school: u.school ? u.school.name : null,
+    createdAt: u.createdAt,
   }));
 };

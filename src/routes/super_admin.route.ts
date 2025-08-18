@@ -3,6 +3,7 @@ import {
   createSuperAdminController,
   getAppStats,
   getSchools,
+  getUsers,
 } from "../controllers/super_admin.controller";
 import {
   authMiddleware,
@@ -37,5 +38,14 @@ router.get(
   authMiddleware,
   authorize(["Super Admin"]),
   getSchools
+);
+
+// GET /api/user/get-all-users
+router.get(
+  "/users",
+  verify_X_API_KEY,
+  authMiddleware,
+  authorize(["Super Admin"]),
+  getUsers
 );
 export default router;

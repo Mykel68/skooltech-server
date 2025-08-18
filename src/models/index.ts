@@ -19,6 +19,7 @@ import StudentLinkCode from "./student_link_code";
 import Message from "./message";
 import MessageRecipient from "./message_recipient";
 import Role from "./role.model";
+import { UserRole } from "./user_role.model";
 
 // Apply all relationships
 import { applyAssociations } from "./associations";
@@ -45,4 +46,5 @@ export {
   Message,
   MessageRecipient,
   Role,
+  UserRole,
 };

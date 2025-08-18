@@ -4,6 +4,7 @@ import User from "./user.model";
 import Role, { RoleInstance } from "./role.model";
 
 export interface UserRoleAttributes {
+  id?: string;
   user_id: string;
   role_id: number;
   role_name?: string;
@@ -26,6 +27,11 @@ export class UserRole
 
 UserRole.init(
   {
+    id: {
+      type: DataTypes.UUID,
+      autoIncrement: true,
+      primaryKey: true,
+    },
     user_id: {
       type: DataTypes.UUID,
       allowNull: false,

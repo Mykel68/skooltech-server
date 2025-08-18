@@ -262,6 +262,8 @@ Role.belongsToMany(User, {
 UserRole.belongsTo(User, { foreignKey: "user_id" });
 UserRole.belongsTo(Role, { foreignKey: "role_id" });
 
+User.belongsTo(Role, { foreignKey: "role_id", as: "role" });
+
 export const applyAssociations = () => {
   // Intentionally empty. Running this file will apply all associations.
 };
