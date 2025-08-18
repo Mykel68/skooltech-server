@@ -2,8 +2,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { DataTypes, Op } from "sequelize";
 import User, { UserInstance } from "../models/user.model";
-import School from "../models/school.model";
-import Session from "../models/session.model";
+import School, { SchoolInstance } from "../models/school.model";
+import Session, { SessionInstance } from "../models/session.model";
 import { AppError } from "../utils/error.util";
 
 import ClassStudent from "../models/class_student.model";
@@ -30,45 +30,59 @@ export const login = async (
   const user: UserInstance | null = await User.findOne({ where: { username } });
   if (!user) throw new AppError("User not found", 404);
 
-  // Get role details from role_id
+  // Get role details
   const role = await Role.findByPk(user.role_id);
   if (!role) throw new AppError("User role not found", 400);
 
-  // Restrict to Admin login
-  if (role.name !== "Admin" && role.name !== "Super Admin")
+  // Restrict to Admin or Super Admin login
+  if (role.name !== "Admin" && role.name !== "Super Admin") {
     throw new AppError("Only admins can log in here", 403);
+  }
 
+  // Verify password
   const isPasswordValid = await bcrypt.compare(password, user.password_hash);
   if (!isPasswordValid) throw new AppError("Invalid credentials", 401);
 
-  const school = await School.findByPk(user.school_id!);
-  if (!school) throw new AppError("School not found", 404);
+  let school: SchoolInstance | null = null;
+  let session: SessionInstance | null = null;
 
-  // Find active session for the school
-  const currentDate = new Date();
-  const session = await Session.findOne({
-    where: {
-      school_id: user.school_id!,
-      start_date: { [Op.lte]: currentDate },
-      end_date: { [Op.gte]: currentDate },
-    },
-  });
+  if (role.name === "Admin") {
+    // Admin must have a school
+    if (!user.school_id)
+      throw new AppError("Admin must belong to a school", 400);
 
+    school = await School.findByPk(user.school_id);
+    if (!school) throw new AppError("School not found", 404);
+
+    // Find active session
+    const currentDate = new Date();
+    session = await Session.findOne({
+      where: {
+        school_id: user.school_id,
+        start_date: { [Op.lte]: currentDate },
+        end_date: { [Op.gte]: currentDate },
+      },
+    });
+  }
+
+  // Create JWT payload
   const token = jwt.sign(
     {
       user_id: user.user_id,
-      school_id: user.school_id,
-      session_id: session?.session_id,
-      school_code: school.school_code,
       role_ids: user.role_id,
       role_names: role.name,
       first_name: user.first_name,
       last_name: user.last_name,
       username: user.username,
       email: user.email,
-      school_name: school.name,
-      school_image: school.school_image,
-      is_school_active: school.is_active,
+
+      // Admin-only fields
+      school_id: school?.school_id ?? null,
+      school_code: school?.school_code ?? null,
+      school_name: school?.name ?? null,
+      school_image: school?.school_image ?? null,
+      is_school_active: school?.is_active ?? null,
+      session_id: session?.session_id ?? null,
     },
     process.env.JWT_SECRET!,
     { expiresIn: "8h" }
