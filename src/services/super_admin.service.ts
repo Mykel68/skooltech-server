@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
-import User from "../models/user.model";
-import { School } from "../models";
+import { School, User } from "../models";
 
 export const createSuperAdmin = async (data: {
   username: string;
@@ -30,10 +29,33 @@ export const getAppData = async (userId: string) => {
   }
 
   return {
-    totalUsers: await User.count(),
+    total: await User.count(),
     activeUsers: await User.count({ where: { is_active: true } }),
     activeSchools: await School.count({ where: { is_active: true } }),
     pendingSchools: await School.count({ where: { is_active: false } }),
     totalSchools: await School.count(),
   };
+};
+
+export const getAllSchools = async () => {
+  const schools = await School.findAll({
+    include: [
+      {
+        model: User,
+        as: "users",
+      },
+    ],
+  });
+
+  return schools.map((s: any) => ({
+    id: s.school_id,
+    name: s.name,
+    email: s.users[0]?.email || null, // maybe admin’s email
+    status: s.is_active ? "active" : "pending", // map boolean to string
+    subscriptionPlan: "basic", // or fetch from Subscription table if you have it
+    totalUsers: s.users.length,
+    totalRevenue: 0, // placeholder until you track revenue
+    createdAt: s.users[0]?.created_at || null, // maybe admin’s created_at
+    // users: s.users,
+  }));
 };
