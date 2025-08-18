@@ -85,8 +85,8 @@ export const login = async (
   const token = jwt.sign(
     {
       user_id: user.user_id,
-      role_id: user.role_id,
-      role_name: role.name,
+      role_ids: user.role_id,
+      role_names: role.name,
       first_name: user.first_name,
       last_name: user.last_name,
       username: user.username,
