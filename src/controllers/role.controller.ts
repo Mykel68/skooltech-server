@@ -1,13 +1,16 @@
 import { Request, Response } from "express";
 import * as userService from "../services/role.service";
+import { sendResponse } from "../utils/response.util";
 
 export const getUser = async (req: Request, res: Response) => {
   try {
-    const user = await userService.getUserWithRoles(Number(req.params.id));
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
+    const user = await userService.getUserWithRoles(req.params.id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    sendResponse(res, 200, user);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching user", error });
+    throw new Error("Error fetching user");
   }
 };
 
@@ -16,9 +19,9 @@ export const addRole = async (req: Request, res: Response) => {
     const { roleId } = req.body;
     const { id } = req.params;
     await userService.assignRoleToUser(id, roleId);
-    res.json({ message: "Role assigned successfully" });
+    sendResponse(res, 200, { message: "Role added successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error assigning role", error });
+    throw new Error("Error adding role");
   }
 };
 
@@ -27,8 +30,8 @@ export const deleteRole = async (req: Request, res: Response) => {
     const { roleId } = req.body;
     const { id } = req.params;
     await userService.removeRoleFromUser(id, roleId);
-    res.json({ message: "Role removed successfully" });
+    sendResponse(res, 200, { message: "Role removed successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error removing role", error });
+    throw new Error("Error removing role");
   }
 };

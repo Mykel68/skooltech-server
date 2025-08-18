@@ -22,9 +22,6 @@ import AttendanceLog from "./attendanceLog";
 import Role from "./role.model";
 import { UserRole } from "./user_role.model";
 
-User.belongsTo(Role, { foreignKey: "role_id", as: "role" });
-Role.hasMany(User, { foreignKey: "role_id", as: "users" });
-
 // === CLASS associations ===
 Class.belongsTo(School, { foreignKey: "school_id" });
 School.hasMany(Class, { foreignKey: "school_id" });

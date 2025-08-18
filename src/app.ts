@@ -23,6 +23,7 @@ import studentResultRoutes from "./routes/student_result.route";
 import parentRoutes from "./routes/parent.route";
 import messageRoutes from "./routes/message.route";
 import superAdminRoutes from "./routes/super_admin.route";
+import roleRoutes from "./routes/role.route";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { applyAssociations } from "./models/associations";
 
@@ -78,6 +79,7 @@ app.use("/api/student-results", studentResultRoutes);
 app.use("/api/parents", parentRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/superadmin", superAdminRoutes);
+app.use("/api/roles", roleRoutes);
 
 // Welcome Route
 app.get("/", (req, res) => {
