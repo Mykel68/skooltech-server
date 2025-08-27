@@ -1,10 +1,7 @@
 import { Sequelize } from "sequelize";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is not defined in .env file");
+  throw new Error("❌ DATABASE_URL is not set in Doppler");
 }
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
@@ -13,7 +10,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: false, // Allow self-signed certificates
+      rejectUnauthorized: false, // If your host (like Neon or Heroku) requires SSL
     },
   },
 });

@@ -27,7 +27,8 @@ export const login = async (
   password: string
 ): Promise<string> => {
   // Find user by username
-  const user: UserInstance | null = await User.findOne({ where: { username } });
+  console.log("Logging in user:", username);
+  const user: UserInstance | null = await User.findOne({ where: { username: username } });
   if (!user) throw new AppError("User not found", 404);
 
   // Get role details
