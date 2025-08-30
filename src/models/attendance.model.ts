@@ -57,7 +57,7 @@ const Attendance = sequelize.define<AttendanceInstance>(
   },
   {
     tableName: "attendances",
-    timestamps: false,
+    timestamps: true,
     underscored: true,
   }
 );

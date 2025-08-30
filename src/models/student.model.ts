@@ -43,7 +43,7 @@ const Student = sequelize.define<StudentInstance>(
 	},
 	{
 		tableName: 'students',
-		timestamps: false,
+		timestamps: true,
 		underscored: true,
 	}
 );

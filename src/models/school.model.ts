@@ -68,7 +68,7 @@ const School = sequelize.define<SchoolInstance>(
   },
   {
     tableName: "schools",
-    timestamps: false,
+    timestamps: true,
     underscored: true,
   }
 );

@@ -47,7 +47,7 @@ const ParentStudent = sequelize.define<ParentStudentInstance>(
   },
   {
     tableName: "parent_students",
-    timestamps: false,
+    timestamps: true,
     underscored: true,
   }
 );

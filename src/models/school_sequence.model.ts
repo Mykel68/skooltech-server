@@ -36,7 +36,7 @@ const SchoolSequence = sequelize.define<SchoolSequenceInstance>(
   },
   {
     tableName: "school_sequences",
-    timestamps: false,
+    timestamps: true,
     underscored: true,
   }
 );

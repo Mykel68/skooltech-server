@@ -46,7 +46,7 @@ const MessageRecipient = sequelize.define<MessageRecipientInstance>(
   {
     tableName: "message_recipients",
     underscored: true,
-    timestamps: false,
+    timestamps: true,
   }
 );
 

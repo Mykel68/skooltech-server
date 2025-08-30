@@ -112,7 +112,7 @@ const Message = sequelize.define<MessageInstance>(
   {
     tableName: "messages",
     underscored: true,
-    timestamps: false,
+    timestamps: true,
   }
 );
 
