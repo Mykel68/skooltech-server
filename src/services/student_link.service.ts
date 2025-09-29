@@ -3,7 +3,7 @@ import { addMinutes } from "../utils/date.util";
 
 export const createStudentLinkCode = async (student_id: string) => {
   const student = await User.findOne({
-    where: { user_id: student_id, role: "Student" },
+    where: { user_id: student_id, role_id: 9 },
   });
   if (!student) throw new Error("Student not found");
 

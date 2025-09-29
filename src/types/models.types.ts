@@ -154,16 +154,16 @@ interface SessionAttributes {
   end_date: Date;
 }
 
-interface SessionCreationAttributes
-  extends Optional<
-    SessionAttributes,
-    "session_id" | "created_at" | "updated_at"
-  > {}
-export interface SessionInstance
-  extends Model<SessionAttributes, SessionCreationAttributes>,
-    SessionAttributes {
-  terms?: TermInstance[];
-}
+// interface SessionCreationAttributes
+//   extends Optional<
+//     SessionAttributes,
+//     "session_id" | "created_at" | "updated_at"
+//   > {}
+// export interface SessionInstance
+//   extends Model<SessionAttributes, SessionCreationAttributes>,
+//     SessionAttributes {
+//   terms?: TermInstance[];
+// }
 
 interface TermAttributes {
   term_id: string;
@@ -175,8 +175,8 @@ interface TermAttributes {
   is_active: boolean;
 }
 
-interface TermCreationAttributes
-  extends Optional<TermAttributes, "term_id" | "created_at" | "updated_at"> {}
-export interface TermInstance
-  extends Model<TermAttributes, TermCreationAttributes>,
-    TermAttributes {}
+// interface TermCreationAttributes
+//   extends Optional<TermAttributes, "term_id" | "created_at" | "updated_at"> {}
+// export interface TermInstance
+//   extends Model<TermAttributes, TermCreationAttributes>,
+//     TermAttributes {}
