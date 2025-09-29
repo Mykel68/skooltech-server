@@ -4,7 +4,7 @@ import {
   authorize,
   restrictToSchool,
 } from "../middlewares/auth.middleware";
-import { getTeachers } from "../controllers/class.controller";
+// import { getTeachers } from "../controllers/class.controller";
 
 const router = express.Router();
 
@@ -75,12 +75,12 @@ const router = express.Router();
  *       404:
  *         description: Class or student not found
  */
-router.get(
-  "/:school_id/:class_id/teachers",
-  authMiddleware,
-  authorize(["Student"]),
-  restrictToSchool(),
-  getTeachers
-);
+// router.get(
+//   "/:school_id/:class_id/teachers",
+//   authMiddleware,
+//   authorize(["Student"]),
+//   restrictToSchool(),
+//   getTeachers
+// );
 
 export default router;

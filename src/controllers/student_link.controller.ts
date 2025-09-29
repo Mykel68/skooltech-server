@@ -1,7 +1,7 @@
-import { NextFunction } from "express";
-import { sendResponse } from "../utils/response.util";
-import { AppError } from "../utils/error.util";
+import { NextFunction, Response } from "express";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { AppError } from "../utils/error.util";
+import { sendResponse } from "../utils/response.util";
 import { createStudentLinkCode } from "../services/student_link.service";
 
 export const generateStudentLinkCode = async (
