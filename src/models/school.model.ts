@@ -24,6 +24,7 @@ export interface SchoolRegistrationData {
   admin_first_name?: string;
   admin_last_name?: string;
   gender?: "Male" | "Female";
+  created_at: Date;
 }
 
 interface SchoolInstance extends Model<SchoolAttributes>, SchoolAttributes {}
@@ -68,8 +69,9 @@ const School = sequelize.define<SchoolInstance>(
   },
   {
     tableName: "schools",
-    timestamps: true,
+    timestamps: false,
     underscored: true,
+    createdAt: "created_at",
   }
 );
 
